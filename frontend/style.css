@@ -1,0 +1,133 @@
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+/* FUNDO */
+body {
+  background: #f4f6f9;
+}
+
+/* CONTAINER PADRÃO (LOGIN E REDAÇÃO) */
+.container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  background: white;
+  width: 380px;
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* LOGO */
+.logo {
+  color: #2b6cb0;
+  margin-bottom: 15px;
+}
+
+/* TEXTOS */
+h2 {
+  margin-bottom: 10px;
+}
+
+p {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+/* INPUTS */
+input,
+textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  outline: none;
+}
+
+/* TEXTAREA */
+textarea {
+  height: 150px;
+  resize: none;
+}
+
+/* BOTÃO */
+button {
+  margin-top: 15px;
+  padding: 10px;
+  background: #2b6cb0;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  width: 100%;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover {
+  background: #1e4e8c;
+}
+
+/* NOTA */
+.nota {
+  font-size: 40px;
+  color: #2b6cb0;
+  margin: 20px 0;
+  font-weight: bold;
+}
+
+/* RESULTADO PADRÃO */
+pre {
+  text-align: left;
+  background: #f4f6f9;
+  padding: 15px;
+  border-radius: 5px;
+  white-space: pre-wrap;
+}
+
+/* ========================= */
+/* SOMENTE PÁGINA RESULTADO  */
+/* ========================= */
+
+.resultado-container {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+
+  width: 900px !important;
+  max-width: 95%;
+
+  margin: 30px auto;
+}
+
+.resultado-container .nota {
+  font-size: 60px;
+}
+
+.resultado-container pre {
+  max-height: 500px;
+  overflow-y: auto;
+
+  text-align: left;
+  background: #f4f6f9;
+
+  padding: 20px;
+  border-radius: 8px;
+
+  font-size: 16px;
+  line-height: 1.6;
+
+  white-space: pre-wrap;
+  word-break: break-word;
+}
