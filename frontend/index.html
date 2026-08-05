@@ -2,31 +2,56 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Login - Português+</title>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entrar | Português+</title>
   <link rel="stylesheet" href="style.css">
 </head>
+<body class="auth-page">
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Página inicial do Português+">
+      <span class="brand-icon">📘</span>
+      <span>Português<span>+</span></span>
+    </a>
+    <nav class="site-nav" aria-label="Navegação principal">
+      <a href="#como-funciona">Como funciona</a>
+      <a href="cadastro.html" class="nav-cta">Criar conta</a>
+    </nav>
+  </header>
 
-<body>
+  <main class="auth-main">
+    <section class="auth-intro" id="como-funciona">
+      <span class="eyebrow">ESTUDE COM PROPÓSITO</span>
+      <h1>Escreva melhor.<br><strong>Alcance mais.</strong></h1>
+      <p>Tenha correções claras, sugestões práticas e acompanhe a evolução das suas redações em um só lugar.</p>
+      <div class="feature-list">
+        <div><span>✓</span> Correção no modelo ENEM</div>
+        <div><span>✓</span> Feedback para melhorar</div>
+        <div><span>✓</span> Envie texto ou foto</div>
+      </div>
+    </section>
 
-  <div class="container">
-    <h1 class="logo">📘 Português+</h1>
+    <section class="auth-card" aria-labelledby="login-title">
+      <div class="form-heading">
+        <span class="form-icon">👋</span>
+        <div>
+          <h2 id="login-title">Que bom te ver!</h2>
+          <p>Entre para continuar seus estudos.</p>
+        </div>
+      </div>
 
-    <h2>Bem-vindo!</h2>
-    <p>Acesse sua conta.</p>
+      <label for="email">E-mail</label>
+      <input id="email" type="email" placeholder="voce@email.com" autocomplete="email">
 
-    <input id="email" placeholder="E-mail">
-    <input id="senha" type="password" placeholder="Senha">
+      <label for="senha">Senha</label>
+      <input id="senha" type="password" placeholder="Digite sua senha" autocomplete="current-password">
 
-    <button onclick="login()">Entrar</button>
+      <button class="primary-action" onclick="login()">Entrar na plataforma <span>→</span></button>
 
-    <p style="margin-top:15px;">
-      Não possui conta?
-      <a href="cadastro.html">Criar conta</a>
-    </p>
-  </div>
+      <p class="form-footer">Ainda não possui conta? <a href="cadastro.html">Criar minha conta</a></p>
+    </section>
+  </main>
 
+  <footer class="site-footer">© 2026 Português+ · Sua prática, seu progresso.</footer>
   <script src="script.js"></script>
-
 </body>
 </html>

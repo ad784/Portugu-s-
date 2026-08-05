@@ -1,5 +1,18 @@
 // LOGIN
 function login() {
+  const email = document.getElementById("email").value.trim();
+  const senha = document.getElementById("senha").value.trim();
+
+  if (!email || !senha) {
+    alert("Preencha e-mail e senha para entrar.");
+    return;
+  }
+
+  if (!email.includes("@") || email.startsWith("@") || email.endsWith("@")) {
+    alert("Digite um e-mail válido com @");
+    return;
+  }
+
   window.location.href = "nova.html";
 }
 
@@ -47,10 +60,12 @@ window.onload = () => {
   if (resultado && elResultado) {
     elResultado.innerText = resultado;
 
-    // tenta pegar nota automaticamente
-    const match = resultado.match(/\d{3,4}/);
+    // Copia exatamente a nota exibida no início do relatório.
+    // Procurar apenas números no texto inteiro podia selecionar uma competência
+    // ou métrica e mostrar uma nota diferente.
+    const match = resultado.match(/^\s*Nota\s*:\s*([^\r\n]+)/im);
     if (match && elNota) {
-      elNota.innerText = match[0];
+      elNota.innerText = match[1].trim();
     }
   }
 };
@@ -58,4 +73,21 @@ window.onload = () => {
 // VOLTAR
 function voltar() {
   window.location.href = "nova.html";
+}
+
+function atualizarContador() {
+  const redacao = document.getElementById("redacao");
+  const contador = document.getElementById("contador-palavras");
+  const contadorLinhas = document.getElementById("contador-linhas");
+
+  if (!redacao || !contador) return;
+
+  const total = redacao.value.trim() ? redacao.value.trim().split(/\s+/).length : 0;
+  const linhas = redacao.value.split(/\r?\n/).filter((linha) => linha.trim()).length;
+  contador.innerText = `${total} ${total === 1 ? "palavra" : "palavras"}`;
+
+  if (contadorLinhas) {
+    contadorLinhas.innerText = `${linhas}/10 linhas para correção`;
+    contadorLinhas.classList.toggle("line-target-ok", linhas >= 10);
+  }
 }

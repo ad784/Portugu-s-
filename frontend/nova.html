@@ -2,26 +2,66 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Nova Redação - Português+</title>
-
-  <!-- CSS -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova redação | Português+</title>
   <link rel="stylesheet" href="style.css">
 </head>
+<body class="editor-page">
+  <header class="site-header">
+    <a class="brand" href="nova.html" aria-label="Página inicial do Português+">
+      <span class="brand-icon">📘</span>
+      <span>Português<span>+</span></span>
+    </a>
+    <nav class="site-nav" aria-label="Navegação principal">
+      <a href="#dicas">Dicas de escrita</a>
+      <a href="index.html" class="nav-cta">Sair</a>
+    </nav>
+  </header>
 
-<body>
+  <main class="editor-main">
+    <section class="editor-heading">
+      <div>
+        <span class="eyebrow">NOVA REDAÇÃO</span>
+        <h1>Vamos transformar suas ideias em texto?</h1>
+        <p>Escreva com calma. Ao finalizar, receba uma correção detalhada no modelo ENEM.</p>
+      </div>
+      <span class="editor-badge">✦ Espaço de prática</span>
+    </section>
 
-  <div class="container">
-    <h1 class="logo">📘 Português+</h1>
+    <div class="editor-layout">
+      <section class="writing-card" aria-labelledby="writing-title">
+        <div class="writing-card-top">
+          <div>
+            <h2 id="writing-title">Sua redação</h2>
+            <p>Organize sua introdução, desenvolvimento e conclusão.</p>
+          </div>
+          <span class="autosave-label"><i></i> Rascunho ativo</span>
+        </div>
 
-    <h2>Escreva sua Redação</h2>
+        <textarea id="redacao" oninput="atualizarContador()" placeholder="Comece a escrever sua redação aqui..."></textarea>
 
-    <textarea id="redacao" placeholder="Digite sua redação..."></textarea>
+        <div class="writing-card-bottom">
+          <span id="contador-palavras">0 palavras</span>
+          <span id="contador-linhas" class="line-target">Mínimo para correção: 10 linhas</span>
+        </div>
 
-    <button onclick="corrigir()">Corrigir Redação</button>
-  </div>
+        <div class="editor-actions">
+          <button class="photo-action" onclick="window.location.href='foto.html'">📷 Enviar foto da redação</button>
+          <button class="primary-action correct-action" onclick="corrigir()">Corrigir minha redação <span>→</span></button>
+        </div>
+      </section>
 
-  <!-- JS -->
+      <aside class="tips-panel" id="dicas">
+        <div class="tips-title"><span>💡</span><h2>Dicas rápidas</h2></div>
+        <div class="tip-item"><b>1</b><div><h3>Defenda uma ideia</h3><p>Apresente um ponto de vista claro logo na introdução.</p></div></div>
+        <div class="tip-item"><b>2</b><div><h3>Conecte argumentos</h3><p>Use conectivos para deixar o texto mais fluido.</p></div></div>
+        <div class="tip-item"><b>3</b><div><h3>Revise antes de enviar</h3><p>Confira pontuação, clareza e a proposta de intervenção.</p></div></div>
+        <div class="encouragement">“Cada redação é um passo a mais rumo à sua melhor versão.”</div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">© 2026 Português+ · Sua prática, seu progresso.</footer>
   <script src="script.js"></script>
-
 </body>
 </html>

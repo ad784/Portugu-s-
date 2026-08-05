@@ -2,28 +2,56 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Resultado - Português+</title>
-
-  <!-- CSS -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resultado da redação | Português+</title>
   <link rel="stylesheet" href="style.css">
 </head>
+<body class="result-page">
+  <header class="site-header">
+    <a class="brand" href="nova.html" aria-label="Página inicial do Português+">
+      <span class="brand-icon">📘</span>
+      <span>Português<span>+</span></span>
+    </a>
+    <nav class="site-nav" aria-label="Navegação principal">
+      <a href="nova.html">Nova redação</a>
+      <a href="index.html" class="nav-cta">Sair</a>
+    </nav>
+  </header>
 
-<body>
+  <main class="result-main">
+    <div class="result-title">
+      <span class="eyebrow">CORREÇÃO CONCLUÍDA</span>
+      <h1>Seu resultado chegou!</h1>
+      <p>Veja sua nota e use os comentários para deixar a próxima redação ainda melhor.</p>
+    </div>
 
-  <div class="container resultado-container">
-    <h1 class="logo">📘 Português+</h1>
+    <section class="score-card" aria-labelledby="score-heading">
+      <div class="score-icon">🏆</div>
+      <div>
+        <p id="score-heading">Sua nota</p>
+        <div class="nota" id="nota">---</div>
+        <span class="score-scale">de 1000 pontos</span>
+      </div>
+      <div class="score-message">Continue praticando.<br><strong>Cada texto conta.</strong></div>
+    </section>
 
-    <h2>Sua Nota</h2>
+    <section class="report-card" aria-labelledby="report-heading">
+      <div class="report-heading">
+        <div>
+          <h2 id="report-heading">Análise da sua redação</h2>
+          <p>Competências, pontos de atenção e sugestões para evoluir.</p>
+        </div>
+        <span>✦ Feedback personalizado</span>
+      </div>
+      <pre id="resultado"></pre>
+    </section>
 
-    <div class="nota" id="nota">---</div>
+    <div class="result-actions">
+      <button class="primary-action" onclick="voltar()">Escrever nova redação <span>→</span></button>
+    </div>
+  </main>
 
-    <pre id="resultado"></pre>
-
-    <button onclick="voltar()">Nova Redação</button>
-  </div>
-
-  <!-- JS -->
+  <footer class="site-footer">© 2026 Português+ · Sua prática, seu progresso.</footer>
   <script src="script.js"></script>
-
 </body>
 </html>
