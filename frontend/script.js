@@ -26,7 +26,7 @@ async function corrigir() {
   }
 
   try {
-    const resposta = await fetch("http://localhost:3000/corrigir", {
+    const resposta = await fetch("/api/corrigir", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

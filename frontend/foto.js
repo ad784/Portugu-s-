@@ -48,7 +48,7 @@ async function salvarFoto() {
   status.textContent = 'A foto esta sendo lida e corrigida. Aguarde...';
 
   try {
-    const resposta = await fetch('http://localhost:3000/corrigir-foto', {
+    const resposta = await fetch('/api/corrigir-foto', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ imagem: dataUrl })

@@ -4,6 +4,7 @@
     { "source": "/", "destination": "/frontend/index.html" },
     { "source": "/:page(index|cadastro|nova|resultado|foto)", "destination": "/frontend/:page.html" },
     { "source": "/:page(index|cadastro|nova|resultado|foto).html", "destination": "/frontend/:page.html" },
+    { "source": "/assets/:path*", "destination": "/frontend/assets/:path*" },
     { "source": "/:asset(style.css|script.js|cadastro.js|foto.js|supabase.js)", "destination": "/frontend/:asset" }
   ]
 }

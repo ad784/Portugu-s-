@@ -146,7 +146,7 @@ app.get("/", (req, res) => {
 });
 
 // 🚀 ROTA DE CORREÇÃO COM GROQ
-app.post("/corrigir", async (req, res) => {
+app.post(["/corrigir", "/api/corrigir"], async (req, res) => {
   const { texto } = req.body;
 
   if (!texto) {
@@ -235,7 +235,7 @@ app.post("/corrigir", async (req, res) => {
 
 // 🚀 INICIAR SERVIDOR
 // Analisa a redação diretamente da foto e devolve o mesmo relatório da correção digitada.
-app.post("/corrigir-foto", async (req, res) => {
+app.post(["/corrigir-foto", "/api/corrigir-foto"], async (req, res) => {
   const { imagem } = req.body;
   console.log(`Pedido de correcao por foto recebido. Chave Groq: ${groqApiKey ? "carregada" : "ausente"}`);
 
@@ -281,7 +281,8 @@ app.post("/corrigir-foto", async (req, res) => {
   }
 });
 
-const server = app.listen(3000, () => {
+if (require.main === module) {
+const server = app.listen(Number(process.env.PORT) || 3000, () => {
   console.log("Servidor rodando em http://localhost:3000");
   console.log(`Chave Groq: ${groqApiKey ? "carregada" : "ausente"}`);
 });
@@ -300,3 +301,6 @@ process.on("SIGTERM", () => server.close(() => {
   clearInterval(keepAlive);
   process.exit(0);
 }));
+}
+
+module.exports = app;
