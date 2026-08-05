@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Criar conta | Português+</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-page">
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Página inicial do Português+">
+      <span class="brand-icon">📘</span>
+      <span>Português<span>+</span></span>
+    </a>
+    <nav class="site-nav" aria-label="Navegação principal">
+      <a href="index.html">Entrar</a>
+      <a href="#cadastro" class="nav-cta">Criar conta</a>
+    </nav>
+  </header>
+
+  <main class="auth-main">
+    <section class="auth-intro">
+      <span class="eyebrow">COMECE HOJE</span>
+      <h1>Sua próxima<br><strong>boa redação</strong> começa aqui.</h1>
+      <p>Crie sua conta gratuitamente e conte com uma ferramenta feita para apoiar sua evolução na escrita.</p>
+      <div class="feature-list">
+        <div><span>✓</span> Ambiente simples e focado</div>
+        <div><span>✓</span> Correções detalhadas</div>
+        <div><span>✓</span> Prática no seu ritmo</div>
+      </div>
+    </section>
+
+    <section class="auth-card" id="cadastro" aria-labelledby="cadastro-title">
+      <div class="form-heading">
+        <span class="form-icon">✨</span>
+        <div>
+          <h2 id="cadastro-title">Crie sua conta</h2>
+          <p>É rápido, gratuito e leva poucos segundos.</p>
+        </div>
+      </div>
+
+      <label for="nome">Nome</label>
+      <input type="text" id="nome" placeholder="Como podemos te chamar?" autocomplete="name">
+
+      <label for="email">E-mail</label>
+      <input type="email" id="email" placeholder="voce@email.com" autocomplete="email">
+
+      <label for="senha">Senha</label>
+      <input type="password" id="senha" placeholder="Crie uma senha segura" autocomplete="new-password">
+
+      <button class="primary-action" onclick="cadastrar()">Criar minha conta <span>→</span></button>
+
+      <p class="form-footer">Já possui uma conta? <a href="index.html">Fazer login</a></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">© 2026 Português+ · Sua prática, seu progresso.</footer>
+  <script src="cadastro.js"></script>
+</body>
+</html>
