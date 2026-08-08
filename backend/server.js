@@ -2,7 +2,9 @@
 // `override` evita que uma variável vazia do sistema esconda a chave do arquivo.
 require("dotenv").config({
   path: require("path").join(__dirname, "../.env"),
-  override: false,
+  // Garante que os valores do arquivo local prevaleçam sobre variáveis vazias
+  // herdadas do terminal ou do sistema operacional.
+  override: true,
   quiet: true
 });
 
