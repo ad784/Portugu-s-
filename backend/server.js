@@ -12,6 +12,16 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
+
+// O frontend ja utiliza estas credenciais publicas. Elas permitem iniciar o
+// projeto localmente mesmo se o arquivo .env ainda nao tiver sido criado.
+// Em producao, a configuracao deve vir obrigatoriamente das variaveis de ambiente.
+if (process.env.NODE_ENV !== "production") {
+  process.env.SUPABASE_URL ||= "https://lzapufofepqbvqgzsqwg.supabase.co";
+  process.env.SUPABASE_PUBLISHABLE_KEY ||= "sb_publishable_8J5M7W0x_8tnS1grYmGmWA_VbQZ3XUY";
+  process.env.SUPABASE_JWKS_URL ||= "https://lzapufofepqbvqgzsqwg.supabase.co/auth/v1/.well-known/jwks.json";
+}
+
 const { verifyAuth, createContextClient, createAdminClient } = require("@supabase/server/core");
 
 function getGroqApiKey() {
