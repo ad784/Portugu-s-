@@ -93,7 +93,13 @@ async function salvarFoto() {
       },
       body: JSON.stringify({ imagem: dataUrl })
     });
-    const data = await response.json();
+    const body = await response.text();
+    let data;
+    try {
+      data = body ? JSON.parse(body) : {};
+    } catch {
+      throw new Error('O servidor esta indisponivel no momento. Tente novamente em instantes.');
+    }
     if (!response.ok || !data.resultado) throw new Error(data.erro || 'Nao foi possivel corrigir a foto.');
 
     localStorage.setItem('resultado', data.resultado);

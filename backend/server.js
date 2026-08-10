@@ -421,6 +421,14 @@ app.post(["/corrigir-foto", "/api/corrigir-foto"], requireSupabaseUser, async (r
   }
 });
 
+// Mantem respostas de erro da API em JSON. Assim, o frontend nao tenta ler
+// uma pagina HTML de erro como JSON quando alguma integracao externa falhar.
+app.use((error, _req, res, _next) => {
+  console.error("Erro nao tratado na API:", error);
+  if (res.headersSent) return;
+  res.status(500).json({ erro: "O servidor encontrou um erro. Tente novamente em instantes." });
+});
+
 if (require.main === module) {
 const server = app.listen(Number(process.env.PORT) || 3000, () => {
   console.log("Servidor rodando em http://localhost:3000");

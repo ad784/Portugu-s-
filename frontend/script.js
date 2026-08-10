@@ -55,7 +55,13 @@ async function corrigir() {
       body: JSON.stringify({ texto, linhasVisuais })
     });
 
-    const dados = await resposta.json();
+    const corpo = await resposta.text();
+    let dados;
+    try {
+      dados = corpo ? JSON.parse(corpo) : {};
+    } catch {
+      throw new Error("O servidor esta indisponivel no momento. Tente novamente em instantes.");
+    }
 
     if (resposta.status === 401) {
       await window.supabaseClient.auth.signOut();
