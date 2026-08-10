@@ -21,7 +21,7 @@ process.env.SUPABASE_URL ||= "https://lzapufofepqbvqgzsqwg.supabase.co";
 process.env.SUPABASE_PUBLISHABLE_KEY ||= "sb_publishable_8J5M7W0x_8tnS1grYmGmWA_VbQZ3XUY";
 process.env.SUPABASE_JWKS_URL ||= "https://lzapufofepqbvqgzsqwg.supabase.co/auth/v1/.well-known/jwks.json";
 
-const { verifyAuth, createContextClient, createAdminClient } = require("@supabase/server/core");
+const { createClient } = require("@supabase/supabase-js");
 
 function getGroqApiKey() {
   const keyFromEnvironment = process.env.GROQ_API_KEY?.trim();
@@ -43,12 +43,23 @@ app.use(cors());
 // A imagem capturada é enviada em base64 e precisa de um limite maior que o padrão.
 app.use(express.json({ limit: "5mb" }));
 
-function toWebRequest(req) {
-  const protocol = req.headers["x-forwarded-proto"] || req.protocol || "http";
-  const host = req.headers.host || "localhost";
-  return new Request(`${protocol}://${host}${req.originalUrl}`, {
-    method: req.method,
-    headers: { authorization: req.get("authorization") || "" }
+function createServerClient(accessToken) {
+  return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false
+    },
+    global: accessToken ? { headers: { Authorization: `Bearer ${accessToken}` } } : undefined
+  });
+}
+
+function createAdminClient() {
+  const secretKey = process.env.SUPABASE_SECRET_KEY?.trim();
+  if (!secretKey) throw new Error("SUPABASE_SECRET_KEY nao configurada para upload de fotos");
+
+  return createClient(process.env.SUPABASE_URL, secretKey, {
+    auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false }
   });
 }
 
@@ -57,14 +68,19 @@ async function requireSupabaseUser(req, res, next) {
     return res.status(503).json({ erro: "Autenticacao Supabase nao configurada no servidor" });
   }
 
-  const { data, error } = await verifyAuth(toWebRequest(req), { auth: "user" });
+  const authorization = req.get("authorization") || "";
+  const token = authorization.match(/^Bearer\s+(.+)$/i)?.[1];
+  if (!token) return res.status(401).json({ erro: "Sessao invalida ou expirada" });
+
+  const authClient = createServerClient();
+  const { data, error } = await authClient.auth.getUser(token);
   if (error) {
-    return res.status(error.status || 401).json({ erro: "Sessao invalida ou expirada" });
+    return res.status(401).json({ erro: "Sessao invalida ou expirada" });
   }
 
-  req.supabaseUser = data.userClaims;
-  req.isAdmin = data.userClaims?.appMetadata?.role === "admin";
-  req.supabase = createContextClient({ auth: { token: data.token } });
+  req.supabaseUser = data.user;
+  req.isAdmin = data.user?.app_metadata?.role === "admin";
+  req.supabase = createServerClient(token);
   next();
 }
 
