@@ -59,7 +59,9 @@ npm install
 
 ### 2. Configurar as chaves
 
-Copie `.env.example` para `.env` na raiz do projeto e informe os valores completos:
+Para iniciar localmente, nenhuma configuracao do Supabase e necessaria: o servidor usa automaticamente a configuracao publica ja utilizada pelo frontend. Isso evita o erro de autenticacao nao configurada ao executar `npm start` apos baixar o repositorio.
+
+Para usar uma chave da Groq, outro projeto Supabase ou fazer deploy, copie `.env.example` para `.env` na raiz do projeto e informe os valores completos:
 
 ```text
 .env
