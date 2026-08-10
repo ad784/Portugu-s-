@@ -113,9 +113,12 @@ O backend recebe a redacao e faz uma requisicao para a API da Groq, usando o mod
 
 O arquivo `vercel.json` encaminha as telas estaticas e as requisicoes `/api/*` para a funcao Express em `api/index.js`.
 
-1. Importe este repositorio na Vercel.
-2. Em **Settings > Environment Variables**, cadastre todas as variaveis de `.env.example`, com a chave secreta completa obtida no painel do Supabase.
-3. Faca o deploy. O frontend usa caminhos relativos, portanto as chamadas para a API funcionam no dominio publicado.
+1. Na Vercel, importe este repositorio uma unica vez e mantenha `main` como **Production Branch**. Todo `git push` para `main` fara um novo deploy de producao automaticamente.
+2. Em **Settings > Environment Variables**, cadastre `SUPABASE_SECRET_KEY` e `GROQ_API_KEY`. Marque **Production** e **Preview** para as duas variaveis. As credenciais publicas do Supabase ja possuem um padrao seguro no codigo, mas tambem podem ser cadastradas se necessario.
+3. Depois de cadastrar ou alterar variaveis, faca um novo deploy: a Vercel aplica variaveis somente aos deploys criados depois da alteracao.
+4. No Supabase, abra **Authentication > URL Configuration** e defina a URL de producao da Vercel como **Site URL**. Em **Redirect URLs**, adicione `http://localhost:3000/**` e o padrao `https://*-seu-usuario.vercel.app/**` para os previews.
+
+Com a integracao Git ativa, o projeto permanece vinculado a Vercel; nao e necessario publicar manualmente a cada dia.
 
 ## Banco de dados Supabase
 
