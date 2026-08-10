@@ -158,9 +158,11 @@ async function getSession() {
     return null;
   }
 
-  const { data: { session } } = await window.supabaseClient.auth.getSession();
+  // Renova o token antes da correcao. Isso evita que uma sessao ainda salva
+  // no navegador envie ao backend um access token que ja expirou.
+  const { data: { session }, error: refreshError } = await window.supabaseClient.auth.refreshSession();
   const { data: { user }, error } = await window.supabaseClient.auth.getUser();
-  if (!session || error || !user) {
+  if (!session || refreshError || error || !user) {
     await window.supabaseClient.auth.signOut();
     alert("Entre na sua conta para enviar uma redacao.");
     window.location.href = "index.html";

@@ -77,6 +77,8 @@ SUPABASE_JWKS_URL=https://lzapufofepqbvqgzsqwg.supabase.co/auth/v1/.well-known/j
 GROQ_API_KEY=sua_chave_groq
 ```
 
+Sem `GROQ_API_KEY`, a aplicação não usa uma nota estimada localmente: ela informa que a correção por IA precisa ser configurada. Assim, uma redação válida não recebe uma nota fixa por regras de contagem de linhas ou conectivos.
+
 ### 3. Iniciar o servidor
 
 Execute:
