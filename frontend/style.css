@@ -105,6 +105,16 @@ body {
 .form-footer a:hover { text-decoration: underline; }
 .site-footer { width: min(1180px, calc(100% - 48px)); margin: 0 auto 22px; color: #8393a5; font-size: 12px; }
 
+.how-it-works { width: min(1050px, calc(100% - 48px)); margin: 0 auto 52px; padding: 29px; border: 1px solid #dce9f4; border-radius: 18px; background: rgba(255,255,255,.82); box-shadow: 0 12px 34px rgba(35,83,131,.07); }
+.how-heading { max-width: 530px; }
+.how-heading h2 { margin: 9px 0 7px; color: #1a365d; font-size: 25px; letter-spacing: -.7px; }
+.how-heading p { margin: 0; color: #61758d; font-size: 14px; line-height: 1.55; }
+.how-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 24px; }
+.how-step { display: flex; gap: 12px; min-height: 106px; padding: 17px; border: 1px solid #e0ecf6; border-radius: 12px; background: #fbfdff; }
+.how-step > span { display: grid; flex: 0 0 34px; width: 34px; height: 34px; place-items: center; border-radius: 10px; background: #e4f2ff; color: #276ca8; font-size: 11px; font-weight: 800; }
+.how-step h3 { margin: 2px 0 6px; color: #305a83; font-size: 14px; }
+.how-step p { margin: 0; color: #6b849c; font-size: 12px; line-height: 1.5; }
+
 @media (max-width: 780px) {
   .site-header { width: min(100% - 32px, 560px); min-height: 72px; }
   .site-nav a:first-child { display: none; }
@@ -113,6 +123,9 @@ body {
   .auth-intro > p { margin: 0 auto; }
   .feature-list { display: none; }
   .auth-card { padding: 27px 23px; }
+  .how-it-works { width: min(100% - 32px, 520px); padding: 22px; margin-bottom: 36px; }
+  .how-steps { grid-template-columns: 1fr; gap: 10px; }
+  .how-step { min-height: auto; }
   .site-footer { width: calc(100% - 32px); text-align: center; }
 }
 
@@ -284,18 +297,24 @@ pre {
 .tips-title { display: flex; align-items: center; gap: 9px; margin-bottom: 21px; }
 .tips-title span { display: grid; width: 31px; height: 31px; place-items: center; border-radius: 9px; background: #fff; font-size: 16px; }
 .tips-title h2 { margin: 0; color: #255b90; font-size: 17px; }
+.tips-title p { margin: 2px 0 0; color: #66819b; font-size: 11px; }
 .tip-item { display: flex; gap: 11px; padding: 14px 0; border-top: 1px solid #d3e7f6; }
 .tip-item b { display: grid; flex: 0 0 23px; width: 23px; height: 23px; place-items: center; border-radius: 50%; background: #cee8fb; color: #2870ad; font-size: 12px; }
 .tip-item h3 { margin: 2px 0 4px; color: #345f87; font-size: 13px; }
 .tip-item p { margin: 0; color: #66819b; font-size: 12px; line-height: 1.45; }
 .encouragement { margin-top: 12px; padding: 15px; border-radius: 10px; background: #fff; color: #5780a6; font-size: 12px; font-style: italic; line-height: 1.55; }
+.writing-checklist { margin-top: 12px; padding: 14px; border: 1px solid #d5e8f7; border-radius: 10px; background: rgba(255,255,255,.76); }
+.writing-checklist strong { color: #305f8c; font-size: 12px; }
+.writing-checklist ul { display: grid; gap: 7px; margin: 10px 0 0; padding: 0; list-style: none; }
+.writing-checklist li { position: relative; padding-left: 17px; color: #66819b; font-size: 11px; line-height: 1.4; }
+.writing-checklist li::before { content: "✓"; position: absolute; left: 0; color: #3a8d78; font-weight: 800; }
 
 @media (max-width: 850px) {
   .editor-main { width: min(100% - 32px, 660px); }
   .editor-heading { align-items: flex-start; flex-direction: column; }
   .editor-layout { grid-template-columns: 1fr; }
   .tips-panel { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 18px; }
-  .tips-title, .encouragement { grid-column: 1 / -1; }
+  .tips-title, .writing-checklist, .encouragement { grid-column: 1 / -1; }
 }
 
 @media (max-width: 560px) {
