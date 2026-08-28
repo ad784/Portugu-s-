@@ -348,7 +348,8 @@ pre {
 .camera-card-top h2 { margin: 0 0 5px; color: #1b406a; font-size: 21px; }
 .camera-card-top p { margin: 0; color: #73859a; font-size: 13px; }
 .camera-status { color: #5b7590; font-size: 12px; font-weight: 700; white-space: nowrap; }
-.camera-status i { display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: #48bb78; }
+.camera-status i { display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: #94a3b8; }
+.camera-status.is-active i { background: #48bb78; box-shadow: 0 0 0 4px rgba(72, 187, 120, 0.15); }
 .camera-viewfinder { position: relative; display: grid; min-height: 370px; place-items: center; overflow: hidden; border: 1px solid #d4e3f0; border-radius: 11px; background: #edf4fa; }
 .camera-viewfinder video, .camera-viewfinder canvas { display: block; width: 100%; max-height: 480px; object-fit: contain; }
 .camera-viewfinder canvas { position: relative; z-index: 2; }
@@ -356,6 +357,8 @@ pre {
 .camera-actions { display: flex; justify-content: flex-end; gap: 13px; margin-top: 18px; }
 .camera-actions button { width: auto; margin: 0; }
 .capture-action { min-width: 145px; }
+.file-photo-action { display: block; width: fit-content; margin: 14px auto 0; color: #3d6d99; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.file-photo-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
 .send-photo-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-top: 24px; padding: 18px; border: 1px solid #dbeaf6; border-radius: 10px; background: #f1f8ff; }
 .send-photo-row strong { color: #2e5f8d; font-size: 14px; }
 .send-photo-row p { margin: 4px 0 0; color: #6b849c; font-size: 12px; }

@@ -41,7 +41,7 @@ const app = express();
 
 app.use(cors());
 // A imagem capturada é enviada em base64 e precisa de um limite maior que o padrão.
-app.use(express.json({ limit: "5mb" }));
+app.use(express.json({ limit: "8mb" }));
 
 function createServerClient(accessToken) {
   return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
