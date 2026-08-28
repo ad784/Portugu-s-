@@ -73,16 +73,21 @@ async function requireSupabaseUser(req, res, next) {
   if (!token) return res.status(401).json({ erro: "Sessao invalida ou expirada" });
 
   const authClient = createServerClient();
-  const { data, error } = await authClient.auth.getUser(token);
-  if (error) {
-    console.warn("Supabase recusou o token de acesso:", error.message);
-    return res.status(401).json({ erro: "Sessao invalida ou expirada" });
-  }
+  try {
+    const { data, error } = await authClient.auth.getUser(token);
+    if (error || !data.user) {
+      console.warn("Supabase recusou o token de acesso:", error?.message);
+      return res.status(401).json({ erro: "Sessao invalida ou expirada" });
+    }
 
-  req.supabaseUser = data.user;
-  req.isAdmin = data.user?.app_metadata?.role === "admin";
-  req.supabase = createServerClient(token);
-  next();
+    req.supabaseUser = data.user;
+    req.isAdmin = data.user?.app_metadata?.role === "admin";
+    req.supabase = createServerClient(token);
+    return next();
+  } catch (error) {
+    console.error("Falha ao validar a sessao no Supabase:", error.message);
+    return res.status(503).json({ erro: "Não foi possível validar sua sessão agora. Tente novamente em instantes." });
+  }
 }
 
 function requireAdmin(req, res, next) {
@@ -486,6 +491,12 @@ app.post(["/corrigir-foto", "/api/corrigir-foto"], requireSupabaseUser, async (r
     console.error("Erro servidor (foto):", erro);
     res.status(500).json({ erro: "Erro ao enviar a foto para correcao" });
   }
+});
+
+app.use((error, _req, res, _next) => {
+  console.error("Erro não tratado na API:", error);
+  if (res.headersSent) return;
+  res.status(500).json({ erro: "O servidor encontrou um erro. Tente novamente em instantes." });
 });
 
 // Mantem respostas de erro da API em JSON. Assim, o frontend nao tenta ler

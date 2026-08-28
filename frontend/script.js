@@ -28,6 +28,19 @@ async function login() {
 }
 
 // ENVIAR REDAÇÃO
+async function requisicaoApi(url, options) {
+  let ultimoErro;
+  for (let tentativa = 0; tentativa < 2; tentativa += 1) {
+    try {
+      return await fetch(url, options);
+    } catch (erro) {
+      ultimoErro = erro;
+      if (tentativa === 0) await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  }
+  throw new Error("Não foi possível conectar ao servidor local. Confirme que http://localhost:3000 está aberto e tente novamente.");
+}
+
 async function corrigir() {
   const texto = document.getElementById("redacao").value;
   const linhasVisuais = contarLinhasVisuais();
@@ -46,7 +59,7 @@ async function corrigir() {
     const session = await getSession();
     if (!session) return;
 
-    const resposta = await fetch("/api/corrigir", {
+    const resposta = await requisicaoApi("/api/corrigir", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

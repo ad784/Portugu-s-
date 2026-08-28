@@ -124,7 +124,7 @@ async function salvarFoto() {
       return;
     }
 
-    const response = await fetch('/api/corrigir-foto', {
+    const response = await requestPhotoCorrection('/api/corrigir-foto', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -150,6 +150,17 @@ async function salvarFoto() {
     button.disabled = false;
     button.textContent = 'Enviar e corrigir';
   }
+}
+
+async function requestPhotoCorrection(url, options) {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return await fetch(url, options);
+    } catch (error) {
+      if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  }
+  throw new Error('Não foi possível conectar ao servidor local. Confirme que http://localhost:3000 está aberto e tente novamente.');
 }
 
 window.addEventListener('pagehide', stopCamera);
