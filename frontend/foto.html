@@ -12,7 +12,7 @@
       <img class="brand-icon" src="assets/logo-portugues-mais.png" alt="Logo Português+"><span>Português<span>+</span></span>
     </a>
     <nav class="site-nav" aria-label="Navegação principal">
-      <a href="nova.html">Escrever redação</a><a href="index.html" class="nav-cta">Sair</a>
+      <a href="nova.html">Escrever redação</a><a href="index.html" class="nav-cta" onclick="sair(event)">Sair</a>
     </nav>
   </header>
   <main class="photo-main">
@@ -24,7 +24,13 @@
       <section class="camera-card" aria-labelledby="camera-title">
         <div class="camera-card-top"><div><h2 id="camera-title">Posicione sua redação</h2><p>A câmera abrirá automaticamente para você capturar o texto.</p></div><span id="camera-status" class="camera-status"><i></i>Preparando câmera</span></div>
         <div class="camera-viewfinder"><video id="camera" autoplay muted playsinline></video><canvas id="snapshot" style="display:none;"></canvas><div class="viewfinder-guide" aria-hidden="true"></div></div>
-        <div class="camera-actions"><button class="photo-action" type="button" onclick="resetPhoto()">↻ Refazer foto</button><button class="primary-action capture-action" type="button" onclick="takePhoto()">📷 Tirar foto</button></div>
+        <div class="camera-actions">
+          <button id="mirror-camera" class="photo-action" type="button" onclick="toggleCameraMirror()">Inverter lados</button>
+          <button class="photo-action" type="button" onclick="rotateCamera(-90)" aria-label="Girar imagem para a esquerda">↺ Girar</button>
+          <button class="photo-action" type="button" onclick="rotateCamera(90)" aria-label="Girar imagem para a direita">↻ Girar</button>
+          <button class="photo-action" type="button" onclick="resetPhoto()">Refazer foto</button>
+          <button class="primary-action capture-action" type="button" onclick="takePhoto()">📷 Tirar foto</button>
+        </div>
         <label class="file-photo-action" for="foto-arquivo">ou selecione uma foto do dispositivo</label>
         <input id="foto-arquivo" class="file-photo-input" type="file" accept="image/png,image/jpeg,image/webp" capture="environment">
         <div class="send-photo-row"><div><strong>Foto pronta?</strong><p id="foto-status">Depois de tirar a foto, envie para receber a correção.</p></div><button id="salvar-foto" class="primary-action send-photo-action" onclick="salvarFoto()">Enviar e corrigir <span>→</span></button></div>

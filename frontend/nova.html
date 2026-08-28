@@ -14,7 +14,7 @@
     </a>
     <nav class="site-nav" aria-label="Navegação principal">
       <a href="#dicas">Dicas de escrita</a>
-      <a href="index.html" class="nav-cta">Sair</a>
+      <a href="index.html" class="nav-cta" onclick="sair(event)">Sair</a>
     </nav>
   </header>
 
@@ -38,11 +38,16 @@
           <span class="autosave-label"><i></i> Rascunho ativo</span>
         </div>
 
+        <label class="theme-field" for="tema-redacao">
+          Tema da proposta (recomendado para avaliar a Competência 2)
+          <input id="tema-redacao" type="text" maxlength="300" placeholder="Ex.: Desafios para combater a desinformação no Brasil">
+        </label>
+
         <textarea id="redacao" lang="pt-BR" spellcheck="true" oninput="atualizarContador()" placeholder="Comece a escrever sua redação aqui..."></textarea>
 
         <div class="writing-card-bottom">
           <span id="contador-palavras">0 palavras</span>
-          <span id="contador-linhas" class="line-target">Mínimo para correção: 10 linhas</span>
+          <span id="contador-linhas" class="line-target">Mínimo para correção: 8 linhas</span>
         </div>
 
         <div class="editor-actions">
@@ -52,22 +57,17 @@
       </section>
 
       <aside class="tips-panel" id="dicas">
-        <div class="tips-title"><span>💡</span><div><h2>Guia rápido ENEM</h2><p>Use como checklist enquanto escreve.</p></div></div>
-        <div class="tip-item"><b>1</b><div><h3>Tese na introdução</h3><p>Apresente o tema e deixe claro qual ideia você defenderá.</p></div></div>
-        <div class="tip-item"><b>2</b><div><h3>Um argumento por parágrafo</h3><p>Explique a ideia, use repertório e mostre sua relação com o tema.</p></div></div>
-        <div class="tip-item"><b>3</b><div><h3>Conecte as ideias</h3><p>Use conectivos com propósito: “além disso”, “contudo”, “portanto”.</p></div></div>
-        <div class="tip-item"><b>4</b><div><h3>Feche com intervenção</h3><p>Inclua agente, ação, meio, finalidade e um detalhamento.</p></div></div>
-        <div class="writing-checklist">
-          <strong>Antes de corrigir</strong>
-          <ul><li>Tenho um ponto de vista claro?</li><li>Desenvolvi ao menos dois argumentos?</li><li>Minha conclusão propõe uma solução?</li></ul>
-        </div>
-        <div class="encouragement">“Melhorar a redação é revisar escolhas — uma de cada vez.”</div>
+        <div class="tips-title"><span>💡</span><h2>Dicas rápidas</h2></div>
+        <div class="tip-item"><b>1</b><div><h3>Defenda uma ideia</h3><p>Apresente um ponto de vista claro logo na introdução.</p></div></div>
+        <div class="tip-item"><b>2</b><div><h3>Conecte argumentos</h3><p>Use conectivos para deixar o texto mais fluido.</p></div></div>
+        <div class="tip-item"><b>3</b><div><h3>Revise antes de enviar</h3><p>Confira pontuação, clareza e a proposta de intervenção.</p></div></div>
+        <div class="encouragement">“Cada redação é um passo a mais rumo à sua melhor versão.”</div>
       </aside>
     </div>
   </main>
 
   <footer class="site-footer">© 2026 Português+ · Sua prática, seu progresso.</footer>
   <script type="module" src="supabase.js"></script>
-  <script src="script.js?v=20260810-2"></script>
+  <script src="script.js"></script>
 </body>
 </html>

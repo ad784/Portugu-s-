@@ -1,5 +1,6 @@
 // LOGIN
-async function login() {
+async function login(event) {
+  event?.preventDefault();
   const email = document.getElementById("email").value.trim();
   const senha = document.getElementById("senha").value.trim();
 
@@ -28,30 +29,19 @@ async function login() {
 }
 
 // ENVIAR REDAÇÃO
-async function requisicaoApi(url, options) {
-  let ultimoErro;
-  for (let tentativa = 0; tentativa < 2; tentativa += 1) {
-    try {
-      return await fetch(url, options);
-    } catch (erro) {
-      ultimoErro = erro;
-      if (tentativa === 0) await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-  }
-  throw new Error("Não foi possível conectar ao servidor local. Confirme que http://localhost:3000 está aberto e tente novamente.");
-}
-
 async function corrigir() {
   const texto = document.getElementById("redacao").value;
+  const tema = document.getElementById("tema-redacao")?.value.trim() || "";
   const linhasVisuais = contarLinhasVisuais();
+  const button = document.querySelector(".correct-action");
 
   if (!texto) {
     alert("Digite sua redação");
     return;
   }
 
-  if (linhasVisuais < 10) {
-    alert(`Sua redacao possui ${linhasVisuais} linhas visuais. Escreva pelo menos 10 linhas antes de corrigir.`);
+  if (linhasVisuais < 8) {
+    alert(`Sua redação possui ${linhasVisuais} linhas visuais. Escreva pelo menos 8 linhas antes de corrigir.`);
     return;
   }
 
@@ -59,13 +49,19 @@ async function corrigir() {
     const session = await getSession();
     if (!session) return;
 
-    const resposta = await requisicaoApi("/api/corrigir", {
+    if (button) {
+      button.disabled = true;
+      button.dataset.label = button.innerHTML;
+      button.textContent = "Corrigindo redação...";
+    }
+
+    const resposta = await fetch("/api/corrigir", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${session.access_token}`
       },
-      body: JSON.stringify({ texto, linhasVisuais })
+      body: JSON.stringify({ texto, linhasVisuais, tema })
     });
 
     const corpo = await resposta.text();
@@ -73,7 +69,7 @@ async function corrigir() {
     try {
       dados = corpo ? JSON.parse(corpo) : {};
     } catch {
-      throw new Error("O servidor esta indisponivel no momento. Tente novamente em instantes.");
+      throw new Error("O servidor retornou uma resposta inválida. Tente novamente em instantes.");
     }
 
     if (resposta.status === 401) {
@@ -86,23 +82,63 @@ async function corrigir() {
     if (!resposta.ok || !dados.resultado) throw new Error(dados.erro || "Nao foi possivel corrigir a redacao.");
 
     localStorage.setItem("resultado", dados.resultado);
+    localStorage.removeItem("rascunho-redacao");
+    localStorage.removeItem("rascunho-tema");
     window.location.href = "resultado.html";
 
   } catch (erro) {
     alert(erro.message || "Erro ao conectar com o servidor");
     console.error(erro);
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.innerHTML = button.dataset.label || "Corrigir minha redação <span>→</span>";
+    }
   }
 }
 
 // MOSTRAR RESULTADO
-window.onload = () => {
+function renderResultado(resultado, container) {
+  const sections = resultado.split(/\n\s*\n/).map((section) => section.trim()).filter(Boolean);
+  container.replaceChildren();
+
+  sections.forEach((section) => {
+    const lines = section.split("\n");
+    const title = lines[0].replace(/:$/, "").trim();
+    const content = lines.slice(1);
+    const card = document.createElement("section");
+    card.className = "feedback-section";
+
+    if (content.length) {
+      const heading = document.createElement("h3");
+      heading.textContent = title;
+      card.append(heading);
+      const body = document.createElement("div");
+      body.className = "feedback-content";
+      content.forEach((line) => {
+        const item = document.createElement(line.trim().startsWith("-") ? "p" : "div");
+        item.textContent = line.replace(/^\s*-\s*/, "").trim();
+        if (line.trim().startsWith("-")) item.className = "feedback-item";
+        body.append(item);
+      });
+      card.append(body);
+    } else {
+      const paragraph = document.createElement("p");
+      paragraph.textContent = section;
+      card.append(paragraph);
+    }
+    container.append(card);
+  });
+}
+
+window.addEventListener("load", () => {
   const resultado = localStorage.getItem("resultado");
 
   const elResultado = document.getElementById("resultado");
   const elNota = document.getElementById("nota");
 
   if (resultado && elResultado) {
-    elResultado.innerText = resultado;
+    renderResultado(resultado, elResultado);
 
     // Copia exatamente a nota exibida no início do relatório.
     // Procurar apenas números no texto inteiro podia selecionar uma competência
@@ -112,7 +148,7 @@ window.onload = () => {
       elNota.innerText = match[1].trim();
     }
   }
-};
+});
 
 // VOLTAR
 function voltar() {
@@ -131,9 +167,13 @@ function atualizarContador() {
   contador.innerText = `${total} ${total === 1 ? "palavra" : "palavras"}`;
 
   if (contadorLinhas) {
-    contadorLinhas.innerText = `${linhas}/10 linhas para correção`;
-    contadorLinhas.classList.toggle("line-target-ok", linhas >= 10);
+    contadorLinhas.innerText = `${linhas}/8 linhas para correção`;
+    contadorLinhas.classList.toggle("line-target-ok", linhas >= 8);
   }
+
+  localStorage.setItem("rascunho-redacao", redacao.value);
+  const tema = document.getElementById("tema-redacao");
+  if (tema) localStorage.setItem("rascunho-tema", tema.value);
 }
 
 function contarLinhasVisuais() {
@@ -171,11 +211,9 @@ async function getSession() {
     return null;
   }
 
-  // Renova o token antes da correcao. Isso evita que uma sessao ainda salva
-  // no navegador envie ao backend um access token que ja expirou.
-  const { data: { session }, error: refreshError } = await window.supabaseClient.auth.refreshSession();
+  const { data: { session } } = await window.supabaseClient.auth.getSession();
   const { data: { user }, error } = await window.supabaseClient.auth.getUser();
-  if (!session || refreshError || error || !user) {
+  if (!session || error || !user) {
     await window.supabaseClient.auth.signOut();
     alert("Entre na sua conta para enviar uma redacao.");
     window.location.href = "index.html";
@@ -183,3 +221,27 @@ async function getSession() {
   }
   return session;
 }
+
+async function sair(event) {
+  event?.preventDefault();
+  try {
+    await window.supabaseClient?.auth.signOut();
+  } finally {
+    window.location.href = "index.html";
+  }
+}
+
+window.sair = sair;
+
+window.addEventListener("DOMContentLoaded", () => {
+  const redacao = document.getElementById("redacao");
+  const tema = document.getElementById("tema-redacao");
+  if (!redacao) return;
+
+  redacao.value = localStorage.getItem("rascunho-redacao") || "";
+  if (tema) {
+    tema.value = localStorage.getItem("rascunho-tema") || "";
+    tema.addEventListener("input", atualizarContador);
+  }
+  atualizarContador();
+});
