@@ -30,7 +30,7 @@
       </div>
     </section>
 
-    <form class="auth-card" id="cadastro" aria-labelledby="cadastro-title" onsubmit="cadastrar(event)">
+    <section class="auth-card" id="cadastro" aria-labelledby="cadastro-title">
       <div class="form-heading">
         <span class="form-icon">✨</span>
         <div>
@@ -48,14 +48,16 @@
       <label for="senha">Senha</label>
       <input type="password" id="senha" placeholder="Crie uma senha segura" autocomplete="new-password">
 
-      <button class="primary-action" type="submit">Criar minha conta <span>→</span></button>
+      <label class="consent-field"><input type="checkbox" id="consentimento"> Concordo com o uso das redações e fotos para gerar a correção por IA.</label>
 
-      <p class="form-footer">Já possui uma conta? <a href="index.html">Fazer login</a></p>
-    </form>
+      <button class="primary-action" onclick="cadastrar()">Criar minha conta <span>→</span></button>
+
+      <p class="form-footer">Ao criar a conta, você confirma a leitura da <a href="privacidade.html">política de privacidade</a>.<br>Já possui uma conta? <a href="index.html">Fazer login</a></p>
+    </section>
   </main>
 
   <footer class="site-footer">© 2026 Português+ · Sua prática, seu progresso.</footer>
   <script type="module" src="supabase.js"></script>
-  <script src="cadastro.js"></script>
+  <script src="cadastro.js?v=20260830-1"></script>
 </body>
 </html>

@@ -13,6 +13,7 @@
       <span>Português<span>+</span></span>
     </a>
     <nav class="site-nav" aria-label="Navegação principal">
+      <a href="exemplos.html">Exemplos</a>
       <a href="#como-funciona">Como funciona</a>
       <a href="cadastro.html" class="nav-cta">Criar conta</a>
     </nav>
@@ -30,7 +31,7 @@
       </div>
     </section>
 
-    <form class="auth-card" aria-labelledby="login-title" onsubmit="login(event)">
+    <section class="auth-card" aria-labelledby="login-title">
       <div class="form-heading">
         <span class="form-icon">👋</span>
         <div>
@@ -45,23 +46,29 @@
       <label for="senha">Senha</label>
       <input id="senha" type="password" placeholder="Digite sua senha" autocomplete="current-password">
 
-      <button class="primary-action" type="submit">Entrar na plataforma <span>→</span></button>
+      <p id="login-message" class="form-message" role="status"></p>
 
-      <p class="form-footer">Ainda não possui conta? <a href="cadastro.html">Criar minha conta</a></p>
-    </form>
+      <button class="primary-action" onclick="login()">Entrar na plataforma <span>→</span></button>
+
+      <p class="form-footer"><a href="recuperar.html">Esqueci minha senha</a><br>Ainda não possui conta? <a href="cadastro.html">Criar minha conta</a></p>
+    </section>
   </main>
 
   <section class="how-it-works" id="como-funciona" aria-labelledby="how-title">
-    <div class="how-heading"><span class="eyebrow">COMO FUNCIONA</span><h2 id="how-title">Uma prática simples, com retorno que orienta.</h2></div>
-    <div class="steps-grid">
-      <article><span>1</span><h3>Escolha o tema</h3><p>Informe a proposta para a análise considerar a Competência 2 com mais precisão.</p></article>
-      <article><span>2</span><h3>Escreva ou envie uma foto</h3><p>Produza no editor ou fotografe uma redação legível e bem iluminada.</p></article>
-      <article><span>3</span><h3>Entenda e evolua</h3><p>Veja competências, trechos a revisar, pontos fortes e ações para a próxima versão.</p></article>
+    <div class="how-heading">
+      <span class="eyebrow">SIMPLES PARA COMEÇAR</span>
+      <h2 id="how-title">Como funciona na prática</h2>
+      <p>Use o Português+ como um ciclo curto de escrita, correção e evolução.</p>
+    </div>
+    <div class="how-steps">
+      <article class="how-step"><span>01</span><div><h3>Escreva ou envie uma foto</h3><p>Produza sua redação no editor ou fotografe uma versão já escrita.</p></div></article>
+      <article class="how-step"><span>02</span><div><h3>Receba a análise ENEM</h3><p>Veja a nota e os comentários das cinco competências.</p></div></article>
+      <article class="how-step"><span>03</span><div><h3>Reescreva com intenção</h3><p>Transforme as sugestões em ajustes para a sua próxima versão.</p></div></article>
     </div>
   </section>
 
-  <footer class="site-footer">© 2026 Português+ · Sua prática, seu progresso.</footer>
+  <footer class="site-footer">© 2026 Português+ · <a href="privacidade.html">Privacidade</a> · Sua prática, seu progresso.</footer>
   <script type="module" src="supabase.js"></script>
-  <script src="script.js"></script>
+  <script src="script.js?v=20260830-5"></script>
 </body>
 </html>

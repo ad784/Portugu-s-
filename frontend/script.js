@@ -1,34 +1,79 @@
 // LOGIN
-async function login(event) {
-  event?.preventDefault();
+function showMessage(id, message, type = "error") {
+  const element = document.getElementById(id);
+  if (!element) return false;
+  element.textContent = message;
+  element.className = `form-message ${type}`;
+  return true;
+}
+
+function extractScore(resultado) {
+  const match = resultado?.match(/^\s*Nota\s*:\s*(\d+)/im);
+  return match ? Number(match[1]) : null;
+}
+
+function saveLocalHistory({ resultado, tema = "", tipo = "texto" }) {
+  const key = "historico-redacoes-local";
+  let history = [];
+  try { history = JSON.parse(localStorage.getItem(key) || "[]"); } catch { history = []; }
+  history.unshift({ id: `local-${Date.now()}`, tipo, tema, nota: extractScore(resultado), resultado, created_at: new Date().toISOString(), local: true });
+  localStorage.setItem(key, JSON.stringify(history.slice(0, 30)));
+}
+async function login() {
   const email = document.getElementById("email").value.trim();
   const senha = document.getElementById("senha").value.trim();
 
   if (!email || !senha) {
-    alert("Preencha e-mail e senha para entrar.");
+    showMessage("login-message", "Preencha e-mail e senha para entrar.");
     return;
   }
 
   if (!email.includes("@") || email.startsWith("@") || email.endsWith("@")) {
-    alert("Digite um e-mail válido com @");
+    showMessage("login-message", "Digite um e-mail válido.");
     return;
   }
 
   if (!window.supabaseClient) {
-    alert("O servico de autenticacao ainda esta carregando. Tente novamente.");
+    showMessage("login-message", "O serviço de autenticação ainda está carregando. Tente novamente.");
     return;
   }
 
   const { error } = await window.supabaseClient.auth.signInWithPassword({ email, password: senha });
   if (error) {
-    alert(error.message);
+    showMessage("login-message", error.message);
     return;
   }
 
+  showMessage("login-message", "Login realizado. Abrindo seu editor...", "success");
   window.location.href = "nova.html";
 }
 
+async function sair(event) {
+  event?.preventDefault();
+  try {
+    await window.supabaseClient?.auth.signOut({ scope: "local" });
+  } finally {
+    localStorage.removeItem("resultado");
+    window.location.href = "index.html";
+  }
+}
+
+window.sair = sair;
+
 // ENVIAR REDAÇÃO
+async function requisicaoApi(url, options) {
+  let ultimoErro;
+  for (let tentativa = 0; tentativa < 2; tentativa += 1) {
+    try {
+      return await fetch(url, options);
+    } catch (erro) {
+      ultimoErro = erro;
+      if (tentativa === 0) await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  }
+  throw new Error("Não foi possível conectar ao servidor local. Confirme que http://localhost:3000 está aberto e tente novamente.");
+}
+
 async function corrigir() {
   const texto = document.getElementById("redacao").value;
   const tema = document.getElementById("tema-redacao")?.value.trim() || "";
@@ -36,12 +81,12 @@ async function corrigir() {
   const button = document.querySelector(".correct-action");
 
   if (!texto) {
-    alert("Digite sua redação");
+    showMessage("editor-message", "Digite sua redação antes de corrigir.");
     return;
   }
 
-  if (linhasVisuais < 8) {
-    alert(`Sua redação possui ${linhasVisuais} linhas visuais. Escreva pelo menos 8 linhas antes de corrigir.`);
+  if (linhasVisuais < 10) {
+    showMessage("editor-message", `Sua redação possui ${linhasVisuais} linhas visuais. Escreva pelo menos 10 linhas antes de corrigir.`);
     return;
   }
 
@@ -49,27 +94,40 @@ async function corrigir() {
     const session = await getSession();
     if (!session) return;
 
-    if (button) {
-      button.disabled = true;
-      button.dataset.label = button.innerHTML;
-      button.textContent = "Corrigindo redação...";
-    }
-
-    const resposta = await fetch("/api/corrigir", {
+    const options = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${session.access_token}`
       },
       body: JSON.stringify({ texto, linhasVisuais, tema })
-    });
+    };
+
+    if (button) {
+      button.disabled = true;
+      button.dataset.label = button.innerHTML;
+      button.textContent = "Corrigindo redação...";
+    }
+
+    let resposta = await requisicaoApi("/api/corrigir", options);
+
+    // Um access token pode expirar entre a abertura da página e o clique no
+    // botão. Atualizamos a sessão e repetimos uma única vez antes de pedir
+    // que a pessoa entre novamente.
+    if (resposta.status === 401) {
+      const sessaoRenovada = await getSession(true);
+      if (sessaoRenovada) {
+        options.headers.Authorization = `Bearer ${sessaoRenovada.access_token}`;
+        resposta = await requisicaoApi("/api/corrigir", options);
+      }
+    }
 
     const corpo = await resposta.text();
     let dados;
     try {
       dados = corpo ? JSON.parse(corpo) : {};
     } catch {
-      throw new Error("O servidor retornou uma resposta inválida. Tente novamente em instantes.");
+      throw new Error("O servidor esta indisponivel no momento. Tente novamente em instantes.");
     }
 
     if (resposta.status === 401) {
@@ -82,12 +140,18 @@ async function corrigir() {
     if (!resposta.ok || !dados.resultado) throw new Error(dados.erro || "Nao foi possivel corrigir a redacao.");
 
     localStorage.setItem("resultado", dados.resultado);
-    localStorage.removeItem("rascunho-redacao");
-    localStorage.removeItem("rascunho-tema");
+    if (dados.aviso) {
+      // A correção continua disponível para a pessoa mesmo se ocorrer uma
+      // falha temporária de sincronização. O detalhe técnico fica no console,
+      // sem exibir mensagens internas do Supabase na tela de resultado.
+      console.warn("A redação não foi sincronizada com o histórico:", dados.aviso);
+      saveLocalHistory({ resultado: dados.resultado, tema, tipo: "texto" });
+    }
+    localStorage.removeItem("resultado-aviso");
     window.location.href = "resultado.html";
 
   } catch (erro) {
-    alert(erro.message || "Erro ao conectar com o servidor");
+    showMessage("editor-message", erro.message || "Erro ao conectar com o servidor");
     console.error(erro);
   } finally {
     if (button) {
@@ -98,47 +162,14 @@ async function corrigir() {
 }
 
 // MOSTRAR RESULTADO
-function renderResultado(resultado, container) {
-  const sections = resultado.split(/\n\s*\n/).map((section) => section.trim()).filter(Boolean);
-  container.replaceChildren();
-
-  sections.forEach((section) => {
-    const lines = section.split("\n");
-    const title = lines[0].replace(/:$/, "").trim();
-    const content = lines.slice(1);
-    const card = document.createElement("section");
-    card.className = "feedback-section";
-
-    if (content.length) {
-      const heading = document.createElement("h3");
-      heading.textContent = title;
-      card.append(heading);
-      const body = document.createElement("div");
-      body.className = "feedback-content";
-      content.forEach((line) => {
-        const item = document.createElement(line.trim().startsWith("-") ? "p" : "div");
-        item.textContent = line.replace(/^\s*-\s*/, "").trim();
-        if (line.trim().startsWith("-")) item.className = "feedback-item";
-        body.append(item);
-      });
-      card.append(body);
-    } else {
-      const paragraph = document.createElement("p");
-      paragraph.textContent = section;
-      card.append(paragraph);
-    }
-    container.append(card);
-  });
-}
-
-window.addEventListener("load", () => {
+window.onload = () => {
   const resultado = localStorage.getItem("resultado");
 
   const elResultado = document.getElementById("resultado");
   const elNota = document.getElementById("nota");
 
   if (resultado && elResultado) {
-    renderResultado(resultado, elResultado);
+    elResultado.innerText = resultado;
 
     // Copia exatamente a nota exibida no início do relatório.
     // Procurar apenas números no texto inteiro podia selecionar uma competência
@@ -148,7 +179,7 @@ window.addEventListener("load", () => {
       elNota.innerText = match[1].trim();
     }
   }
-});
+};
 
 // VOLTAR
 function voltar() {
@@ -167,13 +198,9 @@ function atualizarContador() {
   contador.innerText = `${total} ${total === 1 ? "palavra" : "palavras"}`;
 
   if (contadorLinhas) {
-    contadorLinhas.innerText = `${linhas}/8 linhas para correção`;
-    contadorLinhas.classList.toggle("line-target-ok", linhas >= 8);
+    contadorLinhas.innerText = `${linhas}/10 linhas para correção`;
+    contadorLinhas.classList.toggle("line-target-ok", linhas >= 10);
   }
-
-  localStorage.setItem("rascunho-redacao", redacao.value);
-  const tema = document.getElementById("tema-redacao");
-  if (tema) localStorage.setItem("rascunho-tema", tema.value);
 }
 
 function contarLinhasVisuais() {
@@ -205,15 +232,26 @@ function contarLinhasVisuais() {
   return Math.max(1, linhas);
 }
 
-async function getSession() {
+async function getSession(forceRefresh = false) {
   if (!window.supabaseClient) {
-    alert("O servico de autenticacao ainda esta carregando. Tente novamente.");
+    showMessage("login-message", "O serviço de autenticação ainda está carregando. Tente novamente.");
     return null;
   }
 
-  const { data: { session } } = await window.supabaseClient.auth.getSession();
-  const { data: { user }, error } = await window.supabaseClient.auth.getUser();
-  if (!session || error || !user) {
+  const { data, error } = await window.supabaseClient.auth.getSession();
+  let session = data.session;
+
+  // O cliente do Supabase renova a sessão automaticamente. Só forçamos uma
+  // renovação quando o token já está próximo do vencimento ou após um 401.
+  const expiraEmBreve = session?.expires_at && session.expires_at * 1000 < Date.now() + 60_000;
+  if (forceRefresh || expiraEmBreve) {
+    const renovacao = await window.supabaseClient.auth.refreshSession();
+    session = renovacao.data.session;
+    if (renovacao.error) console.warn("Não foi possível renovar a sessão:", renovacao.error.message);
+  }
+
+  if (!session || error) {
+    if (forceRefresh) return null;
     await window.supabaseClient.auth.signOut();
     alert("Entre na sua conta para enviar uma redacao.");
     window.location.href = "index.html";
@@ -221,27 +259,3 @@ async function getSession() {
   }
   return session;
 }
-
-async function sair(event) {
-  event?.preventDefault();
-  try {
-    await window.supabaseClient?.auth.signOut();
-  } finally {
-    window.location.href = "index.html";
-  }
-}
-
-window.sair = sair;
-
-window.addEventListener("DOMContentLoaded", () => {
-  const redacao = document.getElementById("redacao");
-  const tema = document.getElementById("tema-redacao");
-  if (!redacao) return;
-
-  redacao.value = localStorage.getItem("rascunho-redacao") || "";
-  if (tema) {
-    tema.value = localStorage.getItem("rascunho-tema") || "";
-    tema.addEventListener("input", atualizarContador);
-  }
-  atualizarContador();
-});

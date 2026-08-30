@@ -1,17 +1,17 @@
 // Função simples de cadastro (cliente) — redireciona para a página de login após validar campos
-async function cadastrar(event) {
-  event?.preventDefault();
+async function cadastrar() {
   const nome = document.getElementById('nome').value.trim();
   const email = document.getElementById('email').value.trim();
   const senha = document.getElementById('senha').value.trim();
+  const consentimento = document.getElementById('consentimento').checked;
 
   if (!nome || !email || !senha) {
     alert('Preencha todos os campos');
     return;
   }
 
-  if (senha.length < 6) {
-    alert('A senha deve ter pelo menos 6 caracteres.');
+  if (!consentimento) {
+    alert('Para continuar, confirme que concorda com o uso do texto e das fotos na correção por IA.');
     return;
   }
 

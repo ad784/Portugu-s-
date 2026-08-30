@@ -15,6 +15,9 @@ O objetivo do projeto e oferecer uma ferramenta simples e acessivel para apoio a
 - Correcao automatizada usando inteligencia artificial.
 - Exibicao da nota da redacao.
 - Exibicao de competencias, erros e sugestoes de melhoria.
+- Histórico de redações e acompanhamento de notas.
+- Exemplos didáticos nas faixas de 500, 800 e 1000 pontos.
+- Recuperação de senha, perfil do estudante e política de privacidade.
 
 ## Tecnologias utilizadas
 
@@ -26,6 +29,7 @@ O objetivo do projeto e oferecer uma ferramenta simples e acessivel para apoio a
 - CORS
 - Dotenv
 - API Groq
+- Supabase (Auth, PostgreSQL e Storage)
 
 ## Estrutura do projeto
 
@@ -75,6 +79,9 @@ SUPABASE_PUBLISHABLE_KEY=sua_chave_publicavel
 SUPABASE_SECRET_KEY=sua_chave_secreta_completa
 SUPABASE_JWKS_URL=https://lzapufofepqbvqgzsqwg.supabase.co/auth/v1/.well-known/jwks.json
 GROQ_API_KEY=sua_chave_groq
+GROQ_MODEL=openai/gpt-oss-120b
+# Somente para demonstração local; mantenha false para testar a autenticação real.
+LOCAL_DEMO_AUTH=false
 ```
 
 Sem `GROQ_API_KEY`, a aplicação não usa uma nota estimada localmente: ela informa que a correção por IA precisa ser configurada. Assim, uma redação válida não recebe uma nota fixa por regras de contagem de linhas ou conectivos.
@@ -109,14 +116,14 @@ O frontend possui as telas de login, cadastro, escrita da redacao e resultado. A
 POST /corrigir
 ```
 
-O backend recebe a redacao e faz uma requisicao para a API da Groq, usando o modelo `llama-3.3-70b-versatile`. A resposta da inteligencia artificial e enviada de volta para o frontend, que mostra a nota e a correcao completa na tela de resultado.
+O backend recebe a redacao e faz uma requisicao para a API da Groq, usando `GROQ_MODEL` ou, como padrao, `openai/gpt-oss-120b`. A resposta da IA e normalizada nas cinco competências ENEM e enviada ao frontend. A nota é uma estimativa pedagógica e não substitui a correção oficial.
 
 ## Deploy na Vercel
 
 O arquivo `vercel.json` encaminha as telas estaticas e as requisicoes `/api/*` para a funcao Express em `api/index.js`.
 
 1. Na Vercel, importe este repositorio uma unica vez e mantenha `main` como **Production Branch**. Todo `git push` para `main` fara um novo deploy de producao automaticamente.
-2. Em **Settings > Environment Variables**, cadastre `SUPABASE_SECRET_KEY` e `GROQ_API_KEY`. Marque **Production** e **Preview** para as duas variaveis. As credenciais publicas do Supabase ja possuem um padrao seguro no codigo, mas tambem podem ser cadastradas se necessario.
+2. Em **Settings > Environment Variables**, cadastre `SUPABASE_SECRET_KEY`, `GROQ_API_KEY` e, se desejar, `GROQ_MODEL`. Marque **Production** e **Preview**. Não cadastre `LOCAL_DEMO_AUTH=true` na Vercel.
 3. Depois de cadastrar ou alterar variaveis, faca um novo deploy: a Vercel aplica variaveis somente aos deploys criados depois da alteracao.
 4. No Supabase, abra **Authentication > URL Configuration** e defina a URL de producao da Vercel como **Site URL**. Em **Redirect URLs**, adicione `http://localhost:3000/**` e o padrao `https://*-seu-usuario.vercel.app/**` para os previews.
 
@@ -128,6 +135,7 @@ Antes de salvar redacoes, abra o **SQL Editor** do projeto Supabase e execute, n
 
 1. `supabase/migrations/20260805162000_create_profiles_and_redacoes.sql`
 2. `supabase/migrations/20260805170000_add_photo_storage.sql`
+3. `supabase/migrations/20260830190000_add_theme_and_storage_policies.sql`
 
 Eles criam as tabelas `profiles` e `redacoes`, ativam as politicas de seguranca e criam o bucket privado `redacoes` para as fotos. Para corrigir fotos, tambem configure `GROQ_API_KEY` localmente e na Vercel.
 
@@ -137,6 +145,16 @@ Eles criam as tabelas `profiles` e `redacoes`, ativam as politicas de seguranca 
 - A pasta `node_modules` tambem nao deve ser enviada, pois pode ser recriada com `npm install`.
 - Cadastro e login usam o Supabase Auth. Confirme que o provedor de e-mail esta habilitado no painel do Supabase.
 - O contador da tela de redacao considera as linhas visuais, inclusive quando o texto quebra automaticamente no editor.
+- Redações e fotos são enviadas à IA para gerar a correção; o cadastro solicita consentimento para esse uso.
+- O material técnico para apresentação está em `docs/BANCA.md`.
+
+## Testes
+
+Execute os testes de fumaça da API com:
+
+```bash
+npm test
+```
 
 ## Autor
 
