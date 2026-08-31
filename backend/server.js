@@ -527,13 +527,17 @@ app.post(["/corrigir-foto", "/api/corrigir-foto"], requireSupabaseUser, async (r
         "Authorization": `Bearer ${groqApiKey}`
       },
       body: JSON.stringify({
-        model: "meta-llama/llama-4-scout-17b-16e-instruct",
+        // O Llama 4 Scout foi descontinuado pela Groq. Qwen 3.6 aceita
+        // imagens e texto, sendo usado aqui para ler a redacao manuscrita.
+        model: process.env.GROQ_VISION_MODEL || "qwen/qwen3.6-27b",
+        temperature: 0.2,
+        max_tokens: 2500,
         messages: [{
           role: "user",
           content: [
             {
               type: "text",
-              text: "Leia a redacao manuscrita desta imagem e corrija-a no modelo ENEM. Ignore qualquer conteudo que nao seja a redacao. Responda neste formato: Nota: 0 a 1000, Competencias (1 a 5), Erros, Sugestoes e Redacao transcrita."
+              text: "Leia a redacao manuscrita desta imagem, em portugues do Brasil, e corrija-a pela matriz ENEM. A foto pode conter linhas do caderno e margens: ignore-as e considere somente o texto escrito. Primeiro transcreva mentalmente o texto; nao invente trechos ilegiveis. Depois responda em portugues, obrigatoriamente neste formato: Nota: [0 a 1000]; Competencias: C1 a C5, cada uma com nota e justificativa; Erros: lista objetiva; Sugestoes: lista objetiva; Redacao transcrita: texto lido na imagem."
             },
             {
               type: "image_url",
@@ -550,7 +554,11 @@ app.post(["/corrigir-foto", "/api/corrigir-foto"], requireSupabaseUser, async (r
       return res.status(502).json({ erro: "Nao foi possivel analisar a foto" });
     }
 
-    const resultado = dados.choices[0].message.content;
+    // Alguns modelos de visao retornam um bloco interno <think>. Ele nao faz
+    // parte do feedback da redacao e nao deve aparecer na tela do estudante.
+    const resultado = dados.choices[0].message.content
+      .replace(/<think>[\s\S]*?<\/think>\s*/i, "")
+      .trim();
     let imagemPath = null;
     try {
       imagemPath = await uploadPhoto(req.supabaseUser.id, imagem);

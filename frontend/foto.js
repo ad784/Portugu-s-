@@ -3,6 +3,29 @@ const canvas = document.getElementById('snapshot');
 const ctx = canvas.getContext('2d');
 let cameraStream = null;
 
+// A imagem enviada para a IA nao pode ficar espelhada e deve manter a
+// orientacao de uma folha de redacao (retrato).
+function drawPortraitImage(source, sourceWidth, sourceHeight) {
+  const limit = 1600;
+  const needsRotation = sourceWidth > sourceHeight;
+  const outputWidth = needsRotation ? sourceHeight : sourceWidth;
+  const outputHeight = needsRotation ? sourceWidth : sourceHeight;
+  const scale = Math.min(1, limit / Math.max(outputWidth, outputHeight));
+
+  canvas.width = Math.round(outputWidth * scale);
+  canvas.height = Math.round(outputHeight * scale);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (needsRotation) {
+    ctx.translate(canvas.width, 0);
+    ctx.rotate(Math.PI / 2);
+    ctx.drawImage(source, 0, 0, canvas.height, canvas.width);
+  } else {
+    ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
 async function sair(event) {
   event?.preventDefault();
   stopCamera();
@@ -47,7 +70,12 @@ async function initCamera() {
   setCameraIndicator('Solicitando acesso');
   try {
     cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1080 },
+        height: { ideal: 1440 },
+        aspectRatio: { ideal: 0.75 }
+      },
       audio: false
     });
   } catch (error) {
@@ -73,11 +101,7 @@ function takePhoto() {
     return;
   }
 
-  const limit = 1280;
-  const scale = Math.min(1, limit / Math.max(video.videoWidth, video.videoHeight));
-  canvas.width = Math.round(video.videoWidth * scale);
-  canvas.height = Math.round(video.videoHeight * scale);
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  drawPortraitImage(video, video.videoWidth, video.videoHeight);
   canvas.style.display = 'block';
   video.style.display = 'none';
   setPhotoStatus('Foto pronta para envio.');
@@ -101,11 +125,7 @@ function loadPhoto(file) {
   const reader = new FileReader();
   reader.onload = () => {
     image.onload = () => {
-      const limit = 1280;
-      const scale = Math.min(1, limit / Math.max(image.width, image.height));
-      canvas.width = Math.round(image.width * scale);
-      canvas.height = Math.round(image.height * scale);
-      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      drawPortraitImage(image, image.width, image.height);
       canvas.style.display = 'block';
       video.style.display = 'none';
       stopCamera();
@@ -124,7 +144,8 @@ async function salvarFoto() {
   }
 
   const button = document.getElementById('salvar-foto');
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.72);
+  // Preserva a nitidez da escrita manuscrita para a leitura pela IA.
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
   button.disabled = true;
   button.textContent = 'Enviando para correcao...';
   setPhotoStatus('A foto esta sendo salva e corrigida. Aguarde...');
