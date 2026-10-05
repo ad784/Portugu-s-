@@ -374,3 +374,147 @@ pre {
   .camera-actions button, .send-photo-action { width: 100%; height: 45px; }
   .photo-tips { display: block; }
 }
+
+/* Refinamento visual geral */
+:root {
+  color-scheme: light;
+  --ink: #172b35;
+  --muted: #61747a;
+  --brand: #147d68;
+  --brand-dark: #0d6655;
+  --brand-soft: #e7f4ef;
+  --line: #dce7e2;
+  --paper: #fff;
+  --canvas: #f4f7f5;
+  --shadow: 0 16px 40px rgba(23, 54, 45, .08);
+}
+
+* { font-family: Inter, "Segoe UI", Arial, sans-serif; }
+body { background: var(--canvas); color: var(--ink); }
+.auth-page, .editor-page, .result-page, .photo-page {
+  background: var(--canvas);
+}
+.site-header {
+  width: min(1160px, calc(100% - 56px));
+  min-height: 76px;
+  border-bottom: 1px solid rgba(207, 222, 215, .8);
+}
+.brand { color: var(--ink); font-size: 22px; letter-spacing: -.8px; }
+.brand > span:last-child span { color: var(--brand); }
+.brand-icon { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 12px; background: var(--brand-soft); font-size: 20px; }
+.site-nav { gap: 20px; }
+.site-nav a { color: #4d6567; transition: color .18s ease, background .18s ease; }
+.site-nav a:hover { color: var(--brand); }
+.site-nav .nav-cta { padding: 10px 15px; border-color: #b8d7cc; border-radius: 9px; color: var(--brand-dark); }
+.site-nav .nav-cta:hover { background: var(--brand-soft); }
+.eyebrow { color: var(--brand); letter-spacing: 1.6px; }
+.auth-page { background: radial-gradient(ellipse at 14% 26%, #e6f3ec 0, transparent 34%), var(--canvas); }
+.auth-main { width: min(1080px, calc(100% - 56px)); gap: clamp(42px, 8vw, 112px); }
+.auth-intro h1 { color: var(--ink); letter-spacing: -2.8px; }
+.auth-intro h1 strong { color: var(--brand); }
+.auth-intro > p { color: var(--muted); }
+.feature-list { color: #3e5a57; }
+.feature-list span { background: #dcefe7; color: var(--brand-dark); }
+.auth-card, .writing-card, .camera-card, .report-card {
+  border-color: var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+.auth-card { padding: 38px; }
+.form-icon { background: var(--brand-soft); }
+.form-heading h2, .writing-card-top h2, .camera-card-top h2 { color: var(--ink); }
+.auth-card label { color: #405a58; }
+.auth-card input, .editor-page textarea {
+  width: 100%;
+  border-color: #d5e1dc;
+  border-radius: 10px;
+  background: #fbfdfc;
+  color: var(--ink);
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.auth-card input { height: 49px; }
+.auth-card input:focus, .editor-page textarea:focus {
+  border-color: var(--brand);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(20, 125, 104, .12);
+}
+.primary-action, button {
+  border-radius: 10px;
+  background: var(--brand);
+  color: white;
+  font-weight: 700;
+  transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+}
+.primary-action { box-shadow: 0 7px 16px rgba(20, 125, 104, .18); }
+.primary-action:hover, button:hover { background: var(--brand-dark); }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 3px solid rgba(20, 125, 104, .3);
+  outline-offset: 3px;
+}
+.form-footer a { color: var(--brand-dark); }
+.site-footer { color: #7b8d88; }
+.editor-main, .photo-main { width: min(1160px, calc(100% - 56px)); margin-top: 38px; }
+.editor-heading { margin-bottom: 30px; }
+.editor-heading h1, .result-title h1 { color: var(--ink); letter-spacing: -1.5px; }
+.editor-heading p, .result-title p { color: var(--muted); }
+.editor-badge { border-color: #cde3d8; background: var(--brand-soft); color: var(--brand-dark); }
+.editor-layout, .photo-layout { grid-template-columns: minmax(0, 1fr) 300px; gap: 22px; }
+.writing-card, .camera-card { padding: clamp(22px, 3vw, 34px); }
+.writing-card-top { margin-bottom: 22px; }
+.autosave-label { color: #52746b; }
+.autosave-label i { background: #20a47d; }
+.editor-page textarea { min-height: 390px; padding: 22px; background-color: #fdfefd; font: 16px/1.85 Georgia, "Times New Roman", serif; }
+.writing-card-bottom { margin-top: 14px; color: #6d817c; }
+#contador-palavras { color: var(--brand-dark); }
+.line-target { color: #9a6438; }
+.line-target.line-target-ok { color: #16805f; }
+.photo-action, .back-editor {
+  border: 1px solid #c9ded5;
+  border-radius: 10px;
+  background: #f8fbf9;
+  color: #315d51;
+}
+.photo-action:hover, .back-editor:hover { background: var(--brand-soft); }
+.tips-panel { padding: 24px; border-color: #d6e7df; border-radius: 17px; background: #edf5f0; }
+.tips-title h2 { color: #234c40; }
+.tips-title span { background: #fff; }
+.tip-item { border-color: #d6e5dd; }
+.tip-item b { background: #d7ebe1; color: var(--brand-dark); }
+.tip-item h3 { color: #31594e; }
+.tip-item p { color: #607a70; }
+.encouragement { color: #456d60; }
+.result-main { width: min(1000px, calc(100% - 56px)); margin-top: 38px; }
+.score-card { border-color: #cfe4da; border-radius: 18px; background: linear-gradient(110deg, #fff 8%, #edf7f1); box-shadow: var(--shadow); }
+.score-icon { background: #dcefe5; }
+.score-card .nota { color: var(--brand-dark); }
+.report-card { margin-top: 22px; }
+.report-heading h2 { color: var(--ink); }
+.report-heading > span { background: var(--brand-soft); color: var(--brand-dark); }
+.result-page pre { border-color: #e0e9e4; background: #f8fbf9; color: #354f49; font-family: Inter, "Segoe UI", Arial, sans-serif; }
+.camera-viewfinder { min-height: 390px; border-color: #d5e2dc; border-radius: 13px; background: #243b36; }
+.viewfinder-guide { border-color: rgba(255,255,255,.88); }
+.send-photo-row { border-color: #d1e5db; border-radius: 12px; background: #f0f7f3; }
+.send-photo-row strong { color: #234c40; }
+.send-photo-row p { color: #627a70; }
+.camera-status { color: #52746b; }
+.camera-status i { background: #20a47d; }
+
+@media (max-width: 850px) {
+  .site-header { width: calc(100% - 36px); }
+  .auth-main, .editor-main, .photo-main, .result-main { width: min(100% - 36px, 680px); }
+  .auth-main { gap: 38px; }
+  .editor-layout, .photo-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .site-header { min-height: 68px; }
+  .brand { font-size: 19px; }
+  .site-nav { gap: 10px; }
+  .site-nav .nav-cta { padding: 9px 11px; }
+  .auth-main { margin-top: 22px; }
+  .auth-intro h1 { font-size: clamp(36px, 11vw, 48px); }
+  .auth-card { padding: 26px 22px; }
+  .editor-main, .photo-main, .result-main { margin-top: 25px; }
+  .editor-page textarea { min-height: 330px; }
+  .camera-viewfinder { min-height: 290px; }
+  .score-card { gap: 13px; }
+}

@@ -38,7 +38,7 @@
           <span class="autosave-label"><i></i> Rascunho ativo</span>
         </div>
 
-        <textarea id="redacao" oninput="atualizarContador()" placeholder="Comece a escrever sua redação aqui..."></textarea>
+        <textarea id="redacao" lang="pt-BR" spellcheck="true" oninput="atualizarContador()" placeholder="Comece a escrever sua redação aqui..."></textarea>
 
         <div class="writing-card-bottom">
           <span id="contador-palavras">0 palavras</span>
@@ -62,6 +62,7 @@
   </main>
 
   <footer class="site-footer">© 2026 Português+ · Sua prática, seu progresso.</footer>
+  <script type="module" src="supabase.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

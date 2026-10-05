@@ -1,8 +1,8 @@
 // A chave fica junto do backend, independentemente da pasta em que o Node for iniciado.
 // `override` evita que uma variável vazia do sistema esconda a chave do arquivo.
 require("dotenv").config({
-  path: require("path").join(__dirname, ".env"),
-  override: true,
+  path: require("path").join(__dirname, "../.env"),
+  override: false,
   quiet: true
 });
 
@@ -10,6 +10,7 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
+const { verifyAuth, createContextClient, createAdminClient } = require("@supabase/server/core");
 
 function getGroqApiKey() {
   const keyFromEnvironment = process.env.GROQ_API_KEY?.trim();
@@ -30,6 +31,102 @@ const app = express();
 app.use(cors());
 // A imagem capturada é enviada em base64 e precisa de um limite maior que o padrão.
 app.use(express.json({ limit: "5mb" }));
+
+function toWebRequest(req) {
+  const protocol = req.headers["x-forwarded-proto"] || req.protocol || "http";
+  const host = req.headers.host || "localhost";
+  return new Request(`${protocol}://${host}${req.originalUrl}`, {
+    method: req.method,
+    headers: { authorization: req.get("authorization") || "" }
+  });
+}
+
+async function requireSupabaseUser(req, res, next) {
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_PUBLISHABLE_KEY) {
+    return res.status(503).json({ erro: "Autenticacao Supabase nao configurada no servidor" });
+  }
+
+  const { data, error } = await verifyAuth(toWebRequest(req), { auth: "user" });
+  if (error) {
+    return res.status(error.status || 401).json({ erro: "Sessao invalida ou expirada" });
+  }
+
+  req.supabaseUser = data.userClaims;
+  req.isAdmin = data.userClaims?.appMetadata?.role === "admin";
+  req.supabase = createContextClient({ auth: { token: data.token } });
+  next();
+}
+
+function requireAdmin(req, res, next) {
+  if (!req.isAdmin) return res.status(403).json({ erro: "Acesso restrito ao administrador" });
+  next();
+}
+
+function getScore(resultado) {
+  const score = resultado.match(/^\s*Nota\s*:\s*(\d+)/im);
+  return score ? Number(score[1]) : null;
+}
+
+async function saveCorrection(req, { conteudo = null, resultado, tipo, linhas = null, imagemPath = null }) {
+  const { error } = await req.supabase.from("redacoes").insert({
+    user_id: req.supabaseUser.id,
+    conteudo,
+    resultado,
+    tipo,
+    linhas,
+    imagem_path: imagemPath,
+    nota: getScore(resultado)
+  });
+
+  if (error) {
+    console.error("Erro ao salvar redacao:", error.message);
+    return false;
+  }
+  return true;
+}
+
+async function uploadPhoto(userId, imageDataUrl) {
+  const match = imageDataUrl.match(/^data:image\/(png|jpe?g|webp);base64,(.+)$/i);
+  if (!match) throw new Error("Imagem invalida");
+
+  const extension = match[1].toLowerCase() === "jpeg" ? "jpg" : match[1].toLowerCase();
+  const imagePath = `${userId}/${crypto.randomUUID()}.${extension}`;
+  const { error } = await createAdminClient()
+    .storage
+    .from("redacoes")
+    .upload(imagePath, Buffer.from(match[2], "base64"), {
+      contentType: `image/${match[1].toLowerCase()}`,
+      upsert: false
+    });
+
+  if (error) throw new Error(`Nao foi possivel salvar a foto: ${error.message}`);
+  return imagePath;
+}
+
+app.get("/api/me", requireSupabaseUser, (req, res) => {
+  res.json({
+    email: req.supabaseUser?.email || null,
+    role: req.isAdmin ? "admin" : "user"
+  });
+});
+
+app.get("/api/redacoes", requireSupabaseUser, async (req, res) => {
+  const { data, error } = await req.supabase
+    .from("redacoes")
+    .select("id, tipo, nota, linhas, created_at, resultado")
+    .order("created_at", { ascending: false });
+  if (error) return res.status(500).json({ erro: "Nao foi possivel consultar as redacoes" });
+  res.json({ redacoes: data });
+});
+
+app.get("/api/admin/redacoes", requireSupabaseUser, requireAdmin, async (req, res) => {
+  const { data, error } = await req.supabase
+    .from("redacoes")
+    .select("id, user_id, tipo, nota, linhas, created_at, resultado")
+    .order("created_at", { ascending: false });
+  if (error) return res.status(500).json({ erro: "Nao foi possivel consultar as redacoes" });
+  res.json({ redacoes: data });
+});
 
 // Avaliador local simples para desenvolvimento (retorna nota 0-1000 e relatório)
 function gradeText(text) {
@@ -146,14 +243,16 @@ app.get("/", (req, res) => {
 });
 
 // 🚀 ROTA DE CORREÇÃO COM GROQ
-app.post("/corrigir", async (req, res) => {
-  const { texto } = req.body;
+app.post(["/corrigir", "/api/corrigir"], requireSupabaseUser, async (req, res) => {
+  const { texto, linhasVisuais } = req.body;
 
   if (!texto) {
     return res.status(400).json({ erro: "Texto não enviado" });
   }
   // Se a chave da API não estiver configurada, usar avaliador local
-  const linhasPreenchidas = texto.split(/\r?\n/).filter((linha) => linha.trim()).length;
+  const linhasPreenchidas = Number.isInteger(linhasVisuais) && linhasVisuais >= 0
+    ? linhasVisuais
+    : texto.split(/\r?\n/).filter((linha) => linha.trim()).length;
   if (linhasPreenchidas < 10) {
     const resultado = [
       "Nota: 0",
@@ -168,7 +267,13 @@ app.post("/corrigir", async (req, res) => {
       texto
     ].join("\n");
 
-    return res.json({ resultado });
+    const salvo = await saveCorrection(req, {
+      conteudo: texto,
+      resultado,
+      tipo: "texto",
+      linhas: linhasPreenchidas
+    });
+    return res.json({ resultado, salvo });
   }
 
   if (!groqApiKey) {
@@ -195,7 +300,14 @@ app.post("/corrigir", async (req, res) => {
     resultado.push('Redação:');
     resultado.push(texto);
 
-    return res.json({ resultado: resultado.join('\n') });
+    const resultadoFinal = resultado.join('\n');
+    const salvo = await saveCorrection(req, {
+      conteudo: texto,
+      resultado: resultadoFinal,
+      tipo: "texto",
+      linhas: linhasPreenchidas
+    });
+    return res.json({ resultado: resultadoFinal, salvo });
   }
 
   try {
@@ -223,9 +335,14 @@ app.post("/corrigir", async (req, res) => {
       return res.status(500).json({ erro: "Erro na API Groq" });
     }
 
-    res.json({
-      resultado: dados.choices[0].message.content
+    const resultado = dados.choices[0].message.content;
+    const salvo = await saveCorrection(req, {
+      conteudo: texto,
+      resultado,
+      tipo: "texto",
+      linhas: linhasPreenchidas
     });
+    res.json({ resultado, salvo });
 
   } catch (erro) {
     console.error("Erro servidor:", erro);
@@ -235,12 +352,16 @@ app.post("/corrigir", async (req, res) => {
 
 // 🚀 INICIAR SERVIDOR
 // Analisa a redação diretamente da foto e devolve o mesmo relatório da correção digitada.
-app.post("/corrigir-foto", async (req, res) => {
+app.post(["/corrigir-foto", "/api/corrigir-foto"], requireSupabaseUser, async (req, res) => {
   const { imagem } = req.body;
   console.log(`Pedido de correcao por foto recebido. Chave Groq: ${groqApiKey ? "carregada" : "ausente"}`);
 
   if (!imagem || !/^data:image\/(png|jpe?g|webp);base64,/i.test(imagem)) {
     return res.status(400).json({ erro: "Imagem invalida ou nao enviada" });
+  }
+
+  if (!groqApiKey) {
+    return res.status(503).json({ erro: "Configure GROQ_API_KEY para corrigir fotos" });
   }
 
   try {
@@ -274,29 +395,31 @@ app.post("/corrigir-foto", async (req, res) => {
       return res.status(502).json({ erro: "Nao foi possivel analisar a foto" });
     }
 
-    res.json({ resultado: dados.choices[0].message.content });
+    const resultado = dados.choices[0].message.content;
+    let imagemPath = null;
+    try {
+      imagemPath = await uploadPhoto(req.supabaseUser.id, imagem);
+    } catch (erroUpload) {
+      console.error(erroUpload.message);
+    }
+    const salvo = await saveCorrection(req, { resultado, tipo: "foto", imagemPath });
+    res.json({ resultado, salvo });
   } catch (erro) {
     console.error("Erro servidor (foto):", erro);
     res.status(500).json({ erro: "Erro ao enviar a foto para correcao" });
   }
 });
 
-const server = app.listen(3000, () => {
-  console.log("Servidor rodando em http://localhost:3000");
-  console.log(`Chave Groq: ${groqApiKey ? "carregada" : "ausente"}`);
-});
+if (require.main === module) {
+  const port = Number(process.env.PORT) || 3000;
+  const server = app.listen(port, () => {
+    console.log(`Servidor rodando em http://localhost:${port}`);
+    console.log(`Chave Groq: ${groqApiKey ? "carregada" : "ausente"}`);
+  });
 
-server.on("close", () => {
-  console.log("Servidor encerrado.");
-});
+  server.on("close", () => console.log("Servidor encerrado."));
+  process.on("SIGINT", () => server.close(() => process.exit(0)));
+  process.on("SIGTERM", () => server.close(() => process.exit(0)));
+}
 
-// Mantém a referência do servidor durante toda a execução do processo.
-const keepAlive = setInterval(() => {}, 60_000);
-process.on("SIGINT", () => server.close(() => {
-  clearInterval(keepAlive);
-  process.exit(0);
-}));
-process.on("SIGTERM", () => server.close(() => {
-  clearInterval(keepAlive);
-  process.exit(0);
-}));
+module.exports = app;
