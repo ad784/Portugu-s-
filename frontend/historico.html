@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minhas redações | Português+</title>
+  <link rel="stylesheet" href="style.css?v=20260830-2">
+</head>
+<body class="history-page">
+  <header class="site-header">
+    <a class="brand" href="nova.html" aria-label="Página inicial do Português+"><img class="brand-icon" src="assets/logo-portugues-mais.png" alt="Logo Português+"><span>Português<span>+</span></span></a>
+    <nav class="site-nav" aria-label="Navegação principal"><a href="nova.html">Nova redação</a><a href="perfil.html">Meu perfil</a><a href="exemplos.html">Exemplos</a><a href="index.html" class="nav-cta" onclick="sair(event)">Sair</a></nav>
+  </header>
+  <main class="history-main">
+    <section class="history-heading"><span class="eyebrow">ACOMPANHE SUA EVOLUÇÃO</span><h1>Minhas redações</h1><p>Veja suas correções anteriores e acompanhe suas notas ao longo do tempo.</p></section>
+    <section id="history-summary" class="history-summary" aria-live="polite"></section>
+    <section id="history-list" class="history-list" aria-live="polite"><p class="history-loading">Carregando seu histórico...</p></section>
+  </main>
+  <footer class="site-footer">© 2026 Português+ · Sua prática, seu progresso.</footer>
+  <script type="module" src="supabase.js"></script>
+  <script src="historico.js?v=20260830-2"></script>
+</body>
+</html>

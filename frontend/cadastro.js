@@ -3,9 +3,15 @@ async function cadastrar() {
   const nome = document.getElementById('nome').value.trim();
   const email = document.getElementById('email').value.trim();
   const senha = document.getElementById('senha').value.trim();
+  const consentimento = document.getElementById('consentimento').checked;
 
   if (!nome || !email || !senha) {
     alert('Preencha todos os campos');
+    return;
+  }
+
+  if (!consentimento) {
+    alert('Para continuar, confirme que concorda com o uso do texto e das fotos na correção por IA.');
     return;
   }
 

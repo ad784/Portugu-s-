@@ -2,8 +2,9 @@
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/index.js" },
     { "source": "/", "destination": "/frontend/index.html" },
-    { "source": "/:page(index|cadastro|nova|resultado|foto)", "destination": "/frontend/:page.html" },
-    { "source": "/:page(index|cadastro|nova|resultado|foto).html", "destination": "/frontend/:page.html" },
-    { "source": "/:asset(style.css|script.js|cadastro.js|foto.js|supabase.js)", "destination": "/frontend/:asset" }
+    { "source": "/:page(index|cadastro|nova|resultado|foto|exemplos|historico|perfil|recuperar|privacidade)", "destination": "/frontend/:page.html" },
+    { "source": "/:page(index|cadastro|nova|resultado|foto|exemplos|historico|perfil|recuperar|privacidade).html", "destination": "/frontend/:page.html" },
+    { "source": "/:asset(style.css|script.js|cadastro.js|foto.js|supabase.js|historico.js|perfil.js|recuperar.js)", "destination": "/frontend/:asset" },
+    { "source": "/assets/:path*", "destination": "/frontend/assets/:path*" }
   ]
 }

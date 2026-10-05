@@ -1,44 +1,92 @@
 // LOGIN
+function showMessage(id, message, type = "error") {
+  const element = document.getElementById(id);
+  if (!element) return false;
+  element.textContent = message;
+  element.className = `form-message ${type}`;
+  return true;
+}
+
+function extractScore(resultado) {
+  const match = resultado?.match(/^\s*Nota\s*:\s*(\d+)/im);
+  return match ? Number(match[1]) : null;
+}
+
+function saveLocalHistory({ resultado, tema = "", tipo = "texto" }) {
+  const key = "historico-redacoes-local";
+  let history = [];
+  try { history = JSON.parse(localStorage.getItem(key) || "[]"); } catch { history = []; }
+  history.unshift({ id: `local-${Date.now()}`, tipo, tema, nota: extractScore(resultado), resultado, created_at: new Date().toISOString(), local: true });
+  localStorage.setItem(key, JSON.stringify(history.slice(0, 30)));
+}
 async function login() {
   const email = document.getElementById("email").value.trim();
   const senha = document.getElementById("senha").value.trim();
 
   if (!email || !senha) {
-    alert("Preencha e-mail e senha para entrar.");
+    showMessage("login-message", "Preencha e-mail e senha para entrar.");
     return;
   }
 
   if (!email.includes("@") || email.startsWith("@") || email.endsWith("@")) {
-    alert("Digite um e-mail válido com @");
+    showMessage("login-message", "Digite um e-mail válido.");
     return;
   }
 
   if (!window.supabaseClient) {
-    alert("O servico de autenticacao ainda esta carregando. Tente novamente.");
+    showMessage("login-message", "O serviço de autenticação ainda está carregando. Tente novamente.");
     return;
   }
 
   const { error } = await window.supabaseClient.auth.signInWithPassword({ email, password: senha });
   if (error) {
-    alert(error.message);
+    showMessage("login-message", error.message);
     return;
   }
 
+  showMessage("login-message", "Login realizado. Abrindo seu editor...", "success");
   window.location.href = "nova.html";
 }
 
+async function sair(event) {
+  event?.preventDefault();
+  try {
+    await window.supabaseClient?.auth.signOut({ scope: "local" });
+  } finally {
+    localStorage.removeItem("resultado");
+    window.location.href = "index.html";
+  }
+}
+
+window.sair = sair;
+
 // ENVIAR REDAÇÃO
+async function requisicaoApi(url, options) {
+  let ultimoErro;
+  for (let tentativa = 0; tentativa < 2; tentativa += 1) {
+    try {
+      return await fetch(url, options);
+    } catch (erro) {
+      ultimoErro = erro;
+      if (tentativa === 0) await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  }
+  throw new Error("Não foi possível conectar ao servidor local. Confirme que http://localhost:3000 está aberto e tente novamente.");
+}
+
 async function corrigir() {
   const texto = document.getElementById("redacao").value;
+  const tema = document.getElementById("tema-redacao")?.value.trim() || "";
   const linhasVisuais = contarLinhasVisuais();
+  const button = document.querySelector(".correct-action");
 
   if (!texto) {
-    alert("Digite sua redação");
+    showMessage("editor-message", "Digite sua redação antes de corrigir.");
     return;
   }
 
   if (linhasVisuais < 10) {
-    alert(`Sua redacao possui ${linhasVisuais} linhas visuais. Escreva pelo menos 10 linhas antes de corrigir.`);
+    showMessage("editor-message", `Sua redação possui ${linhasVisuais} linhas visuais. Escreva pelo menos 10 linhas antes de corrigir.`);
     return;
   }
 
@@ -46,16 +94,41 @@ async function corrigir() {
     const session = await getSession();
     if (!session) return;
 
-    const resposta = await fetch("/api/corrigir", {
+    const options = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${session.access_token}`
       },
-      body: JSON.stringify({ texto, linhasVisuais })
-    });
+      body: JSON.stringify({ texto, linhasVisuais, tema })
+    };
 
-    const dados = await resposta.json();
+    if (button) {
+      button.disabled = true;
+      button.dataset.label = button.innerHTML;
+      button.textContent = "Corrigindo redação...";
+    }
+
+    let resposta = await requisicaoApi("/api/corrigir", options);
+
+    // Um access token pode expirar entre a abertura da página e o clique no
+    // botão. Atualizamos a sessão e repetimos uma única vez antes de pedir
+    // que a pessoa entre novamente.
+    if (resposta.status === 401) {
+      const sessaoRenovada = await getSession(true);
+      if (sessaoRenovada) {
+        options.headers.Authorization = `Bearer ${sessaoRenovada.access_token}`;
+        resposta = await requisicaoApi("/api/corrigir", options);
+      }
+    }
+
+    const corpo = await resposta.text();
+    let dados;
+    try {
+      dados = corpo ? JSON.parse(corpo) : {};
+    } catch {
+      throw new Error("O servidor esta indisponivel no momento. Tente novamente em instantes.");
+    }
 
     if (resposta.status === 401) {
       await window.supabaseClient.auth.signOut();
@@ -67,11 +140,24 @@ async function corrigir() {
     if (!resposta.ok || !dados.resultado) throw new Error(dados.erro || "Nao foi possivel corrigir a redacao.");
 
     localStorage.setItem("resultado", dados.resultado);
+    if (dados.aviso) {
+      // A correção continua disponível para a pessoa mesmo se ocorrer uma
+      // falha temporária de sincronização. O detalhe técnico fica no console,
+      // sem exibir mensagens internas do Supabase na tela de resultado.
+      console.warn("A redação não foi sincronizada com o histórico:", dados.aviso);
+      saveLocalHistory({ resultado: dados.resultado, tema, tipo: "texto" });
+    }
+    localStorage.removeItem("resultado-aviso");
     window.location.href = "resultado.html";
 
   } catch (erro) {
-    alert(erro.message || "Erro ao conectar com o servidor");
+    showMessage("editor-message", erro.message || "Erro ao conectar com o servidor");
     console.error(erro);
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.innerHTML = button.dataset.label || "Corrigir minha redação <span>→</span>";
+    }
   }
 }
 
@@ -146,15 +232,26 @@ function contarLinhasVisuais() {
   return Math.max(1, linhas);
 }
 
-async function getSession() {
+async function getSession(forceRefresh = false) {
   if (!window.supabaseClient) {
-    alert("O servico de autenticacao ainda esta carregando. Tente novamente.");
+    showMessage("login-message", "O serviço de autenticação ainda está carregando. Tente novamente.");
     return null;
   }
 
-  const { data: { session } } = await window.supabaseClient.auth.getSession();
-  const { data: { user }, error } = await window.supabaseClient.auth.getUser();
-  if (!session || error || !user) {
+  const { data, error } = await window.supabaseClient.auth.getSession();
+  let session = data.session;
+
+  // O cliente do Supabase renova a sessão automaticamente. Só forçamos uma
+  // renovação quando o token já está próximo do vencimento ou após um 401.
+  const expiraEmBreve = session?.expires_at && session.expires_at * 1000 < Date.now() + 60_000;
+  if (forceRefresh || expiraEmBreve) {
+    const renovacao = await window.supabaseClient.auth.refreshSession();
+    session = renovacao.data.session;
+    if (renovacao.error) console.warn("Não foi possível renovar a sessão:", renovacao.error.message);
+  }
+
+  if (!session || error) {
+    if (forceRefresh) return null;
     await window.supabaseClient.auth.signOut();
     alert("Entre na sua conta para enviar uma redacao.");
     window.location.href = "index.html";

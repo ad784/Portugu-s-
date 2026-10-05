@@ -9,7 +9,7 @@
 <body class="auth-page">
   <header class="site-header">
     <a class="brand" href="index.html" aria-label="Página inicial do Português+">
-      <span class="brand-icon">📘</span>
+      <img class="brand-icon" src="assets/logo-portugues-mais.png" alt="Logo Português+">
       <span>Português<span>+</span></span>
     </a>
     <nav class="site-nav" aria-label="Navegação principal">
@@ -48,14 +48,16 @@
       <label for="senha">Senha</label>
       <input type="password" id="senha" placeholder="Crie uma senha segura" autocomplete="new-password">
 
+      <label class="consent-field"><input type="checkbox" id="consentimento"> Concordo com o uso das redações e fotos para gerar a correção por IA.</label>
+
       <button class="primary-action" onclick="cadastrar()">Criar minha conta <span>→</span></button>
 
-      <p class="form-footer">Já possui uma conta? <a href="index.html">Fazer login</a></p>
+      <p class="form-footer">Ao criar a conta, você confirma a leitura da <a href="privacidade.html">política de privacidade</a>.<br>Já possui uma conta? <a href="index.html">Fazer login</a></p>
     </section>
   </main>
 
   <footer class="site-footer">© 2026 Português+ · Sua prática, seu progresso.</footer>
   <script type="module" src="supabase.js"></script>
-  <script src="cadastro.js"></script>
+  <script src="cadastro.js?v=20260830-1"></script>
 </body>
 </html>

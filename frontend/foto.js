@@ -3,6 +3,49 @@ const canvas = document.getElementById('snapshot');
 const ctx = canvas.getContext('2d');
 let cameraStream = null;
 
+// A imagem enviada para a IA nao pode ficar espelhada e deve manter a
+// orientacao de uma folha de redacao (retrato).
+function drawPortraitImage(source, sourceWidth, sourceHeight) {
+  const limit = 1600;
+  const needsRotation = sourceWidth > sourceHeight;
+  const outputWidth = needsRotation ? sourceHeight : sourceWidth;
+  const outputHeight = needsRotation ? sourceWidth : sourceHeight;
+  const scale = Math.min(1, limit / Math.max(outputWidth, outputHeight));
+
+  canvas.width = Math.round(outputWidth * scale);
+  canvas.height = Math.round(outputHeight * scale);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (needsRotation) {
+    ctx.translate(canvas.width, 0);
+    ctx.rotate(Math.PI / 2);
+    ctx.drawImage(source, 0, 0, canvas.height, canvas.width);
+  } else {
+    ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+async function sair(event) {
+  event?.preventDefault();
+  stopCamera();
+  try {
+    await window.supabaseClient?.auth.signOut({ scope: 'local' });
+  } finally {
+    localStorage.removeItem('resultado');
+    window.location.href = 'index.html';
+  }
+}
+
+window.sair = sair;
+
+function setCameraIndicator(text, active = false) {
+  const indicator = document.getElementById('camera-status');
+  if (!indicator) return;
+  indicator.classList.toggle('is-active', active);
+  indicator.lastChild.textContent = text;
+}
+
 function setPhotoStatus(message) {
   const status = document.getElementById('foto-status');
   if (status) status.textContent = message;
@@ -12,19 +55,27 @@ function stopCamera() {
   cameraStream?.getTracks().forEach((track) => track.stop());
   cameraStream = null;
   video.srcObject = null;
+  setCameraIndicator('Câmera pausada');
 }
 
 async function initCamera() {
   if (!navigator.mediaDevices?.getUserMedia) {
-    setPhotoStatus('Esta pagina precisa ser aberta por HTTPS para usar a camera.');
+    setPhotoStatus('A câmera não está disponível neste navegador. Selecione uma foto do dispositivo abaixo.');
+    setCameraIndicator('Câmera indisponível');
     return;
   }
 
   stopCamera();
-  setPhotoStatus('Solicitando acesso a camera...');
+  setPhotoStatus('Solicitando acesso à câmera...');
+  setCameraIndicator('Solicitando acesso');
   try {
     cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1080 },
+        height: { ideal: 1440 },
+        aspectRatio: { ideal: 0.75 }
+      },
       audio: false
     });
   } catch (error) {
@@ -32,14 +83,16 @@ async function initCamera() {
       cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
     } catch (fallbackError) {
       console.error(fallbackError);
-      setPhotoStatus('Nao foi possivel acessar a camera. Verifique as permissoes do navegador.');
+      setPhotoStatus('Não foi possível acessar a câmera. Verifique a permissão do navegador ou selecione uma foto abaixo.');
+      setCameraIndicator('Câmera indisponível');
       return;
     }
   }
 
   video.srcObject = cameraStream;
   await video.play();
-  setPhotoStatus('Camera pronta. Posicione a redacao e tire a foto.');
+  setPhotoStatus('Câmera pronta. Posicione a redação e tire a foto.');
+  setCameraIndicator('Câmera ativa', true);
 }
 
 function takePhoto() {
@@ -48,21 +101,40 @@ function takePhoto() {
     return;
   }
 
-  const limit = 1600;
-  const scale = Math.min(1, limit / Math.max(video.videoWidth, video.videoHeight));
-  canvas.width = Math.round(video.videoWidth * scale);
-  canvas.height = Math.round(video.videoHeight * scale);
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  drawPortraitImage(video, video.videoWidth, video.videoHeight);
   canvas.style.display = 'block';
   video.style.display = 'none';
   setPhotoStatus('Foto pronta para envio.');
+  setCameraIndicator('Foto capturada');
 }
 
 function resetPhoto() {
   canvas.style.display = 'none';
   video.style.display = 'block';
   if (!cameraStream) initCamera();
-  else setPhotoStatus('Camera pronta. Tire outra foto quando desejar.');
+  else setPhotoStatus('Câmera pronta. Tire outra foto quando desejar.');
+}
+
+function loadPhoto(file) {
+  if (!file) return;
+  if (!file.type.match(/^image\/(png|jpeg|webp)$/)) {
+    setPhotoStatus('Escolha uma imagem PNG, JPG ou WEBP.');
+    return;
+  }
+  const image = new Image();
+  const reader = new FileReader();
+  reader.onload = () => {
+    image.onload = () => {
+      drawPortraitImage(image, image.width, image.height);
+      canvas.style.display = 'block';
+      video.style.display = 'none';
+      stopCamera();
+      setPhotoStatus('Foto selecionada e pronta para envio.');
+      setCameraIndicator('Foto selecionada');
+    };
+    image.src = reader.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 async function salvarFoto() {
@@ -72,31 +144,54 @@ async function salvarFoto() {
   }
 
   const button = document.getElementById('salvar-foto');
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+  // Preserva a nitidez da escrita manuscrita para a leitura pela IA.
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
   button.disabled = true;
   button.textContent = 'Enviando para correcao...';
   setPhotoStatus('A foto esta sendo salva e corrigida. Aguarde...');
 
   try {
     if (!window.supabaseClient) throw new Error('O servico de autenticacao ainda esta carregando.');
-    const { data: { session } } = await window.supabaseClient.auth.getSession();
+    let { data: { session } } = await window.supabaseClient.auth.getSession();
+    if (session?.expires_at && session.expires_at * 1000 < Date.now() + 60_000) {
+      const renewal = await window.supabaseClient.auth.refreshSession();
+      session = renewal.data.session;
+    }
     if (!session) {
-      window.location.href = 'index.html';
-      return;
+      throw new Error('Sua sessão expirou. Entre novamente para corrigir a redação.');
     }
 
-    const response = await fetch('/api/corrigir-foto', {
+    const options = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${session.access_token}`
       },
       body: JSON.stringify({ imagem: dataUrl })
-    });
-    const data = await response.json();
+    };
+    let response = await requestPhotoCorrection('/api/corrigir-foto', options);
+    if (response.status === 401) {
+      const renewal = await window.supabaseClient.auth.refreshSession();
+      if (renewal.data.session) {
+        options.headers.Authorization = `Bearer ${renewal.data.session.access_token}`;
+        response = await requestPhotoCorrection('/api/corrigir-foto', options);
+      }
+    }
+    const body = await response.text();
+    let data;
+    try {
+      data = body ? JSON.parse(body) : {};
+    } catch {
+      throw new Error('O servidor esta indisponivel no momento. Tente novamente em instantes.');
+    }
     if (!response.ok || !data.resultado) throw new Error(data.erro || 'Nao foi possivel corrigir a foto.');
 
     localStorage.setItem('resultado', data.resultado);
+    if (data.aviso) {
+      console.warn('A redação por foto não foi sincronizada com o histórico:', data.aviso);
+      saveLocalPhotoHistory(data.resultado);
+    }
+    localStorage.removeItem('resultado-aviso');
     stopCamera();
     window.location.href = 'resultado.html';
   } catch (error) {
@@ -107,5 +202,28 @@ async function salvarFoto() {
   }
 }
 
+function saveLocalPhotoHistory(resultado) {
+  const key = 'historico-redacoes-local';
+  let history = [];
+  try { history = JSON.parse(localStorage.getItem(key) || '[]'); } catch { history = []; }
+  const match = resultado?.match(/^\s*Nota\s*:\s*(\d+)/im);
+  history.unshift({ id: `local-${Date.now()}`, tipo: 'foto', tema: '', nota: match ? Number(match[1]) : null, resultado, created_at: new Date().toISOString(), local: true });
+  localStorage.setItem(key, JSON.stringify(history.slice(0, 30)));
+}
+
+async function requestPhotoCorrection(url, options) {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return await fetch(url, options);
+    } catch (error) {
+      if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  }
+  throw new Error('Não foi possível conectar ao servidor local. Confirme que http://localhost:3000 está aberto e tente novamente.');
+}
+
 window.addEventListener('pagehide', stopCamera);
-window.addEventListener('DOMContentLoaded', initCamera);
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('foto-arquivo')?.addEventListener('change', (event) => loadPhoto(event.target.files?.[0]));
+  initCamera();
+});
