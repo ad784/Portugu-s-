@@ -16,6 +16,7 @@ Estudantes que praticam redação no modelo ENEM precisam de retorno rápido, or
 | RF06 | Exibir nota, sugestões e pontos de atenção. |
 | RF07 | Consultar histórico, média e melhor nota. |
 | RF08 | Atualizar perfil e consultar política de privacidade. |
+| RF09 | Visualizar gráfico de evolução das notas e médias das cinco competências a partir das redações salvas. |
 
 ## Requisitos não funcionais
 
@@ -26,6 +27,10 @@ Estudantes que praticam redação no modelo ENEM precisam de retorno rápido, or
 | RNF03 | Fotos em bucket privado. |
 | RNF04 | Correção informada como estimativa pedagógica. |
 | RNF05 | Chaves de IA mantidas somente no backend. |
+
+## Evolução do estudante
+
+A página `frontend/evolucao.html` combina as redações do histórico autenticado com registros locais ainda não sincronizados e ordena os pontos pela data de criação. O gráfico mostra a nota final de cada texto. As médias por competência aparecem quando os relatórios salvos contêm notas individuais para a matriz ENEM.
 
 ## Arquitetura
 

@@ -178,6 +178,47 @@ window.onload = () => {
     if (match && elNota) {
       elNota.innerText = match[1].trim();
     }
+    const competencySection = resultado.match(/Compet[eê]ncias\s*:\s*([\s\S]*?)(?:\n\s*(?:Erros|Sugest[oõ]es|Reda[cç][aã]o)\s*:|$)/i)?.[1] || '';
+    const scores = Array(5).fill(null);
+    const comments = Array(5).fill('');
+    for (const line of competencySection.split(/\r?\n/)) {
+      const item = line.match(/^\s*(?:C)?([1-5])\s*[:–-]\s*(\d{1,3})(?:\s*[-–:]\s*(.*))?\s*$/i);
+      if (!item) continue;
+      const index = Number(item[1]) - 1;
+      scores[index] = Math.max(0, Math.min(200, Number(item[2])));
+      comments[index] = item[3] || '';
+    }
+    if (scores.some(Number.isFinite)) {
+      const names = ['Domínio da escrita formal', 'Compreensão do tema e repertório', 'Seleção e organização dos argumentos', 'Coesão e articulação das ideias', 'Proposta de intervenção'];
+      const cards = document.getElementById('competency-cards');
+      for (let index = 0; index < scores.length; index += 1) {
+        if (!Number.isFinite(scores[index])) continue;
+        const card = document.createElement('article');
+        card.className = 'competency-card';
+        const title = document.createElement('h3');
+        title.textContent = `Competência ${index + 1}`;
+        const name = document.createElement('p');
+        name.className = 'competency-name';
+        name.textContent = names[index];
+        const score = document.createElement('strong');
+        score.className = 'competency-score';
+        score.textContent = `${scores[index]} / 200`;
+        const track = document.createElement('div');
+        track.className = 'competency-track';
+        const fill = document.createElement('span');
+        fill.style.width = `${scores[index] / 2}%`;
+        track.append(fill);
+        card.append(title, name, score, track);
+        if (comments[index]) {
+          const comment = document.createElement('p');
+          comment.className = 'competency-comment';
+          comment.textContent = comments[index];
+          card.append(comment);
+        }
+        cards.append(card);
+      }
+      document.getElementById('competency-breakdown').hidden = false;
+    }
   }
 };
 

@@ -33,8 +33,33 @@ function renderHistory(redacoes) {
   redacoes.forEach(item => {
     const article = document.createElement('article');
     article.className = 'history-item';
-    article.innerHTML = `<div class="history-score">${item.nota ?? '—'}<small>/1000</small></div><div class="history-content"><div class="history-meta"><span>${item.tipo === 'foto' ? 'Redação por foto' : 'Redação digitada'}</span><time>${formatDate(item.created_at)}</time></div><h2>${item.tema || 'Tema não informado'}</h2><p>${extractPreview(item.resultado)}</p></div><button type="button" class="history-view">Ver correção</button>`;
-    article.querySelector('.history-view').addEventListener('click', () => { localStorage.setItem('resultado', item.resultado); window.location.href = 'resultado.html'; });
+    const score = document.createElement('div');
+    score.className = 'history-score';
+    score.append(document.createTextNode(String(item.nota ?? '—')));
+    const scale = document.createElement('small');
+    scale.textContent = '/1000';
+    score.append(scale);
+    const content = document.createElement('div');
+    content.className = 'history-content';
+    const meta = document.createElement('div');
+    meta.className = 'history-meta';
+    const type = document.createElement('span');
+    type.textContent = item.tipo === 'foto' ? 'Redação por foto' : 'Redação digitada';
+    const time = document.createElement('time');
+    time.dateTime = item.created_at || '';
+    time.textContent = formatDate(item.created_at);
+    meta.append(type, time);
+    const theme = document.createElement('h2');
+    theme.textContent = item.tema || 'Tema não informado';
+    const preview = document.createElement('p');
+    preview.textContent = extractPreview(item.resultado);
+    content.append(meta, theme, preview);
+    const view = document.createElement('button');
+    view.type = 'button';
+    view.className = 'history-view';
+    view.textContent = 'Ver correção';
+    article.append(score, content, view);
+    view.addEventListener('click', () => { localStorage.setItem('resultado', item.resultado); window.location.href = 'resultado.html'; });
     list.append(article);
   });
 }
@@ -53,7 +78,16 @@ async function loadHistory() {
   } catch (error) {
     const localHistory = getLocalHistory();
     if (localHistory.length) renderHistory(localHistory);
-    else document.getElementById('history-list').innerHTML = `<div class="history-empty"><h2>Não foi possível carregar seu histórico.</h2><p>${error.message}</p></div>`;
+    else {
+      const empty = document.createElement('div');
+      empty.className = 'history-empty';
+      const title = document.createElement('h2');
+      title.textContent = 'Não foi possível carregar seu histórico.';
+      const message = document.createElement('p');
+      message.textContent = error.message;
+      empty.append(title, message);
+      document.getElementById('history-list').replaceChildren(empty);
+    }
   }
 }
 

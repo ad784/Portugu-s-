@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Acompanhe sua evolução nas redações e nas cinco competências do ENEM.">
+  <title>Minha evolução | Português+</title>
+  <link rel="stylesheet" href="style.css?v=20261006-1">
+</head>
+<body class="history-page">
+  <header class="site-header">
+    <a class="brand" href="nova.html" aria-label="Página inicial do Português+"><img class="brand-icon" src="assets/logo-portugues-mais.png" alt=""><span>Português<span>+</span></span></a>
+    <nav class="site-nav" aria-label="Navegação principal">
+      <a href="nova.html">Nova redação</a><a href="historico.html">Minhas redações</a><a href="perfil.html">Meu perfil</a><a href="index.html" class="nav-cta" onclick="sair(event)">Sair</a>
+    </nav>
+  </header>
+  <main class="progress-main">
+    <section class="history-heading"><span class="eyebrow">SEU CAMINHO NA REDAÇÃO</span><h1>Minha evolução</h1><p>Acompanhe suas notas desde a primeira redação salva e veja quais competências estão avançando.</p></section>
+    <section id="progress-summary" class="history-summary" aria-label="Resumo da evolução" aria-live="polite"></section>
+    <section class="progress-card" aria-labelledby="score-chart-title">
+      <div class="progress-card-heading"><div><h2 id="score-chart-title">Nota por redação</h2><p>Cada ponto representa uma redação corrigida, da mais antiga à mais recente.</p></div><span class="chart-legend"><i></i> Nota ENEM</span></div>
+      <div id="score-chart" class="chart-wrap" aria-live="polite"></div>
+      <p id="score-chart-description" class="chart-description"></p>
+    </section>
+    <section class="progress-card" aria-labelledby="competency-title">
+      <div class="progress-card-heading"><div><h2 id="competency-title">Evolução por competência</h2><p>Médias por competência nas primeiras e nas últimas redações.</p></div></div>
+      <div id="competency-progress" class="competency-progress"></div>
+      <p class="chart-note">As competências aparecem quando a correção salva notas individuais no relatório.</p>
+    </section>
+    <section class="progress-actions"><a class="secondary-action" href="historico.html">Ver todas as redações</a><a class="primary-action" href="nova.html">Escrever nova redação <span aria-hidden="true">→</span></a></section>
+  </main>
+  <footer class="site-footer">© 2026 Português+ · Sua prática, seu progresso.</footer>
+  <script type="module" src="supabase.js"></script>
+  <script src="evolucao.js?v=20261006-1"></script>
+</body>
+</html>

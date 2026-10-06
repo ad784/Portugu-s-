@@ -32,6 +32,18 @@ A qualidade da transcrição depende da nitidez da letra, iluminação e enquadr
 
 O editor envia o texto ao endpoint `/api/corrigir`. O backend encaminha a redação à Groq usando `GROQ_MODEL` (por padrão, `openai/gpt-oss-120b`) e devolve a avaliação para a tela de resultado. É necessário configurar `GROQ_API_KEY`. A correção é um apoio ao estudo e não substitui a avaliação oficial do ENEM.
 
+## Critérios de correção
+
+A correção por texto solicita notas independentes e justificadas para as cinco competências. A calibração é conservadora: repertório apenas citado, argumentos pouco desenvolvidos, coesão mecânica e proposta de intervenção incompleta não devem sustentar notas altas. Cada competência usa uma faixa de 0, 40, 80, 120, 160 ou 200 pontos. Se a IA devolver um valor intermediário, o backend o normaliza para a faixa inferior; a nota final é a soma das cinco competências e, por isso, ocorre em múltiplos de 40.
+
+Na correção por foto, o backend também recalcula a nota a partir das cinco competências. Se a resposta não trouxer as cinco notas separadas, a correção solicita uma nova tentativa em vez de mostrar um total sem essa conferência. Em ambos os fluxos, a nota é uma estimativa pedagógica: não substitui a avaliação oficial do ENEM e pode diferir da nota atribuída por avaliadores humanos.
+
+## Histórico e evolução
+
+A página `frontend/historico.html` lista as redações corrigidas. Em `frontend/evolucao.html`, o estudante acompanha um gráfico com as notas salvas em ordem cronológica, a média geral, a variação desde a primeira redação e a comparação das médias por competência entre os primeiros e os registros mais recentes. As notas por competência aparecem quando o relatório salvo contém essa informação. Os dados vêm do histórico autenticado e incluem registros locais ainda não sincronizados.
+
+Correções feitas após uma atualização usam a nova calibração. Notas que já foram salvas não são recalculadas automaticamente.
+
 ## Supabase e migrações
 
 Para habilitar banco, histórico e armazenamento de fotos, execute os arquivos abaixo no SQL Editor do projeto Supabase, nesta ordem:

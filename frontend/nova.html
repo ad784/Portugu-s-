@@ -15,6 +15,7 @@
     <nav class="site-nav" aria-label="Navegação principal">
       <a href="perfil.html">Meu perfil</a>
       <a href="historico.html">Minhas redações</a>
+      <a href="evolucao.html">Minha evolução</a>
       <a href="exemplos.html">Exemplos de notas</a>
       <a href="#dicas">Dicas de escrita</a>
       <a href="index.html" class="nav-cta" onclick="sair(event)">Sair</a>
@@ -46,6 +47,7 @@
           <input id="tema-redacao" type="text" maxlength="300" placeholder="Ex.: Desafios para combater a desinformacao no Brasil">
         </label>
 
+        <label class="sr-only" for="redacao">Texto da redação</label>
         <textarea id="redacao" lang="pt-BR" spellcheck="true" oninput="atualizarContador()" placeholder="Comece a escrever sua redação aqui..."></textarea>
 
         <div class="writing-card-bottom">
