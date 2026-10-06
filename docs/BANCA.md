@@ -30,7 +30,7 @@ Estudantes que praticam redação no modelo ENEM precisam de retorno rápido, or
 
 ## Evolução do estudante
 
-A página `frontend/evolucao.html` combina as redações do histórico autenticado com registros locais ainda não sincronizados e ordena os pontos pela data de criação. O gráfico mostra a nota final de cada texto. As médias por competência aparecem quando os relatórios salvos contêm notas individuais para a matriz ENEM.
+A página `frontend/pages/evolucao.html` combina as redações do histórico autenticado com registros locais ainda não sincronizados e ordena os pontos pela data de criação. O gráfico mostra a nota final de cada texto. As médias por competência aparecem quando os relatórios salvos contêm notas individuais para a matriz ENEM.
 
 ## Arquitetura
 

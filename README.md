@@ -40,7 +40,7 @@ Na correção por foto, o backend também recalcula a nota a partir das cinco co
 
 ## Histórico e evolução
 
-A página `frontend/historico.html` lista as redações corrigidas. Em `frontend/evolucao.html`, o estudante acompanha um gráfico com as notas salvas em ordem cronológica, a média geral, a variação desde a primeira redação e a comparação das médias por competência entre os primeiros e os registros mais recentes. As notas por competência aparecem quando o relatório salvo contém essa informação. Os dados vêm do histórico autenticado e incluem registros locais ainda não sincronizados.
+A página `frontend/pages/historico.html` lista as redações corrigidas. Em `frontend/pages/evolucao.html`, o estudante acompanha um gráfico com as notas salvas em ordem cronológica, a média geral, a variação desde a primeira redação e a comparação das médias por competência entre os primeiros e os registros mais recentes. As notas por competência aparecem quando o relatório salvo contém essa informação. Os dados vêm do histórico autenticado e incluem registros locais ainda não sincronizados.
 
 Correções feitas após uma atualização usam a nova calibração. Notas que já foram salvas não são recalculadas automaticamente.
 
@@ -66,7 +66,10 @@ npm test
 
 ## Estrutura principal
 
-- `frontend/`: páginas, estilos e scripts do site.
+- `frontend/pages/`: páginas HTML do site.
+- `frontend/scripts/`: scripts do navegador, incluindo autenticação e gráficos.
+- `frontend/styles/`: folhas de estilo.
+- `frontend/assets/`: imagens e outros recursos estáticos.
 - `backend/server.js`: servidor Express, autenticação e endpoints de correção.
 - `api/index.js`: entrada da função da Vercel.
 - `supabase/migrations/`: estrutura do banco, políticas e armazenamento.

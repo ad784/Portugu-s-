@@ -45,7 +45,7 @@ async function login() {
   }
 
   showMessage("login-message", "Login realizado. Abrindo seu editor...", "success");
-  window.location.href = "nova.html";
+  window.location.href = "/nova.html";
 }
 
 async function sair(event) {
@@ -54,7 +54,7 @@ async function sair(event) {
     await window.supabaseClient?.auth.signOut({ scope: "local" });
   } finally {
     localStorage.removeItem("resultado");
-    window.location.href = "index.html";
+    window.location.href = "/index.html";
   }
 }
 
@@ -133,7 +133,7 @@ async function corrigir() {
     if (resposta.status === 401) {
       await window.supabaseClient.auth.signOut();
       alert("Sua sessao expirou. Entre novamente para corrigir a redacao.");
-      window.location.href = "index.html";
+      window.location.href = "/index.html";
       return;
     }
 
@@ -148,7 +148,7 @@ async function corrigir() {
       saveLocalHistory({ resultado: dados.resultado, tema, tipo: "texto" });
     }
     localStorage.removeItem("resultado-aviso");
-    window.location.href = "resultado.html";
+    window.location.href = "/resultado.html";
 
   } catch (erro) {
     showMessage("editor-message", erro.message || "Erro ao conectar com o servidor");
@@ -224,7 +224,7 @@ window.onload = () => {
 
 // VOLTAR
 function voltar() {
-  window.location.href = "nova.html";
+  window.location.href = "/nova.html";
 }
 
 function atualizarContador() {
@@ -295,7 +295,7 @@ async function getSession(forceRefresh = false) {
     if (forceRefresh) return null;
     await window.supabaseClient.auth.signOut();
     alert("Entre na sua conta para enviar uma redacao.");
-    window.location.href = "index.html";
+    window.location.href = "/index.html";
     return null;
   }
   return session;

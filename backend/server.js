@@ -435,12 +435,23 @@ function gradeText(text) {
   return report;
 }
 
-// 🔥 SERVIR FRONTEND
-app.use(express.static(path.join(__dirname, "../frontend")));
+// Servir arquivos estaticos e resolver as paginas organizadas por pastas.
+const frontendRoot = path.join(__dirname, "../frontend");
+const frontendPages = path.join(frontendRoot, "pages");
+const publicPages = new Set([
+  "index", "cadastro", "nova", "resultado", "foto", "exemplos",
+  "historico", "evolucao", "perfil", "recuperar", "privacidade"
+]);
+app.use(express.static(frontendRoot));
+app.get("/:page", (req, res, next) => {
+  const page = req.params.page.replace(/\.html$/, "");
+  if (!publicPages.has(page)) return next();
+  res.sendFile(path.join(frontendPages, `${page}.html`));
+});
 
-// 🔥 ROTA PRINCIPAL
+// Rota principal
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/index.html"));
+  res.sendFile(path.join(frontendPages, "index.html"));
 });
 
 // 🚀 ROTA DE CORREÇÃO COM GROQ

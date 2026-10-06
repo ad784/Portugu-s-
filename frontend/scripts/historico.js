@@ -1,7 +1,7 @@
 async function sair(event) {
   event?.preventDefault();
   try { await window.supabaseClient?.auth.signOut({ scope: 'local' }); }
-  finally { window.location.href = 'index.html'; }
+  finally { window.location.href = '/index.html'; }
 }
 
 function formatDate(value) {
@@ -24,7 +24,7 @@ function renderHistory(redacoes) {
   list.replaceChildren();
   summary.replaceChildren();
   if (!redacoes.length) {
-    list.innerHTML = '<div class="history-empty"><h2>Você ainda não possui redações salvas.</h2><p>Quando uma redação for corrigida com sua conta, ela aparecerá aqui.</p><a href="nova.html" class="primary-action">Escrever minha primeira redação <span>→</span></a></div>';
+    list.innerHTML = '<div class="history-empty"><h2>Você ainda não possui redações salvas.</h2><p>Quando uma redação for corrigida com sua conta, ela aparecerá aqui.</p><a href="/nova.html" class="primary-action">Escrever minha primeira redação <span>→</span></a></div>';
     return;
   }
   const notas = redacoes.map(item => item.nota).filter(Number.isFinite);
@@ -59,7 +59,7 @@ function renderHistory(redacoes) {
     view.className = 'history-view';
     view.textContent = 'Ver correção';
     article.append(score, content, view);
-    view.addEventListener('click', () => { localStorage.setItem('resultado', item.resultado); window.location.href = 'resultado.html'; });
+    view.addEventListener('click', () => { localStorage.setItem('resultado', item.resultado); window.location.href = '/resultado.html'; });
     list.append(article);
   });
 }
@@ -67,7 +67,7 @@ function renderHistory(redacoes) {
 async function loadHistory() {
   try {
     const { data: { session } } = await window.supabaseClient.auth.getSession();
-    if (!session) { window.location.href = 'index.html'; return; }
+    if (!session) { window.location.href = '/index.html'; return; }
     const response = await fetch('/api/redacoes', { headers: { Authorization: `Bearer ${session.access_token}` } });
     const data = await response.json();
     if (!response.ok) throw new Error(data.erro || 'Não foi possível carregar o histórico.');

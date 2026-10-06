@@ -36,5 +36,5 @@ async function cadastrar() {
   }
 
   alert('Conta criada. Confirme seu e-mail antes de entrar, caso essa opcao esteja ativa no Supabase.');
-  window.location.href = './index.html';
+  window.location.href = '/index.html';
 }

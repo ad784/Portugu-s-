@@ -1,10 +1,11 @@
 {
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/index.js" },
-    { "source": "/", "destination": "/frontend/index.html" },
-    { "source": "/:page(index|cadastro|nova|resultado|foto|exemplos|historico|evolucao|perfil|recuperar|privacidade)", "destination": "/frontend/:page.html" },
-    { "source": "/:page(index|cadastro|nova|resultado|foto|exemplos|historico|evolucao|perfil|recuperar|privacidade).html", "destination": "/frontend/:page.html" },
-    { "source": "/:asset(style.css|script.js|cadastro.js|foto.js|supabase.js|historico.js|evolucao.js|perfil.js|recuperar.js)", "destination": "/frontend/:asset" },
+    { "source": "/", "destination": "/frontend/pages/index.html" },
+    { "source": "/:page(index|cadastro|nova|resultado|foto|exemplos|historico|evolucao|perfil|recuperar|privacidade)", "destination": "/frontend/pages/:page.html" },
+    { "source": "/:page(index|cadastro|nova|resultado|foto|exemplos|historico|evolucao|perfil|recuperar|privacidade).html", "destination": "/frontend/pages/:page.html" },
+    { "source": "/styles/:path*", "destination": "/frontend/styles/:path*" },
+    { "source": "/scripts/:path*", "destination": "/frontend/scripts/:path*" },
     { "source": "/assets/:path*", "destination": "/frontend/assets/:path*" }
   ]
 }

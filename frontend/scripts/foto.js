@@ -33,7 +33,7 @@ async function sair(event) {
     await window.supabaseClient?.auth.signOut({ scope: 'local' });
   } finally {
     localStorage.removeItem('resultado');
-    window.location.href = 'index.html';
+    window.location.href = '/index.html';
   }
 }
 
@@ -193,7 +193,7 @@ async function salvarFoto() {
     }
     localStorage.removeItem('resultado-aviso');
     stopCamera();
-    window.location.href = 'resultado.html';
+    window.location.href = '/resultado.html';
   } catch (error) {
     console.error(error);
     setPhotoStatus(error.message || 'Nao foi possivel enviar a foto. Tente novamente.');

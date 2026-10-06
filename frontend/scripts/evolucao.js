@@ -4,7 +4,7 @@ const COMPETENCY_NAMES = ['C1 · Norma-padrão', 'C2 · Tema e repertório', 'C3
 async function sair(event) {
   event?.preventDefault();
   try { await window.supabaseClient?.auth.signOut({ scope: 'local' }); }
-  finally { window.location.href = 'index.html'; }
+  finally { window.location.href = '/index.html'; }
 }
 
 function localHistory() {
@@ -68,7 +68,7 @@ function renderScoreChart(records) {
   const target = document.getElementById('score-chart');
   const description = document.getElementById('score-chart-description');
   if (!records.length) {
-    target.innerHTML = '<div class="chart-empty"><h3>Ainda não há notas para mostrar</h3><p>Depois de corrigir e salvar sua primeira redação, seu gráfico aparecerá aqui.</p><a class="primary-action" href="nova.html">Escrever primeira redação <span aria-hidden="true">→</span></a></div>';
+    target.innerHTML = '<div class="chart-empty"><h3>Ainda não há notas para mostrar</h3><p>Depois de corrigir e salvar sua primeira redação, seu gráfico aparecerá aqui.</p><a class="primary-action" href="/nova.html">Escrever primeira redação <span aria-hidden="true">→</span></a></div>';
     description.textContent = '';
     return;
   }
@@ -114,7 +114,7 @@ async function loadProgress() {
   try {
     if (!window.supabaseClient) throw new Error('Autenticação indisponível');
     const { data: { session } } = await window.supabaseClient.auth.getSession();
-    if (!session) { window.location.href = 'index.html'; return; }
+    if (!session) { window.location.href = '/index.html'; return; }
     const response = await fetch('/api/redacoes', { headers: { Authorization: `Bearer ${session.access_token}` } });
     const data = await response.json();
     if (!response.ok) throw new Error(data.erro || 'Não foi possível carregar suas redações.');
