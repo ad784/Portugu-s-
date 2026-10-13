@@ -56,7 +56,7 @@ O bucket de fotos é privado. Nunca exponha `SUPABASE_SECRET_KEY` ou `GROQ_API_K
 
 ## Deploy na Vercel
 
-O arquivo `vercel.json` configura as páginas e as rotas `/api/*`. Importe este repositório na Vercel e configure `SUPABASE_SECRET_KEY`, `GROQ_API_KEY` e, se necessário, `GROQ_MODEL` nas variáveis de ambiente de produção e preview. Depois de mudar variáveis, faça um novo deploy. No Supabase, ajuste **Authentication → URL Configuration** para aceitar o domínio publicado e as URLs locais necessárias.
+O arquivo `vercel.json` configura as páginas e as rotas `/api/*`. Importe este repositório na Vercel e configure `SUPABASE_SECRET_KEY`, `GROQ_API_KEY` e, se necessário, `GROQ_MODEL` ou `GROQ_VISION_MODEL` nas variáveis de ambiente de produção e preview. A correção por foto usa `qwen/qwen3.8-27b` por padrão. Depois de mudar variáveis, faça um novo deploy. No Supabase, ajuste **Authentication → URL Configuration** para aceitar o domínio publicado e as URLs locais necessárias.
 
 ## Testes
 

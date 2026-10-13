@@ -577,9 +577,8 @@ app.post(["/corrigir-foto", "/api/corrigir-foto"], requireSupabaseUser, async (r
         "Authorization": `Bearer ${groqApiKey}`
       },
       body: JSON.stringify({
-        // O Llama 4 Scout foi descontinuado pela Groq. Qwen 3.6 aceita
-        // imagens e texto, sendo usado aqui para ler a redacao manuscrita.
-        model: process.env.GROQ_VISION_MODEL || "qwen/qwen3.6-27b",
+        // Qwen 3.8 aceita imagens e texto e substitui o Qwen 3.6 descontinuado.
+        model: process.env.GROQ_VISION_MODEL || "qwen/qwen3.8-27b",
         temperature: 0.2,
         max_tokens: 2500,
         messages: [{
