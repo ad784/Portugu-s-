@@ -51,6 +51,7 @@ Para habilitar banco, histórico e armazenamento de fotos, execute os arquivos a
 1. `supabase/migrations/20260805162000_create_profiles_and_redacoes.sql`
 2. `supabase/migrations/20260805170000_add_photo_storage.sql`
 3. `supabase/migrations/20260830190000_add_theme_and_storage_policies.sql`
+4. `supabase/migrations/20261013120000_allow_users_to_insert_own_profile.sql`
 
 O bucket de fotos é privado. Nunca exponha `SUPABASE_SECRET_KEY` ou `GROQ_API_KEY` no frontend, no GitHub ou em mensagens.
 
