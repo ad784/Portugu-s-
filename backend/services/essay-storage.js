@@ -111,6 +111,15 @@ async function saveCorrection(req, { conteudo = null, resultado, tipo, linhas = 
       .single());
   }
 
+  if (error && /PGRST204|42703/.test(error.code || "") && /imagem_path/i.test(error.message || "")) {
+    delete registro.imagem_path;
+    ({ data, error } = await req.supabase
+      .from("redacoes")
+      .insert(registro)
+      .select("id, created_at")
+      .single());
+  }
+
   if (error) {
     console.error("Erro ao salvar redacao:", error.message);
     if (error.code === "PGRST204" || /tema/i.test(error.message)) {

@@ -1,4 +1,6 @@
 const { createClient } = require("@supabase/supabase-js");
+const { verifyCredentials, createContextClient } = require("@supabase/server/core");
+const { decodeProtectedHeader } = require("jose");
 
 function createServerClient(accessToken) {
   return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
@@ -24,6 +26,33 @@ async function requireSupabaseUser(req, res, next) {
   const token = (req.get("authorization") || "").match(/^Bearer\s+(.+)$/i)?.[1];
   if (!token) return res.status(401).json({ erro: "Sessao invalida ou expirada" });
   try {
+    // Tokens assinados com as chaves assimetricas do Supabase podem ser
+    // verificados localmente. Isso evita uma chamada ao Auth para cada foto.
+    // Tokens HS256 antigos continuam usando getUser como fallback.
+    let alg;
+    try {
+      ({ alg } = decodeProtectedHeader(token));
+    } catch {
+      return res.status(401).json({ erro: "Sessao invalida ou expirada" });
+    }
+    if (alg !== "HS256" && process.env.SUPABASE_JWKS_URL) {
+      const { data: verified, error: verificationError } = await verifyCredentials(
+        { token, apikey: null },
+        { auth: "user" }
+      );
+      if (!verificationError && verified?.userClaims) {
+        const claims = verified.userClaims;
+        req.supabaseUser = {
+          id: claims.id,
+          email: claims.email,
+          app_metadata: claims.appMetadata || {}
+        };
+        req.isAdmin = req.supabaseUser.app_metadata.role === "admin";
+        req.supabase = createContextClient({ auth: { token } });
+        return next();
+      }
+    }
+
     const { data, error } = await createServerClient().auth.getUser(token);
     if (error || !data.user) {
       const invalid = [400, 401, 403].includes(Number(error?.status));

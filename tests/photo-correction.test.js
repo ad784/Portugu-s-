@@ -32,6 +32,18 @@ test("reads accented headings and recalculates the total from five competencies"
   assert.match(result, /5: 120 - proposta sem detalhamento suficiente/i);
 });
 
+test("removes consecutive repeated phrases from the photo transcript", () => {
+  const loop = "priorizando o gasto público em cada setor, ".repeat(8);
+  const response = modelText.replace(
+    "A sociedade brasileira enfrenta desafios importantes.",
+    `A sociedade brasileira enfrenta desafios importantes. ${loop}O texto continua aqui.`
+  );
+  const result = formatPhotoCorrection(response);
+  const transcript = result.split(/\nRedacao:\n/i)[1];
+  assert.equal((transcript.match(/priorizando o gasto público em cada setor/gi) || []).length, 1);
+  assert.match(transcript, /O texto continua aqui\./);
+});
+
 test("sends the image to the configured vision model and returns its transcription", async () => {
   let request;
   const result = await analyzePhoto({

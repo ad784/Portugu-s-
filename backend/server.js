@@ -1,12 +1,11 @@
 // A chave fica junto do backend, independentemente da pasta em que o Node for iniciado.
 // `override` evita que uma variável vazia do sistema esconda a chave do arquivo.
-require("dotenv").config({
-  path: require("path").join(__dirname, "../.env"),
-  // Garante que os valores do arquivo local prevaleçam sobre variáveis vazias
-  // herdadas do terminal ou do sistema operacional.
-  override: true,
-  quiet: true
-});
+const dotenv = require("dotenv");
+const envPath = require("path").join(__dirname, "../.env");
+const envFile = dotenv.config({ path: envPath, quiet: true });
+for (const [key, value] of Object.entries(envFile.parsed || {})) {
+  if (!process.env[key]?.trim()) process.env[key] = value;
+}
 
 const express = require("express");
 const cors = require("cors");

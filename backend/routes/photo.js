@@ -21,7 +21,7 @@ function createPhotoRouter({ requireSupabaseUser, saveCorrection, apiKey, model,
         imagePath = await upload(req.supabaseUser.id, image, () => req.supabase);
       } catch (error) {
         console.error("Nao foi possivel armazenar a foto:", error.message);
-        photoWarning = "A correção foi salva, mas a imagem não ficou no histórico. O administrador precisa aplicar a migration de políticas de fotos no Supabase.";
+        photoWarning = "A correção foi salva no histórico, mas a imagem não foi armazenada. O administrador precisa aplicar as migrations de Storage do Supabase para criar o bucket redacoes e liberar o upload.";
       }
       const transcribedText = result.split(/\nRedacao:\n/i)[1]?.trim() || null;
       const persistence = await saveCorrection(req, { conteudo: transcribedText, resultado: result, tipo: "foto", imagemPath: imagePath });

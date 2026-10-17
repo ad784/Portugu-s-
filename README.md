@@ -22,13 +22,25 @@ Para comprovar que o endereço de e-mail é acessível, ative **Confirm Email** 
 
 ## Correção por foto
 
-1. Entre na conta e escolha **Enviar foto da redação** no editor. Permita o acesso à câmera. Em dispositivos móveis, a página tenta abrir a câmera traseira e oferece uma alternativa para selecionar uma imagem do aparelho.
-2. Enquadre toda a folha em local iluminado, mantenha a escrita em foco e capture a foto. Confira a prévia; é possível refazer a captura.
-3. Escolha **Enviar e corrigir**. O navegador envia a imagem autenticada ao endpoint `/api/corrigir-foto`.
-4. O backend envia a imagem à Groq, que tenta transcrever a redação manuscrita e avaliá-la segundo o formato ENEM. O resultado aparece na tela de correção.
-5. A foto é enviada ao modelo de visão. A transcrição e a correção são salvas no histórico; o arquivo da imagem vai para o bucket privado `redacoes` quando a política de upload da migration estiver aplicada. Se o Storage ainda não estiver configurado, a correção continua disponível e a tela informa que a foto não foi guardada.
+O fluxo usa a API do próprio backend para manter `GROQ_API_KEY` no servidor. O navegador nunca envia essa chave à Groq.
 
-A qualidade da transcrição depende da nitidez da letra, iluminação e enquadramento. Confira a transcrição antes de usar a devolutiva; a nota é uma estimativa pedagógica, não uma avaliação oficial. A câmera requer `localhost` ou HTTPS e permissão do navegador. A imagem é enviada à Groq para análise.
+### Fluxo da requisição
+
+1. O estudante entra na conta, tira uma foto ou escolhe uma imagem e confere a prévia. A câmera funciona em `localhost` ou HTTPS e depende da permissão do navegador. A captura é convertida no navegador para JPEG antes do envio.
+2. O navegador obtém a sessão Supabase e envia um `POST /api/corrigir-foto` com `Authorization: Bearer <access_token>` e um corpo JSON no formato `{ "imagem": "data:image/jpeg;base64,..." }`. O backend também aceita o caminho `/corrigir-foto`.
+3. O middleware valida a sessão do Supabase. O backend aceita imagens PNG, JPG/JPEG ou WEBP, confere se os bytes correspondem ao formato declarado e recusa arquivos vazios ou maiores que 5 MB.
+4. O backend envia a imagem e as instruções de correção para `https://api.groq.com/openai/v1/chat/completions`. O modelo padrão é `qwen/qwen3.8-27b`; `GROQ_VISION_MODEL` pode selecionar outro modelo compatível com imagens. A chamada usa `GROQ_API_KEY` e pede cinco notas ENEM, justificativas curtas, erros, sugestões e a transcrição integral.
+5. O backend confere se a resposta contém as cinco competências e uma transcrição utilizável. Normaliza cada competência para 0, 40, 80, 120, 160 ou 200, recalcula a soma e remove ciclos de frases idênticas que possam aparecer na transcrição gerada.
+6. Com uma resposta válida, o backend envia a foto ao bucket privado `redacoes`, no caminho `<id-do-usuario>/<uuid>.<extensão>`, e grava no histórico `redacoes` o usuário, o texto transcrito, o relatório, a nota e o caminho do arquivo. A gravação usa o token do estudante e as políticas RLS do Supabase limitam cada conta aos próprios registros e arquivos.
+7. A API devolve JSON com `resultado`, `salvo` e `aviso`. O navegador mostra o relatório em `resultado.html`; se a gravação do histórico falhar, mantém uma cópia local e mostra o aviso.
+
+### Configuração e falhas
+
+- Configure `GROQ_API_KEY` no `.env` local e como variável de ambiente no deploy. A variável `GROQ_VISION_MODEL` é opcional. O backend limita a saída a 1.000 tokens para respeitar o limite de uso por minuto da conta Groq; justificativas e listas são pedidas de forma concisa para reservar tokens à transcrição.
+- Para salvar o histórico e a imagem, execute as migrations de banco, bucket e políticas listadas em [Supabase e migrações](#supabase-e-migrações). O bucket `redacoes` deve permanecer privado. Sem a configuração de Storage, o backend ainda tenta salvar a correção e a transcrição no histórico, mas devolve um aviso de que a imagem não foi guardada.
+- Erro HTTP 400 indica imagem ausente, formato inválido ou tamanho acima do limite; 401 indica sessão ausente, inválida ou expirada; 429/502 indica falha ou limite da Groq; 503 indica configuração de autenticação ou da chave de IA. Confira `aviso` e os logs do backend para distinguir uma correção gerada de uma foto efetivamente armazenada.
+
+A imagem é enviada à Groq para análise e, quando o Storage está configurado, ao Supabase para armazenamento. A nitidez da letra, a iluminação e o enquadramento influenciam a transcrição. Confira o texto transcrito antes de usar a devolutiva; a nota é uma estimativa pedagógica, não uma avaliação oficial do ENEM.
 
 ## Correção de texto
 
