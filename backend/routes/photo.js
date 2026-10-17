@@ -15,21 +15,20 @@ function createPhotoRouter({ requireSupabaseUser, saveCorrection, apiKey, model,
       const { result } = await analyze({ image, apiKey, model });
       if (req.isLocalDemo) return res.json({ resultado: result, salvo: true, aviso: null });
 
-      const imagePath = await upload(req.supabaseUser.id, image, () => req.supabase);
+      let imagePath = null;
+      let photoWarning = null;
+      try {
+        imagePath = await upload(req.supabaseUser.id, image, () => req.supabase);
+      } catch (error) {
+        console.error("Nao foi possivel armazenar a foto:", error.message);
+        photoWarning = "A correção foi salva, mas a imagem não ficou no histórico. O administrador precisa aplicar a migration de políticas de fotos no Supabase.";
+      }
       const transcribedText = result.split(/\nRedacao:\n/i)[1]?.trim() || null;
       const persistence = await saveCorrection(req, { conteudo: transcribedText, resultado: result, tipo: "foto", imagemPath: imagePath });
-      if (!persistence.ok) {
-        await req.supabase.storage.from("redacoes").remove([imagePath]);
-        return res.status(503).json({ erro: persistence.erro });
-      }
-      return res.json({ resultado: result, salvo: true, aviso: null });
+      return res.json({ resultado: result, salvo: persistence.ok, aviso: photoWarning || (persistence.ok ? null : persistence.erro) });
     } catch (error) {
       console.error("Falha na correcao por foto:", error.message);
-      const status = error.status || (error.message.includes("Storage") || error.message.includes("bucket") ? 503 : 502);
-      const storageError = /storage|bucket|row-level security|permission denied/i.test(error.message);
-      return res.status(status).json({ erro: storageError
-        ? "Nao foi possivel salvar a imagem. Aplique a migration de politicas do Storage no Supabase e tente novamente."
-        : error.message || "Nao foi possivel corrigir a foto. Tente uma imagem mais nitida." });
+      return res.status(error.status || 502).json({ erro: error.message || "Nao foi possivel corrigir a foto. Tente uma imagem mais nitida." });
     }
   });
   return router;

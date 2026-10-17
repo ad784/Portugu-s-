@@ -78,3 +78,28 @@ test("photo endpoint saves the image, transcript and correction before returning
   assert.equal(savedRecord.imagemPath, "student-1/photo.jpg");
   assert.match(savedRecord.conteudo, /^A sociedade brasileira/);
 });
+
+test("keeps the photo correction available when Storage policy is not installed yet", async (t) => {
+  let savedRecord;
+  const app = express();
+  app.use(express.json());
+  app.use(createPhotoRouter({
+    apiKey: "test-key",
+    requireSupabaseUser: (req, _res, next) => { req.supabaseUser = { id: "student-1" }; next(); },
+    analyze: async () => ({ result: formatPhotoCorrection(modelText) }),
+    upload: async () => { throw new Error("new row violates row-level security policy"); },
+    saveCorrection: async (_req, record) => { savedRecord = record; return { ok: true, id: "essay-2" }; },
+  }));
+  const server = await new Promise((resolve) => { const listener = app.listen(0, () => resolve(listener)); });
+  t.after(() => new Promise((resolve) => server.close(resolve)));
+
+  const response = await fetch(`http://127.0.0.1:${server.address().port}/api/corrigir-foto`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ imagem: image }),
+  });
+  const body = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(body.salvo, true);
+  assert.match(body.aviso, /administrador precisa aplicar/i);
+  assert.equal(savedRecord.imagemPath, null);
+  assert.match(savedRecord.conteudo, /^A sociedade brasileira/);
+});

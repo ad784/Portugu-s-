@@ -164,6 +164,12 @@ async function corrigir() {
 // MOSTRAR RESULTADO
 window.onload = () => {
   const resultado = localStorage.getItem("resultado");
+  const aviso = localStorage.getItem("resultado-aviso");
+  const avisoElement = document.getElementById("resultado-aviso");
+  if (aviso && avisoElement) {
+    avisoElement.textContent = aviso;
+    avisoElement.hidden = false;
+  }
 
   const elResultado = document.getElementById("resultado");
   const elNota = document.getElementById("nota");
@@ -178,11 +184,15 @@ window.onload = () => {
     if (match && elNota) {
       elNota.innerText = match[1].trim();
     }
-    const competencySection = resultado.match(/Compet[eê]ncias\s*:\s*([\s\S]*?)(?:\n\s*(?:Erros|Sugest[oõ]es|Reda[cç][aã]o)\s*:|$)/i)?.[1] || '';
+    const fold = (value) => value.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+    const reportLines = resultado.split(/\r?\n/);
+    const competencyStart = reportLines.findIndex((line) => /^competencias\s*:$/.test(fold(line.trim())));
+    const competencyEnd = reportLines.findIndex((line, index) => index > competencyStart && /^(erros|sugestoes|redacao)\s*:$/.test(fold(line.trim())));
+    const competencySection = competencyStart < 0 ? "" : reportLines.slice(competencyStart + 1, competencyEnd < 0 ? undefined : competencyEnd).join("\n");
     const scores = Array(5).fill(null);
     const comments = Array(5).fill('');
     for (const line of competencySection.split(/\r?\n/)) {
-      const item = line.match(/^\s*(?:C)?([1-5])\s*[:–-]\s*(\d{1,3})(?:\s*[-–:]\s*(.*))?\s*$/i);
+      const item = line.match(/^\s*(?:C)?([1-5])\s*:\s*(\d{1,3})(?:\s*-\s*(.*))?\s*$/i);
       if (!item) continue;
       const index = Number(item[1]) - 1;
       scores[index] = Math.max(0, Math.min(200, Number(item[2])));

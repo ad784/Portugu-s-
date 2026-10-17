@@ -189,9 +189,11 @@ async function salvarFoto() {
     localStorage.setItem('resultado', data.resultado);
     if (data.aviso) {
       console.warn('A redação por foto não foi sincronizada com o histórico:', data.aviso);
-      saveLocalPhotoHistory(data.resultado);
+      if (!data.salvo) saveLocalPhotoHistory(data.resultado);
+      localStorage.setItem('resultado-aviso', data.aviso);
+    } else {
+      localStorage.removeItem('resultado-aviso');
     }
-    localStorage.removeItem('resultado-aviso');
     stopCamera();
     window.location.href = '/resultado.html';
   } catch (error) {

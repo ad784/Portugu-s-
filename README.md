@@ -26,7 +26,7 @@ Para comprovar que o endereço de e-mail é acessível, ative **Confirm Email** 
 2. Enquadre toda a folha em local iluminado, mantenha a escrita em foco e capture a foto. Confira a prévia; é possível refazer a captura.
 3. Escolha **Enviar e corrigir**. O navegador envia a imagem autenticada ao endpoint `/api/corrigir-foto`.
 4. O backend envia a imagem à Groq, que tenta transcrever a redação manuscrita e avaliá-la segundo o formato ENEM. O resultado aparece na tela de correção.
-5. A foto é enviada ao modelo de visão e, junto com a transcrição e o resultado, salva no histórico da conta e no bucket privado `redacoes`. O envio usa a sessão do estudante e as políticas RLS, sem uma chave administrativa do Supabase.
+5. A foto é enviada ao modelo de visão. A transcrição e a correção são salvas no histórico; o arquivo da imagem vai para o bucket privado `redacoes` quando a política de upload da migration estiver aplicada. Se o Storage ainda não estiver configurado, a correção continua disponível e a tela informa que a foto não foi guardada.
 
 A qualidade da transcrição depende da nitidez da letra, iluminação e enquadramento. Confira a transcrição antes de usar a devolutiva; a nota é uma estimativa pedagógica, não uma avaliação oficial. A câmera requer `localhost` ou HTTPS e permissão do navegador. A imagem é enviada à Groq para análise.
 
