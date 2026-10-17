@@ -1,6 +1,13 @@
 const { createClient } = require("@supabase/supabase-js");
-const { verifyCredentials, createContextClient } = require("@supabase/server/core");
-const { decodeProtectedHeader } = require("jose");
+
+// `@supabase/server/core` and `jose` are ESM packages. Keep their loading
+// dynamic so Vercel's CommonJS function bundle does not turn them into
+// `require()` calls (which fail with ERR_REQUIRE_ESM at cold start).
+let jwtModules;
+function getJwtModules() {
+  jwtModules ||= Promise.all([import("@supabase/server/core"), import("jose")]);
+  return jwtModules;
+}
 
 function createServerClient(accessToken) {
   return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
@@ -31,12 +38,14 @@ async function requireSupabaseUser(req, res, next) {
     // Tokens HS256 antigos continuam usando getUser como fallback.
     let alg;
     try {
-      ({ alg } = decodeProtectedHeader(token));
+      const [, jose] = await getJwtModules();
+      ({ alg } = jose.decodeProtectedHeader(token));
     } catch {
       return res.status(401).json({ erro: "Sessao invalida ou expirada" });
     }
     if (alg !== "HS256" && process.env.SUPABASE_JWKS_URL) {
-      const { data: verified, error: verificationError } = await verifyCredentials(
+      const [supabaseServer] = await getJwtModules();
+      const { data: verified, error: verificationError } = await supabaseServer.verifyCredentials(
         { token, apikey: null },
         { auth: "user" }
       );
@@ -48,7 +57,7 @@ async function requireSupabaseUser(req, res, next) {
           app_metadata: claims.appMetadata || {}
         };
         req.isAdmin = req.supabaseUser.app_metadata.role === "admin";
-        req.supabase = createContextClient({ auth: { token } });
+        req.supabase = supabaseServer.createContextClient({ auth: { token } });
         return next();
       }
     }
