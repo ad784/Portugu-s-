@@ -3,27 +3,17 @@ const canvas = document.getElementById('snapshot');
 const ctx = canvas.getContext('2d');
 let cameraStream = null;
 
-// A imagem enviada para a IA nao pode ficar espelhada e deve manter a
-// orientacao de uma folha de redacao (retrato).
+// Mantem a orientacao natural da camera. A pre-visualizacao tambem nao e
+// espelhada, entao a captura corresponde ao que o estudante esta vendo.
 function drawPortraitImage(source, sourceWidth, sourceHeight) {
   const limit = 1600;
-  const needsRotation = sourceWidth > sourceHeight;
-  const outputWidth = needsRotation ? sourceHeight : sourceWidth;
-  const outputHeight = needsRotation ? sourceWidth : sourceHeight;
-  const scale = Math.min(1, limit / Math.max(outputWidth, outputHeight));
+  const scale = Math.min(1, limit / Math.max(sourceWidth, sourceHeight));
 
-  canvas.width = Math.round(outputWidth * scale);
-  canvas.height = Math.round(outputHeight * scale);
+  canvas.width = Math.round(sourceWidth * scale);
+  canvas.height = Math.round(sourceHeight * scale);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (needsRotation) {
-    ctx.translate(canvas.width, 0);
-    ctx.rotate(Math.PI / 2);
-    ctx.drawImage(source, 0, 0, canvas.height, canvas.width);
-  } else {
-    ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
-  }
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
 }
 
 async function sair(event) {
