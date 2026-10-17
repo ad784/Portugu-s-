@@ -1,5 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
 
 process.env.LOCAL_DEMO_AUTH = 'true';
 const app = require('../backend/server');
@@ -45,6 +47,35 @@ test('admin essays route responds in local mode', async () => {
   const response = await fetch(`${baseUrl}/api/admin/redacoes`);
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), { redacoes: [] });
+});
+
+test('blocks signup while Supabase auto-confirms unverified email addresses', async () => {
+  const message = { textContent: '', className: '' };
+  const button = { disabled: false, textContent: '', innerHTML: 'Criar conta' };
+  const fields = {
+    nome: { value: 'Ana' },
+    email: { value: 'ana@example.com' },
+    senha: { value: 'a-long-test-password' },
+    consentimento: { checked: true },
+    'signup-button': button,
+    'signup-message': message
+  };
+  let signupCalls = 0;
+  const context = {
+    window: {
+      supabaseAuthSettingsUrl: 'https://supabase.test/auth/v1/settings',
+      supabasePublishableKey: 'public-test-key',
+      supabaseClient: { auth: { signUp: async () => { signupCalls += 1; return { data: {}, error: null }; } } }
+    },
+    document: { getElementById: (id) => fields[id] },
+    fetch: async () => ({ ok: true, json: async () => ({ mailer_autoconfirm: true }) })
+  };
+  vm.runInNewContext(fs.readFileSync('frontend/scripts/cadastro.js', 'utf8'), context);
+  await context.window.cadastrar();
+
+  assert.equal(signupCalls, 0);
+  assert.match(message.textContent, /Cadastro pausado/);
+  assert.equal(button.disabled, false);
 });
 
 test('recusa redação com menos de 10 linhas', async () => {

@@ -18,6 +18,8 @@ npm start
 
 Abra [http://localhost:3000](http://localhost:3000). Cadastre uma conta e entre para acessar o editor. O Supabase Auth precisa estar com o provedor de e-mail habilitado.
 
+Para comprovar que o endereço de e-mail é acessível, ative **Confirm Email** em **Authentication → Providers → Email** no Supabase e configure a URL do site em **Authentication → URL Configuration**. O cadastro do site bloqueia novas contas enquanto a confirmação automática estiver ativa.
+
 ## Correção por foto
 
 1. Entre na conta e escolha **Enviar foto da redação** no editor. Permita o acesso à câmera. Em dispositivos móveis, a página tenta abrir a câmera traseira e oferece uma alternativa para selecionar uma imagem do aparelho.
