@@ -10,7 +10,7 @@ Você precisa do Node.js 22 ou superior e do npm. Na pasta principal do projeto,
 npm install
 ```
 
-Copie `.env.example` para `.env` na raiz. Para usar o projeto Supabase configurado no frontend, os valores públicos podem ficar vazios localmente. Para autenticação e persistência reais, a chave secreta do Supabase deve ser configurada no servidor. Informe também `GROQ_API_KEY` para habilitar correções por IA.
+Copie `.env.example` para `.env` na raiz. O projeto Supabase já está configurado para o app. Informe `GROQ_API_KEY` para habilitar correções por IA; essa chave fica somente no servidor.
 
 ```bash
 npm start
@@ -26,7 +26,7 @@ Para comprovar que o endereço de e-mail é acessível, ative **Confirm Email** 
 2. Enquadre toda a folha em local iluminado, mantenha a escrita em foco e capture a foto. Confira a prévia; é possível refazer a captura.
 3. Escolha **Enviar e corrigir**. O navegador envia a imagem autenticada ao endpoint `/api/corrigir-foto`.
 4. O backend envia a imagem à Groq, que tenta transcrever a redação manuscrita e avaliá-la segundo o formato ENEM. O resultado aparece na tela de correção.
-5. O texto da correção é salvo no histórico da conta. Quando `SUPABASE_SECRET_KEY` estiver configurada, a imagem também pode ser salva no bucket privado `redacoes`.
+5. A foto é enviada ao modelo de visão e, junto com a transcrição e o resultado, salva no histórico da conta e no bucket privado `redacoes`. O envio usa a sessão do estudante e as políticas RLS, sem uma chave administrativa do Supabase.
 
 A qualidade da transcrição depende da nitidez da letra, iluminação e enquadramento. Confira a transcrição antes de usar a devolutiva; a nota é uma estimativa pedagógica, não uma avaliação oficial. A câmera requer `localhost` ou HTTPS e permissão do navegador. A imagem é enviada à Groq para análise.
 
@@ -54,12 +54,13 @@ Para habilitar banco, histórico e armazenamento de fotos, execute os arquivos a
 2. `supabase/migrations/20260805170000_add_photo_storage.sql`
 3. `supabase/migrations/20260830190000_add_theme_and_storage_policies.sql`
 4. `supabase/migrations/20261013120000_allow_users_to_insert_own_profile.sql`
+5. `supabase/migrations/20261017120000_allow_users_to_upload_own_essay_photos.sql`
 
-O bucket de fotos é privado. Nunca exponha `SUPABASE_SECRET_KEY` ou `GROQ_API_KEY` no frontend, no GitHub ou em mensagens.
+O bucket de fotos é privado. Nunca exponha `GROQ_API_KEY` no frontend, no GitHub ou em mensagens.
 
 ## Deploy na Vercel
 
-O arquivo `vercel.json` configura as páginas e as rotas `/api/*`. Importe este repositório na Vercel e configure `SUPABASE_SECRET_KEY`, `GROQ_API_KEY` e, se necessário, `GROQ_MODEL` ou `GROQ_VISION_MODEL` nas variáveis de ambiente de produção e preview. A correção por foto usa `qwen/qwen3.8-27b` por padrão. Depois de mudar variáveis, faça um novo deploy. No Supabase, ajuste **Authentication → URL Configuration** para aceitar o domínio publicado e as URLs locais necessárias.
+O arquivo `vercel.json` configura as páginas e as rotas `/api/*`. Importe este repositório na Vercel e configure `GROQ_API_KEY` e, se necessário, `GROQ_MODEL` ou `GROQ_VISION_MODEL` nas variáveis de ambiente de produção e preview. A correção por foto usa `qwen/qwen3.8-27b` por padrão. Depois de mudar variáveis, faça um novo deploy. No Supabase, ajuste **Authentication → URL Configuration** para aceitar o domínio publicado e as URLs locais necessárias.
 
 ## Testes
 
@@ -73,7 +74,10 @@ npm test
 - `frontend/scripts/`: scripts do navegador, incluindo autenticação e gráficos.
 - `frontend/styles/`: folhas de estilo.
 - `frontend/assets/`: imagens e outros recursos estáticos.
-- `backend/server.js`: servidor Express, autenticação e endpoints de correção.
+- `backend/server.js`: composição do servidor Express e configuração das rotas.
+- `backend/routes/`: endpoints separados de perfil, redações, correção por texto e por foto.
+- `backend/middleware/`: autenticação e autorização das rotas.
+- `backend/services/`: integração com IA, validação de imagem e persistência no Supabase.
 - `api/index.js`: entrada da função da Vercel.
 - `supabase/migrations/`: estrutura do banco, políticas e armazenamento.
 - `docs/BANCA.md`: material técnico para apresentação do projeto.
