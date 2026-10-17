@@ -66,6 +66,7 @@ app.get("/", (req, res) => {
 app.use((error, _req, res, _next) => {
   console.error("Erro não tratado na API:", error);
   if (res.headersSent) return;
+  if (error.type === "entity.too.large") return res.status(413).json({ erro: "A imagem excede o limite de envio. Reduza o tamanho e tente novamente." });
   res.status(500).json({ erro: "O servidor encontrou um erro. Tente novamente em instantes." });
 });
 
