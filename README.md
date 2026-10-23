@@ -10,7 +10,7 @@ Você precisa do Node.js 22 ou superior e do npm. Na pasta principal do projeto,
 npm install
 ```
 
-Copie `.env.example` para `.env` na raiz. O projeto Supabase já está configurado para o app. Informe `GROQ_API_KEY` para habilitar correções por IA; essa chave fica somente no servidor.
+Copie `.env.example` para `.env` na raiz e informe sua chave da Groq em `GROQ_API_KEY`. As credenciais públicas do Supabase usadas nesta versão já têm valores padrão no projeto. Se você fizer um fork para usar outro projeto Supabase, substitua esses valores pelas credenciais do seu projeto.
 
 ```bash
 npm start
@@ -18,7 +18,23 @@ npm start
 
 Abra [http://localhost:3000](http://localhost:3000). Cadastre uma conta e entre para acessar o editor. O Supabase Auth precisa estar com o provedor de e-mail habilitado.
 
+As correções por texto e por foto dependem de uma chave válida da Groq. Sem ela, o servidor continua iniciando, mas esses recursos retornam uma mensagem de configuração ausente. Para testar localmente as rotas protegidas da API sem token Supabase, você pode definir `LOCAL_DEMO_AUTH=true` no `.env`; esse modo funciona somente em `localhost`, não persiste dados e não substitui a chave da Groq. O login do site continua usando o Supabase.
+
 Para comprovar que o endereço de e-mail é acessível, ative **Confirm Email** em **Authentication → Providers → Email** no Supabase e configure a URL do site em **Authentication → URL Configuration**. O cadastro do site bloqueia novas contas enquanto a confirmação automática estiver ativa.
+
+### Variáveis de ambiente
+
+| Variável | Obrigatória | Uso |
+| --- | --- | --- |
+| `GROQ_API_KEY` | Para corrigir redações | Chave privada usada somente pelo servidor. |
+| `GROQ_MODEL` | Não | Modelo da correção por texto; padrão `openai/gpt-oss-120b`. |
+| `GROQ_VISION_MODEL` | Não | Modelo compatível com imagens; padrão `qwen/qwen3.8-27b`. |
+| `LOCAL_DEMO_AUTH` | Não | Define `true` para demonstração local sem autenticação nem persistência. Ignorado na Vercel. |
+| `SUPABASE_URL` | Não* | URL do projeto Supabase. |
+| `SUPABASE_PUBLISHABLE_KEY` | Não* | Chave pública do Supabase usada pelo navegador e pelo servidor. |
+| `SUPABASE_JWKS_URL` | Não* | Endereço JWKS usado para verificar tokens do Supabase. |
+
+*As três variáveis Supabase têm valores padrão neste repositório. Configure-as quando usar seu próprio projeto. Nunca coloque chaves secretas do Supabase ou da Groq no frontend.
 
 ## Correção por foto
 
@@ -70,6 +86,19 @@ Para habilitar banco, histórico e armazenamento de fotos, execute os arquivos a
 
 O bucket de fotos é privado. Nunca exponha `GROQ_API_KEY` no frontend, no GitHub ou em mensagens.
 
+## Rotas da aplicação
+
+As páginas públicas ficam disponíveis em `/`, `/index.html`, `/cadastro.html`, `/nova.html`, `/resultado.html`, `/foto.html`, `/exemplos.html`, `/historico.html`, `/evolucao.html`, `/perfil.html`, `/recuperar.html` e `/privacidade.html`. O servidor Express resolve essas páginas localmente; `vercel.json` aplica os rewrites equivalentes no deploy.
+
+| Método e rota | Uso |
+| --- | --- |
+| `POST /api/corrigir` | Envia uma redação em texto para correção. |
+| `POST /api/corrigir-foto` | Envia uma imagem para transcrição e correção. |
+| `GET /api/redacoes` | Lista o histórico da conta autenticada. |
+| `GET /api/perfil` e `PUT /api/perfil` | Consulta e atualiza o perfil. |
+
+As rotas de dados exigem uma sessão válida do Supabase, exceto no modo de demonstração local descrito acima.
+
 ## Deploy na Vercel
 
 O arquivo `vercel.json` configura as páginas e as rotas `/api/*`. Importe este repositório na Vercel e configure `GROQ_API_KEY` e, se necessário, `GROQ_MODEL` ou `GROQ_VISION_MODEL` nas variáveis de ambiente de produção e preview. A correção por foto usa `qwen/qwen3.8-27b` por padrão. Depois de mudar variáveis, faça um novo deploy. No Supabase, ajuste **Authentication → URL Configuration** para aceitar o domínio publicado e as URLs locais necessárias.
@@ -82,6 +111,8 @@ npm test
 
 ## Estrutura principal
 
+O `package.json` da raiz é o manifesto único do projeto. Ele instala as dependências, inicia o servidor e executa os testes.
+
 - `frontend/pages/`: páginas HTML do site.
 - `frontend/scripts/`: scripts do navegador, incluindo autenticação e gráficos.
 - `frontend/styles/`: folhas de estilo.
@@ -93,5 +124,7 @@ npm test
 - `api/index.js`: entrada da função da Vercel.
 - `supabase/migrations/`: estrutura do banco, políticas e armazenamento.
 - `docs/BANCA.md`: material técnico para apresentação do projeto.
+- `tests/`: testes automatizados do backend e dos fluxos de correção.
+- `.env.example`: modelo de configuração local, sem chaves privadas.
 
 O arquivo `.env` e a pasta `node_modules` não devem ser enviados ao Git. O exemplo seguro de configuração fica em `.env.example`.
