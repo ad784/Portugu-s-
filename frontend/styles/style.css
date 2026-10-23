@@ -680,6 +680,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .competency-comment { margin-top: 10px; color: var(--muted); font-size: 12px; line-height: 1.55; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
+.nav-menu-toggle { display: none; }
+
 @media (max-width: 600px) {
   .progress-main { width: calc(100% - 32px); }
   .progress-card-heading { flex-direction: column; gap: 10px; }
@@ -692,4 +694,230 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .site-header { align-items: flex-start; flex-direction: column; justify-content: center; gap: 10px; padding: 12px 0; }
   .site-nav { width: 100%; flex-wrap: wrap; gap: 8px 14px; }
   .site-nav a { font-size: 12px; }
+}
+
+
+/* Mantém a navegação móvel como última regra para todas as páginas. */
+@media (max-width: 780px) {
+  .site-header { position: relative; z-index: 20; width: calc(100% - 32px); min-height: 66px; align-items: center; flex-direction: row; justify-content: center; gap: 0; padding: 0; }
+  .site-header .brand { position: absolute; left: 50%; transform: translateX(-50%); gap: 7px; white-space: nowrap; }
+  .site-header .brand-icon { width: 32px; height: 32px; }
+  .nav-menu-toggle { display: flex; width: 42px; height: 42px; margin-right: auto; padding: 10px; flex-direction: column; justify-content: center; gap: 5px; border: 1px solid #cfe0d8; border-radius: 10px; background: #fff; cursor: pointer; }
+  .nav-menu-toggle span { display: block; width: 20px; height: 2px; border-radius: 2px; background: var(--brand, #147d68); }
+  .site-header .site-nav { position: absolute; top: calc(100% - 1px); left: 0; display: none; width: 100%; padding: 10px; flex-direction: column; align-items: stretch; gap: 2px; border: 1px solid #dce9e2; border-radius: 12px; background: #fff; box-shadow: 0 12px 28px rgba(30, 65, 52, .14); }
+  .site-header.menu-open .site-nav { display: flex; }
+  .site-header .site-nav a, .site-header .site-nav a:first-child { display: block; padding: 12px; border-radius: 8px; font-size: 14px; }
+  .site-header .site-nav a:hover { background: #f0f7f3; }
+  .site-header .site-nav .nav-cta { text-align: left; }
+}
+
+/* Modo TV 32": aumenta escala e alinha cabecalho e paginas pela mesma grade. */
+@media (min-width: 1200px) {
+  body { font-size: clamp(17px, 1vw, 30px); }
+
+  .site-header, .site-footer, .auth-main, .how-it-works,
+  .examples-main, .editor-main, .photo-main, .result-main,
+  .history-main, .progress-main, .profile-main, .policy-main {
+    width: 92vw;
+    max-width: none;
+  }
+  .auth-page .site-header, .auth-page .site-footer,
+  .auth-page .auth-main, .auth-page .how-it-works {
+    width: min(92vw, 2600px);
+    max-width: 2600px;
+  }
+  .site-header { min-height: clamp(90px, 5vw, 150px); border-bottom-width: 2px; }
+  .brand { gap: clamp(14px, 1vw, 30px); font-size: clamp(28px, 1.8vw, 58px); }
+  .brand-icon { width: clamp(48px, 3vw, 92px); height: clamp(48px, 3vw, 92px); }
+  .site-nav { gap: clamp(28px, 2.4vw, 82px); }
+  .site-nav a { font-size: clamp(18px, 1.2vw, 38px); }
+  .site-nav .nav-cta { padding: clamp(14px, 1vw, 30px) clamp(20px, 1.5vw, 44px); }
+  .site-footer { margin-bottom: 32px; font-size: clamp(16px, .9vw, 28px); }
+
+  .auth-main {
+    min-height: clamp(700px, 65vh, 1250px);
+    margin: 4vh auto;
+    grid-template-columns: minmax(0, 1fr) minmax(520px, clamp(520px, 31vw, 1020px));
+    align-items: center;
+    gap: clamp(48px, 3vw, 100px);
+  }
+  .auth-intro { width: min(100%, 1550px); max-width: none; }
+  .auth-intro h1 { font-size: clamp(54px, 3.3vw, 116px); }
+  .auth-intro > p { max-width: 1400px; font-size: clamp(21px, 1.35vw, 42px); }
+  .feature-list { gap: clamp(14px, 1vw, 28px); font-size: clamp(19px, 1.2vw, 36px); }
+  .feature-list span { width: clamp(24px, 1.5vw, 42px); height: clamp(24px, 1.5vw, 42px); font-size: clamp(14px, .8vw, 24px); }
+
+  .auth-card {
+    width: 100%;
+    min-height: clamp(520px, 31vw, 1020px);
+    aspect-ratio: 1 / 1;
+    justify-self: end;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(38px, 2.8vw, 84px);
+    border: 2px solid #b7d9cc;
+    border-top: 8px solid var(--brand);
+    border-radius: clamp(18px, 1.3vw, 34px);
+    background: linear-gradient(155deg, #fff 0%, #fff 78%, #f1faf5 100%);
+    box-shadow: 0 30px 82px rgba(20, 125, 104, .2), 0 5px 20px rgba(18, 46, 39, .08), 0 0 0 8px rgba(20, 125, 104, .045);
+  }
+  .form-heading { gap: clamp(16px, 1.2vw, 32px); margin-bottom: clamp(22px, 1.7vw, 48px); }
+  .form-icon { width: clamp(48px, 3vw, 82px); height: clamp(48px, 3vw, 82px); font-size: clamp(24px, 1.5vw, 42px); }
+  .form-heading h2 { color: var(--brand-dark); font-size: clamp(27px, 1.75vw, 54px); }
+  .form-heading p, .form-footer, .form-message { font-size: clamp(16px, 1vw, 30px); }
+  .auth-card label { margin-top: clamp(16px, 1vw, 30px); font-size: clamp(17px, 1.05vw, 32px); }
+  .auth-card input { height: clamp(54px, 3.4vw, 96px); font-size: clamp(17px, 1.05vw, 32px); }
+  .auth-card .primary-action { min-height: clamp(60px, 3.8vw, 108px); height: auto; font-size: clamp(17px, 1.05vw, 32px); box-shadow: 0 12px 28px rgba(20, 125, 104, .24); }
+
+  .how-it-works { margin: 3vh auto 5vh; padding: clamp(34px, 2.5vw, 76px); }
+  .how-heading h2 { font-size: clamp(30px, 1.9vw, 58px); }
+  .how-heading p, .how-step p { font-size: clamp(17px, 1.05vw, 32px); }
+  .how-steps { gap: clamp(18px, 1.5vw, 44px); }
+  .how-step { min-height: clamp(130px, 10vh, 240px); gap: clamp(14px, 1vw, 30px); padding: clamp(22px, 1.6vw, 48px); }
+  .how-step h3 { font-size: clamp(18px, 1.1vw, 34px); }
+
+  .editor-layout, .photo-layout { grid-template-columns: minmax(0, 1fr) minmax(340px, clamp(360px, 25vw, 720px)); gap: clamp(30px, 3vw, 90px); }
+  .writing-card, .camera-card, .tips-panel, .profile-card, .progress-card { padding: clamp(32px, 2.5vw, 76px); }
+  .editor-page textarea { min-height: 48vh; font-size: clamp(18px, 1.15vw, 34px); }
+  .editor-heading h1, .result-title h1, .history-heading h1, .progress-main .history-heading h1,
+  .profile-card h1, .policy-main h1 { font-size: clamp(42px, 3vw, 88px); }
+  .editor-heading p, .result-title p, .history-heading p, .progress-main .history-heading p,
+  .writing-card-top p, .tip-item p { font-size: clamp(17px, 1.05vw, 32px); }
+
+  /* Aumenta campos e botoes de acao em todas as telas principais. */
+  main button, main .primary-action, main .photo-action, main .back-editor,
+  main .history-view, main .secondary-action, main .progress-actions a,
+  main .progress-actions button {
+    min-height: clamp(54px, 3.3vw, 88px);
+    height: auto;
+    padding: clamp(13px, 1vw, 28px) clamp(20px, 1.6vw, 42px);
+    font-size: clamp(16px, 1vw, 28px);
+    line-height: 1.25;
+  }
+  main input:not([type="checkbox"]):not([type="radio"]), main select {
+    min-height: clamp(50px, 3vw, 78px);
+    padding: 0 clamp(14px, 1vw, 28px);
+    font-size: clamp(16px, 1vw, 28px);
+  }
+  main textarea { font-size: clamp(18px, 1.15vw, 34px); }
+
+  .editor-heading { gap: clamp(24px, 2vw, 56px); margin-bottom: clamp(24px, 2vw, 56px); }
+  .editor-heading p { font-size: clamp(18px, 1.1vw, 34px); }
+  .editor-badge { padding: clamp(12px, .9vw, 26px) clamp(18px, 1.3vw, 36px); font-size: clamp(16px, .95vw, 28px); }
+  .writing-card-top, .camera-card-top { gap: clamp(16px, 1.2vw, 34px); margin-bottom: clamp(20px, 1.5vw, 44px); }
+  .writing-card-top h2, .camera-card-top h2, .report-heading h2 { font-size: clamp(26px, 1.7vw, 50px); }
+  .writing-card-top p, .camera-card-top p, .writing-card-bottom, .autosave-label,
+  .camera-status, .send-photo-row strong, .send-photo-row p { font-size: clamp(16px, .95vw, 28px); }
+  .theme-field { gap: clamp(9px, .7vw, 20px); margin: clamp(18px, 1.4vw, 40px) 0; font-size: clamp(16px, .95vw, 28px); }
+  .theme-field input { height: auto; }
+  .editor-page textarea { padding: clamp(22px, 1.5vw, 44px); line-height: 1.7; }
+  .editor-actions, .camera-actions, .result-actions { gap: clamp(14px, 1.2vw, 34px); margin-top: clamp(22px, 1.6vw, 46px); }
+  .editor-actions { align-items: center; }
+  .editor-actions .correct-action { min-width: clamp(240px, 18vw, 480px); font-weight: 800; box-shadow: 0 14px 30px rgba(20, 125, 104, .26); }
+  .camera-actions .capture-action, .send-photo-row .send-photo-action { min-width: clamp(210px, 16vw, 420px); font-weight: 800; }
+  .tip-item { gap: clamp(12px, .9vw, 26px); padding: clamp(15px, 1.1vw, 32px) 0; }
+  .tip-item b { flex-basis: clamp(28px, 1.8vw, 50px); width: clamp(28px, 1.8vw, 50px); height: clamp(28px, 1.8vw, 50px); font-size: clamp(16px, .9vw, 26px); }
+  .tip-item h3 { font-size: clamp(18px, 1.1vw, 32px); }
+  .tip-item p, .writing-checklist li { font-size: clamp(16px, .95vw, 28px); }
+  .writing-checklist { margin-top: clamp(14px, 1vw, 30px); padding: clamp(17px, 1.3vw, 38px); }
+  .writing-checklist strong, .camera-status { font-size: clamp(16px, .95vw, 28px); }
+  .writing-checklist ul { gap: clamp(8px, .6vw, 18px); }
+
+  .report-card, .profile-card { padding: clamp(32px, 2.5vw, 76px); }
+  .report-heading p, .report-heading > span, .result-page pre,
+  .profile-card > p, .profile-card label, .profile-card input,
+  .history-meta, .history-content p, .history-loading, .history-summary span,
+  .policy-main section p, .policy-updated { font-size: clamp(16px, .95vw, 28px); }
+  .history-summary { gap: clamp(14px, 1.2vw, 36px); }
+  .history-summary div, .history-item { padding: clamp(20px, 1.5vw, 46px); }
+  .history-summary strong, .history-score { font-size: clamp(30px, 2vw, 60px); }
+  .history-content h2 { font-size: clamp(20px, 1.2vw, 36px); }
+  .history-item { grid-template-columns: clamp(100px, 8vw, 220px) minmax(0, 1fr) auto; gap: clamp(18px, 1.5vw, 44px); }
+  .history-score small { font-size: clamp(14px, .8vw, 24px); }
+  .progress-card-heading h2, .competency-card h3 { font-size: clamp(22px, 1.35vw, 40px); }
+  .competency-row-label, .competency-name, .competency-comment,
+  .chart-description, .chart-note, .chart-legend { font-size: clamp(16px, .95vw, 28px); }
+  .camera-viewfinder { min-height: 48vh; }
+}
+
+/* Escala compartilhada para todas as paginas do site em telas grandes. */
+@media (min-width: 1200px) {
+  main h1 { font-size: clamp(44px, 3vw, 88px) !important; line-height: 1.12; }
+  main h2 { font-size: clamp(28px, 1.8vw, 54px) !important; line-height: 1.2; }
+  main h3 { font-size: clamp(21px, 1.25vw, 38px) !important; line-height: 1.3; }
+  main p, main label, main li, main small, main dt, main dd,
+  main .history-meta, main .chart-description, main .chart-note, main .chart-legend {
+    font-size: clamp(16px, 1vw, 29px) !important;
+    line-height: 1.55;
+  }
+  main .eyebrow { font-size: clamp(12px, .72vw, 21px) !important; }
+  main button, main .primary-action, main .photo-action, main .back-editor,
+  main .history-view, main .secondary-action, main .file-photo-action,
+  main [role="button"] {
+    min-height: clamp(56px, 3.5vw, 92px) !important;
+    height: auto !important;
+    padding: clamp(14px, 1vw, 28px) clamp(22px, 1.7vw, 46px) !important;
+    font-size: clamp(17px, 1.05vw, 30px) !important;
+    line-height: 1.25;
+  }
+  main input:not([type="checkbox"]):not([type="radio"]), main select {
+    min-height: clamp(52px, 3.2vw, 82px) !important;
+    height: auto;
+    padding: 0 clamp(16px, 1.1vw, 30px) !important;
+    font-size: clamp(17px, 1.05vw, 30px) !important;
+  }
+  main textarea { font-size: clamp(19px, 1.2vw, 35px) !important; }
+  main pre { font-size: clamp(17px, 1vw, 29px) !important; line-height: 1.65; }
+
+  .examples-hero h1 { font-size: clamp(46px, 3.2vw, 94px) !important; }
+  .examples-hero > p { font-size: clamp(19px, 1.2vw, 35px) !important; }
+  .essay-example > header, .essay-example > footer, .essay-text { padding: clamp(18px, 1.5vw, 44px) !important; }
+  .score-pill, .competency-summary span { padding: clamp(7px, .55vw, 16px) clamp(10px, .8vw, 22px); font-size: clamp(14px, .85vw, 25px) !important; }
+  .examples-grid, .history-summary, .competency-cards { gap: clamp(18px, 1.5vw, 44px) !important; }
+  .history-list { gap: clamp(16px, 1.2vw, 36px); }
+  .history-empty { padding: clamp(36px, 2.8vw, 82px); }
+  .how-step > span { flex-basis: clamp(40px, 2.5vw, 72px); width: clamp(40px, 2.5vw, 72px); height: clamp(40px, 2.5vw, 72px); font-size: clamp(16px, .95vw, 28px); }
+  .competency-track { height: clamp(10px, .65vw, 20px); }
+}
+
+@media (min-width: 1200px) {
+  .examples-hero { max-width: min(1800px, 100%); }
+  .examples-hero h1 { max-width: 1800px; }
+  .examples-hero > p { max-width: min(1500px, 100%); }
+  .examples-topic, .examples-notice { max-width: min(1600px, 100%); }
+  .how-heading { max-width: min(1400px, 100%); }
+}
+
+/* Cadastro/login mantem a escala de TV sem virar um cartao gigante. */
+@media (min-width: 1200px) {
+  .auth-page .auth-main {
+    min-height: clamp(620px, 70vh, 900px);
+    grid-template-columns: minmax(0, 1fr) min(720px, max(480px, 31vw));
+  }
+  .auth-page .auth-card {
+    width: 100%;
+    max-width: 720px;
+    min-height: 0;
+    aspect-ratio: 1 / 1;
+    padding: clamp(30px, 2vw, 56px);
+  }
+  .auth-page .auth-intro h1 { font-size: clamp(44px, 3vw, 78px) !important; }
+  .auth-page .auth-intro > p { font-size: clamp(18px, 1.05vw, 28px) !important; }
+  .auth-page .feature-list { font-size: clamp(17px, 1vw, 27px); }
+  .auth-page .form-heading { gap: clamp(12px, .9vw, 24px); margin-bottom: clamp(16px, 1.2vw, 34px); }
+  .auth-page .form-heading h2 { font-size: clamp(24px, 1.5vw, 40px) !important; }
+  .auth-page .form-heading p, .auth-page .form-footer, .auth-page .form-message { font-size: clamp(14px, .8vw, 20px) !important; }
+  .auth-page .auth-card label { margin-top: clamp(12px, .8vw, 22px); font-size: clamp(15px, .85vw, 22px) !important; }
+  .auth-page .auth-card input {
+    height: clamp(46px, 2.8vw, 72px) !important;
+    min-height: clamp(46px, 2.8vw, 72px) !important;
+    padding: 0 clamp(12px, .8vw, 20px) !important;
+    font-size: clamp(15px, .85vw, 22px) !important;
+  }
+  .auth-page .auth-card .primary-action {
+    min-height: clamp(52px, 3vw, 76px) !important;
+    padding: 12px 20px !important;
+    font-size: clamp(15px, .85vw, 22px) !important;
+  }
 }
