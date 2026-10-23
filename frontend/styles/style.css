@@ -893,11 +893,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 @media (min-width: 1200px) {
   .auth-page .auth-main {
     min-height: clamp(620px, 70vh, 900px);
-    grid-template-columns: minmax(0, 1fr) min(860px, max(560px, 40vw));
+    grid-template-columns: minmax(0, 1fr) min(920px, max(600px, 44vw));
   }
   .auth-page .auth-card {
     width: 100%;
-    max-width: 860px;
+    max-width: 920px;
     min-height: 0;
     aspect-ratio: 1 / 1;
     padding: clamp(36px, 2.6vw, 72px);
