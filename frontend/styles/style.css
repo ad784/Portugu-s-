@@ -893,31 +893,31 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 @media (min-width: 1200px) {
   .auth-page .auth-main {
     min-height: clamp(620px, 70vh, 900px);
-    grid-template-columns: minmax(0, 1fr) min(920px, max(600px, 44vw));
+    grid-template-columns: minmax(0, 1fr) min(1280px, max(720px, 60vw));
   }
   .auth-page .auth-card {
     width: 100%;
-    max-width: 920px;
+    max-width: 1280px;
     min-height: 0;
     aspect-ratio: 1 / 1;
-    padding: clamp(36px, 2.6vw, 72px);
+    padding: clamp(44px, 3vw, 92px);
   }
   .auth-page .auth-intro h1 { font-size: clamp(44px, 3vw, 78px) !important; }
   .auth-page .auth-intro > p { font-size: clamp(18px, 1.05vw, 28px) !important; }
   .auth-page .feature-list { font-size: clamp(17px, 1vw, 27px); }
   .auth-page .form-heading { gap: clamp(12px, .9vw, 24px); margin-bottom: clamp(16px, 1.2vw, 34px); }
-  .auth-page .form-heading h2 { font-size: clamp(24px, 1.5vw, 40px) !important; }
-  .auth-page .form-heading p, .auth-page .form-footer, .auth-page .form-message { font-size: clamp(14px, .8vw, 20px) !important; }
-  .auth-page .auth-card label { margin-top: clamp(12px, .8vw, 22px); font-size: clamp(15px, .85vw, 22px) !important; }
+  .auth-page .form-heading h2 { font-size: clamp(30px, 2vw, 54px) !important; }
+  .auth-page .form-heading p, .auth-page .form-footer, .auth-page .form-message { font-size: clamp(16px, .95vw, 25px) !important; }
+  .auth-page .auth-card label { margin-top: clamp(16px, 1vw, 28px); font-size: clamp(18px, 1.1vw, 29px) !important; }
   .auth-page .auth-card input {
-    height: clamp(46px, 2.8vw, 72px) !important;
-    min-height: clamp(46px, 2.8vw, 72px) !important;
-    padding: 0 clamp(12px, .8vw, 20px) !important;
-    font-size: clamp(15px, .85vw, 22px) !important;
+    height: clamp(56px, 3.3vw, 86px) !important;
+    min-height: clamp(56px, 3.3vw, 86px) !important;
+    padding: 0 clamp(16px, 1vw, 28px) !important;
+    font-size: clamp(18px, 1.1vw, 29px) !important;
   }
   .auth-page .auth-card .primary-action {
-    min-height: clamp(52px, 3vw, 76px) !important;
-    padding: 12px 20px !important;
-    font-size: clamp(15px, .85vw, 22px) !important;
+    min-height: clamp(62px, 3.7vw, 96px) !important;
+    padding: 16px 24px !important;
+    font-size: clamp(18px, 1.1vw, 29px) !important;
   }
 }
