@@ -905,19 +905,20 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .auth-page .auth-intro h1 { font-size: clamp(44px, 3vw, 78px) !important; }
   .auth-page .auth-intro > p { font-size: clamp(18px, 1.05vw, 28px) !important; }
   .auth-page .feature-list { font-size: clamp(17px, 1vw, 27px); }
-  .auth-page .form-heading { gap: clamp(12px, .9vw, 24px); margin-bottom: clamp(16px, 1.2vw, 34px); }
-  .auth-page .form-heading h2 { font-size: clamp(30px, 2vw, 54px) !important; }
-  .auth-page .form-heading p, .auth-page .form-footer, .auth-page .form-message { font-size: clamp(16px, .95vw, 25px) !important; }
-  .auth-page .auth-card label { margin-top: clamp(16px, 1vw, 28px); font-size: clamp(18px, 1.1vw, 29px) !important; }
+  .auth-page .form-heading { gap: clamp(14px, 1vw, 28px); margin-bottom: clamp(18px, 1.3vw, 38px); }
+  .auth-page .form-icon { width: clamp(54px, 3.2vw, 90px); height: clamp(54px, 3.2vw, 90px); font-size: clamp(27px, 1.7vw, 48px); }
+  .auth-page .form-heading h2 { font-size: clamp(34px, 2.2vw, 60px) !important; }
+  .auth-page .form-heading p, .auth-page .form-footer, .auth-page .form-message { font-size: clamp(17px, 1vw, 27px) !important; }
+  .auth-page .auth-card label { margin-top: clamp(18px, 1.1vw, 31px); font-size: clamp(20px, 1.2vw, 31px) !important; }
   .auth-page .auth-card input {
-    height: clamp(56px, 3.3vw, 86px) !important;
-    min-height: clamp(56px, 3.3vw, 86px) !important;
-    padding: 0 clamp(16px, 1vw, 28px) !important;
-    font-size: clamp(18px, 1.1vw, 29px) !important;
+    height: clamp(60px, 3.6vw, 94px) !important;
+    min-height: clamp(60px, 3.6vw, 94px) !important;
+    padding: 0 clamp(18px, 1.1vw, 30px) !important;
+    font-size: clamp(19px, 1.15vw, 30px) !important;
   }
   .auth-page .auth-card .primary-action {
-    min-height: clamp(62px, 3.7vw, 96px) !important;
-    padding: 16px 24px !important;
-    font-size: clamp(18px, 1.1vw, 29px) !important;
+    min-height: clamp(68px, 4vw, 102px) !important;
+    padding: 18px 26px !important;
+    font-size: clamp(19px, 1.15vw, 30px) !important;
   }
 }
