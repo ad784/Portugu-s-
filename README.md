@@ -10,7 +10,7 @@ Você precisa do Node.js 22 ou superior e do npm. Na pasta principal do projeto,
 npm install
 ```
 
-Copie `.env.example` para `.env` na raiz e informe sua chave da Groq em `GROQ_API_KEY`. O backend também lê variáveis de `backend/.env`. As credenciais públicas do Supabase usadas nesta versão já têm valores padrão no projeto. Se você fizer um fork para usar outro projeto Supabase, substitua esses valores pelas credenciais do seu projeto.
+Informe sua chave da Groq em `GROQ_API_KEY` em `.env` na raiz ou em `backend/.env`; o servidor procura nos dois locais, sem depender da pasta de onde `npm start` foi executado. Se a mesma variável estiver nos dois arquivos, a da raiz prevalece. Não publique esses arquivos. As credenciais públicas do Supabase usadas nesta versão já têm valores padrão no projeto. Se você fizer um fork para usar outro projeto Supabase, substitua esses valores pelas credenciais do seu projeto.
 
 ```bash
 npm start
@@ -52,13 +52,19 @@ O fluxo usa a API do próprio backend para manter `GROQ_API_KEY` no servidor. O 
 
 - Configure `GROQ_API_KEY` no `.env` local e como variável de ambiente no deploy. A variável `GROQ_VISION_MODEL` é opcional. O backend limita a saída a 1.000 tokens para respeitar o limite de uso por minuto da conta Groq; justificativas e listas são pedidas de forma concisa para reservar tokens à transcrição.
 - Para salvar o histórico e a imagem, execute as migrations de banco, bucket e políticas listadas em [Supabase e migrações](#supabase-e-migrações). O bucket `redacoes` deve permanecer privado. Sem a configuração de Storage, o backend ainda tenta salvar a correção e a transcrição no histórico, mas devolve um aviso de que a imagem não foi guardada.
-- Erro HTTP 400 indica imagem ausente, formato inválido ou tamanho acima do limite; 401 indica sessão ausente, inválida ou expirada; 429/502 indica falha ou limite da Groq; 503 indica configuração de autenticação ou da chave de IA. Confira `aviso` e os logs do backend para distinguir uma correção gerada de uma foto efetivamente armazenada.
+- Erro HTTP 400 indica imagem ausente, formato inválido ou tamanho acima do limite; 401 indica sessão ausente, inválida ou expirada; 429/502 indica falha ou limite da Groq; 503 indica configuração de autenticação ou da chave de IA. Se a validação do Supabase ficar temporariamente indisponível durante o envio, o backend ainda pode devolver a correção da foto, mas sem atualizar o histórico da conta. Confira `aviso` e os logs do backend para distinguir uma correção gerada de uma foto efetivamente armazenada.
 
 A imagem é enviada à Groq para análise e, quando o Storage está configurado, ao Supabase para armazenamento. A nitidez da letra, a iluminação e o enquadramento influenciam a transcrição. Confira o texto transcrito antes de usar a devolutiva; a nota é uma estimativa pedagógica, não uma avaliação oficial do ENEM.
 
 ## Correção de texto
 
 O editor envia o texto ao endpoint `/api/corrigir`. O backend encaminha a redação à Groq usando `GROQ_MODEL` (por padrão, `openai/gpt-oss-120b`) e devolve a avaliação para a tela de resultado. É necessário configurar `GROQ_API_KEY`. A correção é um apoio ao estudo e não substitui a avaliação oficial do ENEM.
+
+## Editor, temas e perfil
+
+Na página **Nova redação**, o estudante pode escolher um dos dez temas oficiais do ENEM de 2016 a 2025 ou selecionar **Tema em aberto**, sem precisar digitar um tema. O editor conta palavras e linhas visuais e exige pelo menos dez linhas para solicitar a correção. A tela de resultado destaca a nota total e mostra a pontuação e os comentários de cada competência quando disponíveis no relatório.
+
+Em **Meu perfil**, é possível atualizar o nome e alterar a senha da conta autenticada. As redações corrigidas ficam disponíveis no histórico e alimentam a página de evolução. A navegação e os controles do editor se adaptam a telas menores e maiores.
 
 ## Critérios de correção
 
@@ -94,6 +100,8 @@ As páginas públicas ficam disponíveis em `/`, `/index.html`, `/cadastro.html`
 | `POST /api/corrigir-foto` | Envia uma imagem para transcrição e correção. |
 | `GET /api/redacoes` | Lista o histórico da conta autenticada. |
 | `GET /api/perfil` e `PUT /api/perfil` | Consulta e atualiza o perfil. |
+
+O seletor de temas funciona no navegador e envia o tema selecionado junto com a redação em `POST /api/corrigir`; **Tema em aberto** envia o campo de tema vazio. A troca de senha usa a sessão autenticada do Supabase Auth.
 
 As rotas de dados exigem uma sessão válida do Supabase, exceto no modo de demonstração local descrito acima.
 
