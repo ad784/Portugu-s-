@@ -74,6 +74,52 @@ async function salvarPerfil() {
   }
 }
 
+async function alterarSenha() {
+  const password = document.getElementById('perfil-senha').value;
+  const confirmation = document.getElementById('perfil-senha-confirmacao').value;
+  const message = document.getElementById('password-message');
+  const button = document.getElementById('password-save');
+  const originalLabel = button.innerHTML;
+
+  const showPasswordMessage = (text, type = 'error') => {
+    message.textContent = text;
+    message.className = `form-message ${type}`;
+  };
+
+  if (password.length < 8) {
+    showPasswordMessage('A nova senha precisa ter pelo menos 8 caracteres.');
+    return;
+  }
+  if (password !== confirmation) {
+    showPasswordMessage('As senhas não coincidem. Confira os dois campos.');
+    return;
+  }
+  if (!window.supabaseClient) {
+    showPasswordMessage('O serviço de autenticação ainda está carregando. Tente novamente.');
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = 'Atualizando...';
+  try {
+    const { data: { session } } = await window.supabaseClient.auth.getSession();
+    if (!session) {
+      window.location.href = '/index.html';
+      return;
+    }
+    const { error } = await window.supabaseClient.auth.updateUser({ password });
+    if (error) throw error;
+    document.getElementById('perfil-senha').value = '';
+    document.getElementById('perfil-senha-confirmacao').value = '';
+    showPasswordMessage('Senha atualizada com sucesso.', 'success');
+  } catch (error) {
+    showPasswordMessage(error.message || 'Não foi possível atualizar a senha. Tente novamente.');
+  } finally {
+    button.disabled = false;
+    button.innerHTML = originalLabel;
+  }
+}
+
 async function sair(event) {
   event?.preventDefault();
   try { await window.supabaseClient?.auth.signOut({ scope: 'local' }); }
@@ -82,4 +128,5 @@ async function sair(event) {
 
 window.sair = sair;
 window.salvarPerfil = salvarPerfil;
+window.alterarSenha = alterarSenha;
 window.addEventListener('DOMContentLoaded', loadProfile);

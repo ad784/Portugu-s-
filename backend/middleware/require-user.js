@@ -18,7 +18,15 @@ function createServerClient(accessToken) {
 
 const localDemoAuthEnabled = process.env.LOCAL_DEMO_AUTH === "true" && process.env.VERCEL !== "1";
 
-async function requireSupabaseUser(req, res, next) {
+function sendAuthFailure(req, res, next, status, message, options = {}) {
+  if (status === 503 && options.continueOnAuthOutage) {
+    req.authUnavailable = true;
+    return next();
+  }
+  return res.status(status).json({ erro: message });
+}
+
+async function requireSupabaseUser(req, res, next, options = {}) {
   const host = req.hostname || "";
   if (localDemoAuthEnabled && ["localhost", "127.0.0.1", "::1"].includes(host)) {
     req.supabaseUser = { id: "local-demo-user", email: "local@localhost", app_metadata: { role: "admin" } };
@@ -28,10 +36,10 @@ async function requireSupabaseUser(req, res, next) {
     return next();
   }
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_PUBLISHABLE_KEY) {
-    return res.status(503).json({ erro: "Autenticacao Supabase nao configurada no servidor" });
+    return sendAuthFailure(req, res, next, 503, "Autenticacao Supabase nao configurada no servidor", options);
   }
   const token = (req.get("authorization") || "").match(/^Bearer\s+(.+)$/i)?.[1];
-  if (!token) return res.status(401).json({ erro: "Sessao invalida ou expirada" });
+  if (!token) return sendAuthFailure(req, res, next, 401, "Sessao invalida ou expirada", options);
   try {
     // Tokens assinados com as chaves assimetricas do Supabase podem ser
     // verificados localmente. Isso evita uma chamada ao Auth para cada foto.
@@ -44,36 +52,47 @@ async function requireSupabaseUser(req, res, next) {
       return res.status(401).json({ erro: "Sessao invalida ou expirada" });
     }
     if (alg !== "HS256" && process.env.SUPABASE_JWKS_URL) {
-      const [supabaseServer] = await getJwtModules();
-      const { data: verified, error: verificationError } = await supabaseServer.verifyCredentials(
-        { token, apikey: null },
-        { auth: "user" }
-      );
-      if (!verificationError && verified?.userClaims) {
-        const claims = verified.userClaims;
-        req.supabaseUser = {
-          id: claims.id,
-          email: claims.email,
-          app_metadata: claims.appMetadata || {}
-        };
-        req.isAdmin = req.supabaseUser.app_metadata.role === "admin";
-        req.supabase = supabaseServer.createContextClient({ auth: { token } });
-        return next();
+      // A validacao local e mais rapida, mas a consulta ao JWKS pode falhar
+      // temporariamente. Nesse caso, deixe o Auth do Supabase validar o token.
+      try {
+        const [supabaseServer] = await getJwtModules();
+        const { data: verified, error: verificationError } = await supabaseServer.verifyCredentials(
+          { token, apikey: null },
+          { auth: "user" }
+        );
+        if (!verificationError && verified?.userClaims) {
+          const claims = verified.userClaims;
+          req.supabaseUser = {
+            id: claims.id,
+            email: claims.email,
+            app_metadata: claims.appMetadata || {}
+          };
+          req.isAdmin = req.supabaseUser.app_metadata.role === "admin";
+          req.supabase = supabaseServer.createContextClient({ auth: { token } });
+          return next();
+        }
+        if (verificationError) {
+          console.warn("Validacao local da sessao falhou; usando Auth do Supabase:", verificationError.message);
+        }
+      } catch (verificationError) {
+        console.warn("JWKS indisponivel; usando Auth do Supabase:", verificationError.message);
       }
     }
 
     const { data, error } = await createServerClient().auth.getUser(token);
     if (error || !data.user) {
       const invalid = [400, 401, 403].includes(Number(error?.status));
-      return res.status(invalid ? 401 : 503).json({ erro: invalid ? "Sessao invalida ou expirada" : "Nao foi possivel validar sua sessao agora. Tente novamente em instantes." });
+      const status = invalid ? 401 : 503;
+      const message = invalid ? "Sessao invalida ou expirada" : "Nao foi possivel validar sua sessao agora. Tente novamente em instantes.";
+      return sendAuthFailure(req, res, next, status, message, options);
     }
     req.supabaseUser = data.user;
     req.isAdmin = data.user.app_metadata?.role === "admin";
     req.supabase = createServerClient(token);
     return next();
   } catch (error) {
-    console.error("Falha ao validar a sessao no Supabase:", error.message);
-    return res.status(503).json({ erro: "Nao foi possivel validar sua sessao agora. Tente novamente em instantes." });
+    console.error("Falha ao validar a sessao no Supabase:", error.message, error.status || "sem status", error.code || "sem codigo");
+    return sendAuthFailure(req, res, next, 503, "Nao foi possivel validar sua sessao agora. Tente novamente em instantes.", options);
   }
 }
 

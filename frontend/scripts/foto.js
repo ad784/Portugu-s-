@@ -3,9 +3,16 @@ const canvas = document.getElementById('snapshot');
 const ctx = canvas.getContext('2d');
 let cameraStream = null;
 
+function setPreviewAspectRatio(width, height) {
+  const viewfinder = video.closest('.camera-viewfinder');
+  if (!viewfinder || !width || !height) return;
+  viewfinder.style.aspectRatio = `${width} / ${height}`;
+}
+
 // Mantem a orientacao natural da camera. A pre-visualizacao tambem nao e
 // espelhada, entao a captura corresponde ao que o estudante esta vendo.
 function drawPortraitImage(source, sourceWidth, sourceHeight) {
+  setPreviewAspectRatio(sourceWidth, sourceHeight);
   const limit = 1600;
   const scale = Math.min(1, limit / Math.max(sourceWidth, sourceHeight));
 
@@ -81,6 +88,7 @@ async function initCamera() {
 
   video.srcObject = cameraStream;
   await video.play();
+  setPreviewAspectRatio(video.videoWidth, video.videoHeight);
   setPhotoStatus('Câmera pronta. Posicione a redação e tire a foto.');
   setCameraIndicator('Câmera ativa', true);
 }
@@ -101,6 +109,7 @@ function takePhoto() {
 function resetPhoto() {
   canvas.style.display = 'none';
   video.style.display = 'block';
+  setPreviewAspectRatio(video.videoWidth, video.videoHeight);
   if (!cameraStream) initCamera();
   else setPhotoStatus('Câmera pronta. Tire outra foto quando desejar.');
 }
@@ -160,7 +169,7 @@ async function salvarFoto() {
       body: JSON.stringify({ imagem: dataUrl })
     };
     let response = await requestPhotoCorrection('/api/corrigir-foto', options);
-    if (response.status === 401) {
+    if (response.status === 401 || response.status >= 500) {
       const renewal = await window.supabaseClient.auth.refreshSession();
       if (renewal.data.session) {
         options.headers.Authorization = `Bearer ${renewal.data.session.access_token}`;

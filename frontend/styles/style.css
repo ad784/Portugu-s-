@@ -63,8 +63,9 @@ body {
 
 .theme-field { display: grid; gap: 7px; margin: 18px 0 14px; color: #3d5874; font-size: 13px; font-weight: 700; }
 .theme-field span { color: #718096; font-weight: 400; }
-.theme-field input { width: 100%; height: 43px; padding: 0 13px; border: 1px solid #d3e1ee; border-radius: 8px; color: #243b53; background: #fbfdff; font: inherit; font-weight: 400; }
-.theme-field input:focus { outline: none; border-color: #4299e1; box-shadow: 0 0 0 3px rgba(66, 153, 225, .16); }
+.theme-field label { color: inherit; font: inherit; }
+.theme-field input, .theme-field select { width: 100%; min-height: 43px; padding: 0 13px; border: 1px solid #d3e1ee; border-radius: 8px; color: #243b53; background: #fbfdff; font: inherit; font-weight: 400; }
+.theme-field input:focus, .theme-field select:focus { outline: none; border-color: #4299e1; box-shadow: 0 0 0 3px rgba(66, 153, 225, .16); }
 
 /* EXEMPLOS DE REDAÇÃO */
 .examples-page { min-height: 100vh; display: flex; flex-direction: column; color: #172b4d; background: linear-gradient(180deg, #f8fbff, #f4f8fc); }
@@ -401,6 +402,11 @@ pre {
 .profile-card input { width: 100%; height: 45px; padding: 0 13px; border: 1px solid #d3e1ee; border-radius: 8px; color: #243b53; font-size: 14px; }
 .profile-card input:disabled { background: #f3f7fa; }
 .profile-card .primary-action { width: auto; min-width: 200px; }
+.profile-password { margin-top: 30px; padding-top: 26px; border-top: 1px solid #e2ece6; }
+.profile-password-heading h2 { margin: 0 0 6px; color: #1a365d; font-size: 21px; }
+.profile-password-heading p { margin: 0; color: #627a93; font-size: 14px; }
+.profile-password .form-message { margin: 12px 0; }
+.profile-password .primary-action { margin-top: 2px; }
 .policy-main > p { color: #627a93; }
 .policy-updated { margin-bottom: 22px; font-size: 12px; }
 .policy-main section { margin-top: 14px; padding: 20px; border: 1px solid #dce9f4; border-radius: 12px; background: #fff; }
@@ -457,7 +463,7 @@ pre {
 .camera-status i { display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: #94a3b8; }
 .camera-status.is-active i { background: #48bb78; box-shadow: 0 0 0 4px rgba(72, 187, 120, 0.15); }
 .camera-viewfinder { position: relative; display: grid; min-height: 370px; aspect-ratio: 3 / 4; place-items: center; overflow: hidden; border: 1px solid #d4e3f0; border-radius: 11px; background: #edf4fa; }
-.camera-viewfinder video, .camera-viewfinder canvas { display: block; width: 100%; height: 100%; max-height: 600px; object-fit: contain; }
+.camera-viewfinder video, .camera-viewfinder canvas { display: block; width: 100%; height: 100%; max-height: none; object-fit: contain; }
 /* O preview acompanha a perspectiva de quem segura o aparelho. O canvas nao
    recebe essa inversao, portanto a foto enviada para a IA permanece legivel. */
 .camera-viewfinder video { transform: none; }
@@ -887,6 +893,99 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .examples-hero > p { max-width: min(1500px, 100%); }
   .examples-topic, .examples-notice { max-width: min(1600px, 100%); }
   .how-heading { max-width: min(1400px, 100%); }
+}
+
+/* Tipografia ampliada na devolutiva, com a nota como foco principal. */
+.result-main .score-card { gap: clamp(18px, 1.6vw, 38px); padding: clamp(24px, 2vw, 48px); }
+.result-main .score-icon { width: clamp(58px, 4vw, 92px); height: clamp(58px, 4vw, 92px); font-size: clamp(30px, 2.2vw, 50px); }
+.result-main .score-card #score-heading { font-size: clamp(19px, 1.4vw, 32px) !important; }
+.result-main .score-card #nota { margin: 3px 0; font-size: clamp(76px, 7vw, 164px) !important; line-height: .95; letter-spacing: -.045em; }
+.result-main .score-scale { margin-top: 8px; font-size: clamp(16px, 1vw, 24px) !important; }
+.result-main .score-message { font-size: clamp(18px, 1.2vw, 29px); }
+.result-main .score-message strong { font-size: 1.12em; }
+.result-main .competency-breakdown { padding: clamp(24px, 2vw, 46px); }
+.result-main .report-heading h2 { font-size: clamp(26px, 1.8vw, 44px) !important; }
+.result-main .report-heading p { font-size: clamp(17px, 1.05vw, 26px) !important; }
+.result-main .report-heading > span { font-size: clamp(15px, .9vw, 22px) !important; }
+.result-main .competency-cards { gap: clamp(14px, 1.1vw, 28px); }
+.result-main .competency-card { padding: clamp(20px, 1.5vw, 36px); }
+.result-main .competency-card h3 { font-size: clamp(21px, 1.35vw, 34px) !important; }
+.result-main .competency-name { min-height: 0; font-size: clamp(17px, 1.05vw, 26px) !important; }
+.result-main .competency-score { margin: 12px 0; font-size: clamp(25px, 1.8vw, 44px) !important; }
+.result-main .competency-track { height: clamp(10px, .7vw, 18px); }
+.result-main .competency-comment { font-size: clamp(16px, 1vw, 24px) !important; }
+.result-main .report-card { padding: clamp(24px, 1.8vw, 42px); }
+.result-main #resultado { max-height: 62vh; padding: clamp(20px, 1.5vw, 36px); font-size: clamp(17px, 1.05vw, 27px) !important; line-height: 1.75; }
+
+@media (max-width: 600px) {
+  .result-main .score-card { gap: 14px; padding: 20px; }
+  .result-main .score-card #nota { font-size: clamp(64px, 18vw, 100px) !important; }
+  .result-main .score-message { display: none; }
+  .result-main .competency-breakdown, .result-main .report-card { padding: 20px; }
+  .result-main .competency-cards { grid-template-columns: 1fr; }
+  .result-main #resultado { max-height: 60vh; font-size: 16px !important; }
+}
+
+/* Seletor visual dos temas e leitura ampliada dentro do editor. */
+.theme-field { position: relative; z-index: 4; }
+.theme-field > label { display: block; font-size: clamp(17px, 1vw, 25px); }
+.theme-picker { position: relative; }
+.theme-picker > summary { display: flex; min-height: 62px; align-items: center; gap: 14px; padding: 12px 17px; border: 1px solid #cfe2d8; border-radius: 14px; background: linear-gradient(110deg, #f4fbf7, #fff); color: var(--ink); cursor: pointer; list-style: none; box-shadow: 0 5px 15px rgba(30, 80, 59, .06); transition: border-color .18s, box-shadow .18s, transform .18s; }
+.theme-picker > summary::-webkit-details-marker { display: none; }
+.theme-picker > summary:hover, .theme-picker[open] > summary { border-color: #79b9a2; box-shadow: 0 8px 22px rgba(20, 125, 104, .12); }
+.theme-summary-icon, .theme-open-icon { display: grid; width: 39px; height: 39px; flex: 0 0 39px; place-items: center; border-radius: 11px; background: #dff2e9; font-size: 20px; }
+.theme-summary-copy { display: grid; min-width: 0; gap: 3px; }
+.theme-summary-copy strong { overflow: hidden; color: var(--ink); font-size: 17px; text-overflow: ellipsis; white-space: nowrap; }
+.theme-summary-copy small { color: var(--muted); font-size: 13px; font-weight: 400; }
+.theme-summary-arrow { margin-left: auto; color: var(--brand-dark); font-size: 25px; line-height: 1; }
+.theme-picker[open] .theme-summary-arrow { transform: rotate(180deg); }
+.theme-options { position: absolute; top: calc(100% + 9px); right: 0; left: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; max-height: min(55vh, 680px); padding: 13px; overflow-y: auto; border: 1px solid #d8e9e0; border-radius: 16px; background: #fff; box-shadow: 0 20px 48px rgba(25, 56, 45, .2); }
+.theme-options .theme-option { display: grid; min-height: 72px !important; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; justify-content: initial; gap: 11px; padding: 12px 14px !important; border: 1px solid #e2ece6; border-radius: 12px; background: #fbfdfc; color: var(--ink); text-align: left; white-space: normal; transition: border-color .18s, background .18s, transform .18s, box-shadow .18s; }
+.theme-options .theme-option:hover { transform: translateY(-1px); border-color: #8cc9b1; background: #f2faf6; box-shadow: 0 5px 14px rgba(20, 125, 104, .09); }
+.theme-options .theme-option[aria-pressed="true"] { border-color: var(--brand); background: #edf8f2; box-shadow: inset 0 0 0 1px var(--brand); }
+.theme-year { padding: 6px 8px; border-radius: 8px; background: #e6f1ff; color: #23619c; font-size: 13px; font-weight: 800; }
+.theme-name { color: #365147; font-size: 14px; font-weight: 600; line-height: 1.35; }
+.theme-name strong { display: block; color: var(--brand-dark); font-size: 15px; }
+.theme-name small { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; font-weight: 400; line-height: 1.35; }
+.theme-check { display: none; color: var(--brand); font-size: 20px; font-weight: 900; }
+.theme-option[aria-pressed="true"] .theme-check { display: block; }
+.theme-options .theme-open { border-color: #cce7dc; background: linear-gradient(110deg, #eff9f4, #fff); }
+
+.writing-card { padding: clamp(25px, 2vw, 52px); }
+.writing-card-top h2 { font-size: clamp(32px, 2.3vw, 54px) !important; }
+.writing-card-top p { font-size: clamp(20px, 1.45vw, 34px) !important; line-height: 1.5; }
+.autosave-label { font-size: clamp(18px, 1.1vw, 27px) !important; }
+.theme-field { gap: 11px; margin: clamp(18px, 1.35vw, 34px) 0; }
+.theme-field > label { font-size: clamp(20px, 1.35vw, 32px) !important; }
+.theme-picker > summary { min-height: clamp(76px, 5vw, 118px); gap: clamp(12px, .9vw, 22px); padding: clamp(15px, 1.1vw, 28px) clamp(18px, 1.3vw, 34px); }
+.theme-summary-icon { width: clamp(42px, 3vw, 70px); height: clamp(42px, 3vw, 70px); flex-basis: clamp(42px, 3vw, 70px); font-size: clamp(21px, 1.4vw, 34px); }
+.theme-summary-copy strong { font-size: clamp(21px, 1.45vw, 34px); }
+.theme-summary-copy small { font-size: clamp(17px, 1.1vw, 27px); }
+.theme-summary-arrow { font-size: clamp(25px, 1.7vw, 42px); }
+.theme-options .theme-option { min-height: clamp(74px, 5vw, 120px) !important; gap: clamp(10px, .8vw, 20px); padding: clamp(12px, .9vw, 22px) clamp(13px, 1vw, 24px) !important; }
+.theme-year { padding: clamp(6px, .5vw, 12px) clamp(8px, .6vw, 15px); font-size: clamp(14px, .9vw, 22px); }
+.theme-name { font-size: clamp(15px, .95vw, 24px); }
+.theme-name strong { font-size: clamp(17px, 1.05vw, 27px); }
+.theme-name small { font-size: clamp(13px, .8vw, 20px); }
+.editor-page textarea { min-height: 48vh; padding: clamp(24px, 1.7vw, 46px); font-size: clamp(24px, 1.7vw, 42px) !important; line-height: 1.8; }
+.writing-card-bottom { gap: 14px; font-size: clamp(18px, 1.2vw, 30px) !important; }
+.editor-actions { gap: clamp(14px, 1.2vw, 32px); }
+.editor-actions button { min-height: clamp(68px, 4.5vw, 110px) !important; padding: clamp(16px, 1.2vw, 31px) clamp(22px, 1.7vw, 44px) !important; font-size: clamp(20px, 1.35vw, 34px) !important; }
+.editor-message, .writing-card .form-message { font-size: clamp(16px, .95vw, 25px); }
+.writing-card .encouragement { font-size: clamp(15px, .9vw, 23px); }
+
+@media (max-width: 700px) {
+  .theme-options { grid-template-columns: 1fr; max-height: 52vh; }
+  .theme-options .theme-option { min-height: 58px !important; padding: 10px 12px !important; }
+  .theme-name { font-size: 14px; }
+  .writing-card { padding: 20px; }
+  .writing-card-top h2 { font-size: 27px !important; }
+  .writing-card-top p, .writing-card-bottom, .theme-field > label { font-size: 16px !important; }
+  .theme-picker > summary { min-height: 62px; padding: 11px 12px; }
+  .theme-summary-copy strong { font-size: 16px; }
+  .theme-summary-copy small { font-size: 12px; }
+  .editor-page textarea { min-height: 42vh; padding: 18px; font-size: 18px !important; }
+  .editor-actions button { min-height: 54px !important; font-size: 16px !important; }
 }
 
 /* Cadastro/login mantem a escala de TV sem virar um cartao gigante. */

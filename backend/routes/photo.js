@@ -3,7 +3,10 @@ const { analyzePhoto, uploadPhoto, parsePhotoDataUrl } = require("../services/ph
 
 function createPhotoRouter({ requireSupabaseUser, saveCorrection, apiKey, model, analyze = analyzePhoto, upload = uploadPhoto }) {
   const router = express.Router();
-  router.post(["/corrigir-foto", "/api/corrigir-foto"], requireSupabaseUser, async (req, res) => {
+  const allowPhotoDuringAuthOutage = (req, res, next) =>
+    requireSupabaseUser(req, res, next, { continueOnAuthOutage: true });
+
+  router.post(["/corrigir-foto", "/api/corrigir-foto"], allowPhotoDuringAuthOutage, async (req, res) => {
     const image = req.body?.imagem;
     try {
       parsePhotoDataUrl(image);
@@ -14,6 +17,13 @@ function createPhotoRouter({ requireSupabaseUser, saveCorrection, apiKey, model,
     try {
       const { result } = await analyze({ image, apiKey, model });
       if (req.isLocalDemo) return res.json({ resultado: result, salvo: true, aviso: null });
+      if (req.authUnavailable) {
+        return res.json({
+          resultado: result,
+          salvo: false,
+          aviso: "A correção foi concluída, mas o Supabase está temporariamente indisponível. O resultado ficou salvo apenas neste dispositivo; o histórico da conta não foi atualizado."
+        });
+      }
 
       let imagePath = null;
       let photoWarning = null;

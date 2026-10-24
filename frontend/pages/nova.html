@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nova redação | Português+</title>
-  <link rel="stylesheet" href="/styles/style.css?v=20261023-tv32-balanced-2">
+  <link rel="stylesheet" href="/styles/style.css?v=20261024-writing-scale-1">
 </head>
 <body class="editor-page">
   <header class="site-header">
@@ -42,10 +42,30 @@
           <span class="autosave-label"><i></i> Rascunho ativo</span>
         </div>
 
-        <label class="theme-field" for="tema-redacao">
-          Tema da proposta <span>(recomendado)</span>
-          <input id="tema-redacao" type="text" maxlength="300" placeholder="Ex.: Desafios para combater a desinformacao no Brasil">
-        </label>
+        <div class="theme-field">
+          <label id="tema-label">Tema da proposta <span>(opcional)</span></label>
+          <input id="tema-enem" type="hidden" value="">
+          <details class="theme-picker">
+            <summary aria-labelledby="tema-label">
+              <span class="theme-summary-icon" aria-hidden="true">✍️</span>
+              <span class="theme-summary-copy"><strong id="tema-escolhido">Escolha um tema para praticar</strong><small>Temas oficiais do ENEM ou uma proposta em aberto</small></span>
+              <span class="theme-summary-arrow" aria-hidden="true">⌄</span>
+            </summary>
+            <div class="theme-options" aria-label="Temas de redação">
+              <button type="button" class="theme-option" data-theme="Perspectivas acerca do envelhecimento na sociedade brasileira"><span class="theme-year">2025</span><span class="theme-name">Perspectivas acerca do envelhecimento na sociedade brasileira</span><span class="theme-check" aria-hidden="true">✓</span></button>
+              <button type="button" class="theme-option" data-theme="Desafios para a valorização da herança africana no Brasil"><span class="theme-year">2024</span><span class="theme-name">Desafios para a valorização da herança africana no Brasil</span><span class="theme-check" aria-hidden="true">✓</span></button>
+              <button type="button" class="theme-option" data-theme="Desafios para o enfrentamento da invisibilidade do trabalho de cuidado realizado pela mulher no Brasil"><span class="theme-year">2023</span><span class="theme-name">Desafios para o enfrentamento da invisibilidade do trabalho de cuidado realizado pela mulher no Brasil</span><span class="theme-check" aria-hidden="true">✓</span></button>
+              <button type="button" class="theme-option" data-theme="Desafios para a valorização de comunidades e povos tradicionais no Brasil"><span class="theme-year">2022</span><span class="theme-name">Desafios para a valorização de comunidades e povos tradicionais no Brasil</span><span class="theme-check" aria-hidden="true">✓</span></button>
+              <button type="button" class="theme-option" data-theme="Invisibilidade e registro civil: garantia de acesso à cidadania no Brasil"><span class="theme-year">2021</span><span class="theme-name">Invisibilidade e registro civil: garantia de acesso à cidadania no Brasil</span><span class="theme-check" aria-hidden="true">✓</span></button>
+              <button type="button" class="theme-option" data-theme="O estigma associado às doenças mentais na sociedade brasileira"><span class="theme-year">2020</span><span class="theme-name">O estigma associado às doenças mentais na sociedade brasileira</span><span class="theme-check" aria-hidden="true">✓</span></button>
+              <button type="button" class="theme-option" data-theme="Democratização do acesso ao cinema no Brasil"><span class="theme-year">2019</span><span class="theme-name">Democratização do acesso ao cinema no Brasil</span><span class="theme-check" aria-hidden="true">✓</span></button>
+              <button type="button" class="theme-option" data-theme="Manipulação do comportamento do usuário pelo controle de dados na internet"><span class="theme-year">2018</span><span class="theme-name">Manipulação do comportamento do usuário pelo controle de dados na internet</span><span class="theme-check" aria-hidden="true">✓</span></button>
+              <button type="button" class="theme-option" data-theme="Desafios para a formação educacional de surdos no Brasil"><span class="theme-year">2017</span><span class="theme-name">Desafios para a formação educacional de surdos no Brasil</span><span class="theme-check" aria-hidden="true">✓</span></button>
+              <button type="button" class="theme-option" data-theme="Caminhos para combater a intolerância religiosa no Brasil"><span class="theme-year">2016</span><span class="theme-name">Caminhos para combater a intolerância religiosa no Brasil</span><span class="theme-check" aria-hidden="true">✓</span></button>
+              <button type="button" class="theme-option theme-open" data-theme=""><span class="theme-open-icon" aria-hidden="true">✦</span><span class="theme-name"><strong>Tema em aberto</strong><small>Escreva sem escolher uma proposta específica</small></span><span class="theme-check" aria-hidden="true">✓</span></button>
+            </div>
+          </details>
+        </div>
 
         <label class="sr-only" for="redacao">Texto da redação</label>
         <textarea id="redacao" lang="pt-BR" spellcheck="true" oninput="atualizarContador()" placeholder="Comece a escrever sua redação aqui..."></textarea>
@@ -79,7 +99,7 @@
 
   <footer class="site-footer">© 2026 Português+ · Sua prática, seu progresso.</footer>
   <script type="module" src="/scripts/supabase.js"></script>
-  <script src="/scripts/script.js?v=20260830-5"></script>
+  <script src="/scripts/script.js?v=20261023-line-count-1"></script>
   <script src="/scripts/navigation.js?v=20261023-1"></script>
 </body>
 </html>

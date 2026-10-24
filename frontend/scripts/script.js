@@ -76,7 +76,7 @@ async function requisicaoApi(url, options) {
 
 async function corrigir() {
   const texto = document.getElementById("redacao").value;
-  const tema = document.getElementById("tema-redacao")?.value.trim() || "";
+  const tema = document.getElementById("tema-enem")?.value || "";
   const linhasVisuais = contarLinhasVisuais();
   const button = document.querySelector(".correct-action");
 
@@ -160,6 +160,29 @@ async function corrigir() {
     }
   }
 }
+
+function configurarSeletorTema() {
+  const value = document.getElementById("tema-enem");
+  const picker = document.querySelector(".theme-picker");
+  const selectedLabel = document.getElementById("tema-escolhido");
+  if (!value || !picker || !selectedLabel) return;
+
+  picker.querySelectorAll(".theme-option").forEach((option) => {
+    option.setAttribute("aria-pressed", "false");
+    option.addEventListener("click", () => {
+      value.value = option.dataset.theme || "";
+      selectedLabel.textContent = option.classList.contains("theme-open")
+        ? "Tema em aberto"
+        : option.querySelector(".theme-name").textContent.trim();
+      picker.querySelectorAll(".theme-option").forEach((item) =>
+        item.setAttribute("aria-pressed", String(item === option))
+      );
+      picker.open = false;
+    });
+  });
+}
+
+document.addEventListener("DOMContentLoaded", configurarSeletorTema);
 
 // MOSTRAR RESULTADO
 window.onload = () => {
@@ -278,7 +301,12 @@ function contarLinhasVisuais() {
   });
   document.body.appendChild(medidor);
   const lineHeight = Number.parseFloat(styles.lineHeight) || Number.parseFloat(styles.fontSize) * 1.75;
-  const linhas = Math.ceil((medidor.scrollHeight - Number.parseFloat(styles.paddingTop) - Number.parseFloat(styles.paddingBottom)) / lineHeight);
+  const alturaConteudo = medidor.scrollHeight
+    - Number.parseFloat(styles.paddingTop)
+    - Number.parseFloat(styles.paddingBottom);
+  // scrollHeight e arredondado para pixels inteiros; ceil transformava
+  // uma unica linha com poucos decimos de pixel extras em duas.
+  const linhas = Math.round(alturaConteudo / lineHeight);
   medidor.remove();
   return Math.max(1, linhas);
 }

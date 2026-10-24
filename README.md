@@ -10,7 +10,7 @@ Você precisa do Node.js 22 ou superior e do npm. Na pasta principal do projeto,
 npm install
 ```
 
-Copie `.env.example` para `.env` na raiz e informe sua chave da Groq em `GROQ_API_KEY`. As credenciais públicas do Supabase usadas nesta versão já têm valores padrão no projeto. Se você fizer um fork para usar outro projeto Supabase, substitua esses valores pelas credenciais do seu projeto.
+Copie `.env.example` para `.env` na raiz e informe sua chave da Groq em `GROQ_API_KEY`. O backend também lê variáveis de `backend/.env`. As credenciais públicas do Supabase usadas nesta versão já têm valores padrão no projeto. Se você fizer um fork para usar outro projeto Supabase, substitua esses valores pelas credenciais do seu projeto.
 
 ```bash
 npm start
@@ -19,8 +19,6 @@ npm start
 Abra [http://localhost:3000](http://localhost:3000). Cadastre uma conta e entre para acessar o editor. O Supabase Auth precisa estar com o provedor de e-mail habilitado.
 
 As correções por texto e por foto dependem de uma chave válida da Groq. Sem ela, o servidor continua iniciando, mas esses recursos retornam uma mensagem de configuração ausente. Para testar localmente as rotas protegidas da API sem token Supabase, você pode definir `LOCAL_DEMO_AUTH=true` no `.env`; esse modo funciona somente em `localhost`, não persiste dados e não substitui a chave da Groq. O login do site continua usando o Supabase.
-
-Para comprovar que o endereço de e-mail é acessível, ative **Confirm Email** em **Authentication → Providers → Email** no Supabase e configure a URL do site em **Authentication → URL Configuration**. O cadastro do site bloqueia novas contas enquanto a confirmação automática estiver ativa.
 
 ### Variáveis de ambiente
 
