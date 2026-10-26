@@ -49,7 +49,7 @@ test('admin essays route responds in local mode', async () => {
   assert.deepEqual(await response.json(), { redacoes: [] });
 });
 
-test('blocks signup while Supabase auto-confirms unverified email addresses', async () => {
+test('creates and opens an account directly when Supabase auto-confirms it', async () => {
   const message = { textContent: '', className: '' };
   const button = { disabled: false, textContent: '', innerHTML: 'Criar conta' };
   const fields = {
@@ -61,20 +61,20 @@ test('blocks signup while Supabase auto-confirms unverified email addresses', as
     'signup-message': message
   };
   let signupCalls = 0;
+  const location = { href: '' };
   const context = {
     window: {
-      supabaseAuthSettingsUrl: 'https://supabase.test/auth/v1/settings',
-      supabasePublishableKey: 'public-test-key',
-      supabaseClient: { auth: { signUp: async () => { signupCalls += 1; return { data: {}, error: null }; } } }
+      location,
+      supabaseClient: { auth: { signUp: async () => { signupCalls += 1; return { data: { session: {} }, error: null }; } } }
     },
-    document: { getElementById: (id) => fields[id] },
-    fetch: async () => ({ ok: true, json: async () => ({ mailer_autoconfirm: true }) })
+    document: { getElementById: (id) => fields[id] }
   };
   vm.runInNewContext(fs.readFileSync('frontend/scripts/cadastro.js', 'utf8'), context);
   await context.window.cadastrar();
 
-  assert.equal(signupCalls, 0);
-  assert.match(message.textContent, /Cadastro pausado/);
+  assert.equal(signupCalls, 1);
+  assert.equal(location.href, '/nova.html');
+  assert.match(message.textContent, /Conta criada/);
   assert.equal(button.disabled, false);
 });
 
