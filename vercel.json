@@ -2,14 +2,17 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "builds": [
     { "src": "backend/api/index.js", "use": "@vercel/node" },
-    { "src": "frontend/**", "use": "@vercel/static" }
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "frontend/build/client" }
+    }
   ],
   "routes": [
     { "src": "/api(?:/.*)?$", "dest": "/backend/api/index.js" },
-    { "src": "/", "dest": "/frontend/pages/index.html" },
-    { "src": "/(index|cadastro|nova|resultado|foto|exemplos|historico|evolucao|perfil|recuperar|privacidade)(\\.html)?$", "dest": "/frontend/pages/$1.html" },
-    { "src": "/styles/(.*)$", "dest": "/frontend/styles/$1" },
-    { "src": "/scripts/(.*)$", "dest": "/frontend/scripts/$1" },
-    { "src": "/assets/(.*)$", "dest": "/frontend/assets/$1" }
+    { "src": "/assets/(.*)$", "dest": "/assets/$1" },
+    { "src": "/(index|cadastro|nova|resultado|foto|exemplos|historico|evolucao|perfil|recuperar|privacidade)(\\.html)?$", "dest": "/index.html" },
+    { "src": "/$", "dest": "/index.html" },
+    { "src": "/.*", "dest": "/index.html" }
   ]
 }

@@ -36,7 +36,7 @@ A página `frontend/pages/evolucao.html` combina as redações do histórico aut
 
 ```mermaid
 flowchart LR
-  U[Estudante] --> F[Frontend HTML/CSS/JS]
+  U[Estudante] --> F[React Router Framework, React e Vite]
   F --> E[Express / Vercel Functions]
   E --> G[Groq: correção por IA]
   F --> S[Supabase Auth]

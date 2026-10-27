@@ -4,6 +4,9 @@
   "description": "Plataforma de prática e correção de redações no modelo ENEM.",
   "main": "backend/server.js",
   "scripts": {
+    "dev": "cd frontend && react-router dev",
+    "build": "cd frontend && react-router build",
+    "prestart": "npm run build",
     "start": "node backend/server.js",
     "test": "node --test tests/*.test.js"
   },
@@ -11,12 +14,24 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "engines": {
+    "node": ">=22.22.0"
+  },
   "dependencies": {
+    "@react-router/dev": "^8.5.1",
+    "@react-router/node": "^8.5.1",
     "@supabase/server": "^1.4.1",
     "@supabase/supabase-js": "^2.112.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "jose": "^6.2.8"
+    "html-react-parser": "^6.1.9",
+    "isbot": "^5",
+    "jose": "^6.2.8",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "vite": "^8.3.5"
   }
 }

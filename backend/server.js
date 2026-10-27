@@ -56,23 +56,17 @@ app.use(createPhotoRouter({
   model: process.env.GROQ_VISION_MODEL
 }));
 
-// Servir arquivos estaticos e resolver as paginas organizadas por pastas.
-const frontendRoot = path.join(__dirname, "../frontend");
-const frontendPages = path.join(frontendRoot, "pages");
-const publicPages = new Set([
-  "index", "cadastro", "nova", "resultado", "foto", "exemplos",
-  "historico", "evolucao", "perfil", "recuperar", "privacidade"
-]);
-app.use(express.static(frontendRoot));
-app.get("/:page", (req, res, next) => {
-  const page = req.params.page.replace(/\.html$/, "");
-  if (!publicPages.has(page)) return next();
-  res.sendFile(path.join(frontendPages, `${page}.html`));
-});
-
-// Rota principal
-app.get("/", (req, res) => {
-  res.sendFile(path.join(frontendPages, "index.html"));
+// O frontend React compilado é servido como arquivos estáticos.
+const frontendBuild = path.join(__dirname, "../frontend/build/client");
+const publicPages = [
+  "/", "/index", "/index.html", "/cadastro", "/cadastro.html", "/nova", "/nova.html",
+  "/resultado", "/resultado.html", "/foto", "/foto.html", "/exemplos", "/exemplos.html",
+  "/historico", "/historico.html", "/evolucao", "/evolucao.html", "/perfil", "/perfil.html",
+  "/recuperar", "/recuperar.html", "/privacidade", "/privacidade.html"
+];
+app.use(express.static(frontendBuild));
+app.get(publicPages, (_req, res) => {
+  res.sendFile(path.join(frontendBuild, "index.html"));
 });
 
 // 🚀 ROTA DE CORREÇÃO COM GROQ

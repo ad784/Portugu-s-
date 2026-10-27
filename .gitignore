@@ -7,6 +7,9 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 dist/
+frontend/dist/
+frontend/build/
+frontend/.react-router/
 build/
 .DS_Store
 Thumbs.db

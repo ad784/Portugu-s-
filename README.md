@@ -4,7 +4,7 @@ Aplicação de apoio à prática de redação no modelo ENEM. Depois de entrar, 
 
 ## Executar localmente
 
-Você precisa do Node.js 22 ou superior e do npm. Na pasta principal do projeto, instale as dependências:
+Você precisa do Node.js 22.22 ou superior e do npm. Na pasta principal do projeto, instale as dependências:
 
 ```bash
 npm install
@@ -16,7 +16,9 @@ Informe sua chave da Groq em `GROQ_API_KEY` em `.env` na raiz ou em `backend/.en
 npm start
 ```
 
-Abra [http://localhost:3000](http://localhost:3000). Cadastre uma conta e entre para acessar o editor. O Supabase Auth precisa estar com o provedor de e-mail habilitado.
+O comando compila a interface React e inicia o backend. Abra [http://localhost:3000](http://localhost:3000), cadastre uma conta e entre para acessar o editor. O Supabase Auth precisa estar com o provedor de e-mail habilitado.
+
+Para desenvolver a interface com atualização automática, mantenha o backend ativo com `npm start` e, em outro terminal, execute `npm run dev`. O Vite abre a interface em [http://localhost:5173](http://localhost:5173) e encaminha as chamadas `/api` para o Express local.
 
 As correções por texto e por foto dependem de uma chave válida da Groq. Sem ela, o servidor continua iniciando, mas esses recursos retornam uma mensagem de configuração ausente. Para testar localmente as rotas protegidas da API sem token Supabase, você pode definir `LOCAL_DEMO_AUTH=true` no `.env`; esse modo funciona somente em `localhost`, não persiste dados e não substitui a chave da Groq. O login do site continua usando o Supabase.
 
@@ -109,7 +111,7 @@ As rotas de dados exigem uma sessão válida do Supabase, exceto no modo de demo
 
 ## Deploy na Vercel
 
-O arquivo `vercel.json` compila a função da API a partir de `backend/api/index.js` e serve o frontend estático a partir de `frontend/`. Importe este repositório na Vercel e configure `GROQ_API_KEY` e, se necessário, `GROQ_MODEL` ou `GROQ_VISION_MODEL` nas variáveis de ambiente de produção e preview. A correção por foto usa `qwen/qwen3.8-27b` por padrão. Depois de mudar variáveis, faça um novo deploy. No Supabase, ajuste **Authentication → URL Configuration** para aceitar o domínio publicado e as URLs locais necessárias.
+O arquivo `vercel.json` compila a função da API a partir de `backend/api/index.js` e gera os arquivos estáticos do React com React Router e Vite em `frontend/build/client/`. Importe este repositório na Vercel e configure `GROQ_API_KEY` e, se necessário, `GROQ_MODEL` ou `GROQ_VISION_MODEL` nas variáveis de ambiente de produção e preview. A correção por foto usa `qwen/qwen3.8-27b` por padrão. Depois de mudar variáveis, faça um novo deploy. No Supabase, ajuste **Authentication → URL Configuration** para aceitar o domínio publicado e as URLs locais necessárias.
 
 ## Testes
 
@@ -119,12 +121,18 @@ npm test
 
 ## Estrutura principal
 
-O `package.json` da raiz é o manifesto único do projeto. Ele instala as dependências, inicia o servidor e executa os testes.
+O `package.json` da raiz é o manifesto único do projeto. Ele instala as dependências, executa o Vite e o React, inicia o servidor e executa os testes.
 
-- `frontend/pages/`: páginas HTML do site.
-- `frontend/scripts/`: scripts do navegador, incluindo autenticação e gráficos.
+- `frontend/src/root.jsx`: layout raiz e folha de estilos da aplicação React.
+- `frontend/src/routes.js`: definição das rotas no framework React Router.
+- `frontend/src/routes/`: componentes de rota para a página inicial e demais páginas.
+- `frontend/src/pages/`: componente React que transforma os modelos HTML em elementos React.
+- `frontend/react-router.config.mjs`: configura o React Router em modo SPA.
+- `frontend/pages/`: modelos HTML das telas atuais, mantidos para preservar o visual durante a migração gradual.
+- `frontend/scripts/`: lógica legada do navegador, carregada pelas rotas React durante a transição.
 - `frontend/styles/`: folhas de estilo.
-- `frontend/assets/`: imagens e outros recursos estáticos.
+- `frontend/public/assets/`: imagens e outros recursos estáticos copiados para o build.
+- `frontend/build/`: build gerado pelo React Router e Vite; não deve ser versionado.
 - `backend/server.js`: composição do servidor Express e montagem dos prefixos das rotas.
 - `backend/api/index.js`: handler serverless da API na Vercel.
 - `backend/routes/`: endpoints de perfil, redações, correção por texto e por foto.
