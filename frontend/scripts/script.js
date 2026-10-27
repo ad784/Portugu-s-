@@ -19,6 +19,158 @@ function saveLocalHistory({ resultado, tema = "", tipo = "texto" }) {
   history.unshift({ id: `local-${Date.now()}`, tipo, tema, nota: extractScore(resultado), resultado, created_at: new Date().toISOString(), local: true });
   localStorage.setItem(key, JSON.stringify(history.slice(0, 30)));
 }
+
+const DRAFT_KEY = "rascunho-redacao-v1";
+let draftSaveTimer;
+
+const textosDeApoio = {
+  "2025": {
+    titulo: "Envelhecimento e participação social",
+    texto: "O Censo 2022 contou 32,1 milhões de pessoas com 60 anos ou mais no Brasil, 15,8% da população. O aumento da longevidade é uma conquista, mas também exige discutir como garantir autonomia e participação na vida coletiva. Acesso à saúde, mobilidade urbana, renda e redes de cuidado influenciam as condições de envelhecer com dignidade.",
+    pergunta: "Como as cidades, os serviços públicos e as famílias podem favorecer a autonomia das pessoas idosas?",
+    fonte: "IBGE — Censo 2022: população idosa",
+    url: "https://www.ibge.gov.br/biblioteca/visualizacao/livros/liv102038.pdf"
+  },
+  "2024": {
+    titulo: "Herança africana e reconhecimento cultural",
+    texto: "A formação do Brasil recebeu contribuições africanas e afro-brasileiras na cultura, na política, na economia e na vida cotidiana. A Lei 10.639/2003 tornou obrigatório o ensino de história e cultura afro-brasileira nas escolas; a Lei 11.645/2008 também incluiu a história e a cultura indígena. A existência dessas normas evidencia o papel da educação no enfrentamento do apagamento histórico e do racismo.",
+    pergunta: "Que ações de educação, memória e valorização cultural podem ampliar esse reconhecimento?",
+    fonte: "Ministério da Educação — Relações étnico-raciais",
+    url: "https://portal.mec.gov.br/secretaria-de-educacao-continuada-alfabetizacao-diversidade-e-inclusao/323-secretarias-112877938/orgaos-vinculados-82187207/12989-relacoes-etnico-raciais"
+  },
+  "2023": {
+    titulo: "Cuidado, gênero e desigualdade",
+    texto: "O trabalho de cuidado sustenta a vida diária, mas muitas tarefas domésticas e de assistência a familiares não são remuneradas nem divididas igualmente. Segundo o IBGE, em 2022 as mulheres dedicaram, em média, 21,3 horas por semana a afazeres domésticos e cuidados; os homens, 11,7 horas. Essa diferença pode limitar o tempo disponível para estudo, descanso e trabalho remunerado.",
+    pergunta: "Como dividir as responsabilidades de cuidado e ampliar o apoio oferecido pelo poder público?",
+    fonte: "IBGE — Mulheres na educação e no trabalho",
+    url: "https://educa.ibge.gov.br/criancas/brasil/2868-atualidades/20459-mulheres-brasileiras-na-educacao-e-no-trabalho.html"
+  },
+  "2022": {
+    titulo: "Território, identidade e comunidades tradicionais",
+    texto: "Povos e comunidades tradicionais mantêm formas próprias de organização e relações com os territórios e os recursos naturais. Esses espaços podem ser essenciais à continuidade de práticas culturais, religiosas, sociais e econômicas transmitidas entre gerações. Políticas públicas que reconheçam seus direitos e conhecimentos ajudam a proteger modos de vida diversos e a ampliar sua participação nas decisões que os afetam.",
+    pergunta: "Como conciliar a proteção dos territórios, os direitos dessas comunidades e as decisões sobre o uso dos recursos naturais?",
+    fonte: "Ministério do Desenvolvimento Agrário — Povos e comunidades tradicionais",
+    url: "https://www.gov.br/mda/pt-br/assuntos/povos-e-comunidades-tradicionais/politicas-publicas-para-povos-e-comunidades-tradicionais"
+  },
+  "2021": {
+    titulo: "Registro civil e acesso à cidadania",
+    texto: "O registro de nascimento formaliza a existência da pessoa perante o Estado e é um passo importante para obter outros documentos e acessar serviços e direitos. Quando alguém não consegue registrar seu nascimento, pode enfrentar obstáculos em etapas da vida que dependem de identificação civil. Por isso, a documentação básica também envolve informação, atendimento acessível e busca ativa de pessoas ainda não registradas.",
+    pergunta: "Que barreiras dificultam o registro e como os serviços públicos podem alcançar quem ainda não tem documentação?",
+    fonte: "IBGE — Informações sobre sub-registro de nascimentos",
+    url: "https://www.ibge.gov.br/estatisticas/metodos-e-classificacoes/outros-documentos/21715-roteiro-para-acessar-as-informacoes-sobre"
+  },
+  "2020": {
+    titulo: "Saúde mental, cuidado e estigma",
+    texto: "A saúde mental não depende apenas de escolhas individuais: condições sociais, econômicas e culturais também afetam o bem-estar. No SUS, a Rede de Atenção Psicossocial reúne serviços de cuidado em diferentes níveis. O estigma e a discriminação podem afastar pessoas da busca por ajuda e dificultar sua inclusão; informação responsável e acolhimento são parte da resposta coletiva.",
+    pergunta: "Como escolas, serviços de saúde e meios de comunicação podem reduzir o estigma e facilitar o acesso ao cuidado?",
+    fonte: "Ministério da Saúde — SUS e saúde mental",
+    url: "https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/s/saude-mental/sus-e-a-saude-mental"
+  },
+  "2019": {
+    titulo: "Cinema, cultura e acesso",
+    texto: "O acesso ao cinema depende da existência de salas, da distância, do custo e da diversidade de filmes disponíveis. Em 2024, 40,7% da população brasileira vivia em municípios sem salas de cinema, segundo a ANCINE. O dado mostra que a oferta cultural é desigual no território e convida a pensar em políticas de circulação de obras, espaços culturais locais e acesso a diferentes públicos.",
+    pergunta: "Como ampliar o acesso à produção audiovisual para quem vive longe dos grandes circuitos de cinema?",
+    fonte: "ANCINE — Informe do mercado cinematográfico 2024",
+    url: "https://www.gov.br/ancine/pt-br/oca/publicacoes/arquivos.pdf/informe-mercado-cinematografico-2024.pdf"
+  },
+  "2018": {
+    titulo: "Dados pessoais e autonomia na internet",
+    texto: "Serviços digitais coletam dados que podem ser usados para personalizar conteúdos e ofertas. A Lei Geral de Proteção de Dados estabelece regras para o tratamento de dados pessoais e prevê direitos para seus titulares. Compreender como as informações são coletadas e usadas ajuda a discutir transparência, privacidade e a capacidade das pessoas de fazer escolhas informadas no ambiente digital.",
+    pergunta: "Que medidas podem tornar o uso de dados mais transparente e proteger a autonomia dos usuários?",
+    fonte: "ANPD — Direitos dos titulares de dados",
+    url: "https://www.gov.br/anpd/pt-br/assuntos/titular-de-dados-1/direito-dos-titulares"
+  },
+  "2017": {
+    titulo: "Educação de surdos e acessibilidade linguística",
+    texto: "A Lei 14.191/2021 reconhece a educação bilíngue de surdos, com Libras como primeira língua e português escrito como segunda, e prevê materiais e profissionais com formação adequada. A garantia legal precisa se traduzir em condições concretas de aprendizagem, comunicação e participação. Acessibilidade linguística beneficia o percurso escolar e o exercício de outros direitos.",
+    pergunta: "O que escolas e redes de ensino precisam oferecer para garantir aprendizagem e participação dos estudantes surdos?",
+    fonte: "Inep — Educação bilíngue de surdos",
+    url: "https://www.gov.br/inep/pt-br/acesso-a-informacao/perguntas-frequentes/censo-escolar/educacao-especial/o-que-e-educacao-bilingue"
+  },
+  "2016": {
+    titulo: "Liberdade religiosa e convivência democrática",
+    texto: "A Constituição Federal protege a liberdade de consciência e de crença e assegura o livre exercício dos cultos religiosos. A intolerância religiosa atinge esse direito e pode se manifestar em discriminação, ataques a pessoas ou desrespeito a espaços de culto. Promover conhecimento sobre diferentes tradições e garantir canais de denúncia são caminhos para fortalecer o respeito e a convivência democrática.",
+    pergunta: "Como a educação e a proteção de direitos podem prevenir a discriminação por crença?",
+    fonte: "Constituição Federal — artigo 5º, inciso VI",
+    url: "https://www.planalto.gov.br/ccivil_03/constituicao/constituicaocompilado.htm"
+  }
+};
+
+function atualizarTextoApoio(opcao) {
+  const titulo = document.getElementById("theme-support-title");
+  const texto = document.getElementById("theme-support-text");
+  const pergunta = document.getElementById("theme-support-question");
+  const fonte = document.getElementById("theme-support-source");
+  if (!titulo || !texto || !pergunta || !fonte) return;
+
+  const ano = opcao?.querySelector(".theme-year")?.textContent.trim();
+  const apoio = textosDeApoio[ano];
+  if (!apoio) {
+    titulo.textContent = "Escreva sobre um tema de sua escolha";
+    texto.textContent = "Pesquise em fontes confiáveis, confira a data e a autoria das informações e relacione os dados ao recorte da sua proposta.";
+    pergunta.textContent = "Quem é afetado pelo tema, quais fatores o mantêm e que direitos estão envolvidos?";
+    fonte.hidden = true;
+    return;
+  }
+
+  titulo.textContent = `${apoio.titulo} · ENEM ${ano}`;
+  texto.textContent = apoio.texto;
+  pergunta.textContent = apoio.pergunta;
+  fonte.href = apoio.url;
+  fonte.textContent = `Fonte de referência: ${apoio.fonte} ↗`;
+  fonte.hidden = false;
+}
+
+function salvarRascunho() {
+  const redacao = document.getElementById("redacao");
+  if (!redacao) return;
+  const draft = { texto: redacao.value, tema: document.getElementById("tema-enem")?.value || "" };
+  try {
+    if (draft.texto || draft.tema) localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    else localStorage.removeItem(DRAFT_KEY);
+  } catch (erro) { console.warn("Não foi possível salvar o rascunho neste navegador.", erro); }
+}
+
+function agendarSalvamentoRascunho() {
+  clearTimeout(draftSaveTimer);
+  draftSaveTimer = setTimeout(salvarRascunho, 150);
+}
+
+function restaurarRascunho() {
+  const redacao = document.getElementById("redacao");
+  if (!redacao) return;
+  try {
+    const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null");
+    if (!draft) return;
+    redacao.value = typeof draft.texto === "string" ? draft.texto : "";
+    const tema = document.getElementById("tema-enem");
+    if (tema && typeof draft.tema === "string") {
+      tema.value = draft.tema;
+      const option = [...document.querySelectorAll(".theme-option")].find((item) => item.dataset.theme === draft.tema);
+      if (option) {
+        option.setAttribute("aria-pressed", "true");
+        document.getElementById("tema-escolhido").textContent = option.classList.contains("theme-open")
+          ? "Tema em aberto"
+          : option.querySelector(".theme-name").textContent.trim();
+      }
+      atualizarTextoApoio(option);
+    }
+    atualizarContador();
+  } catch (erro) { console.warn("Não foi possível recuperar o rascunho salvo.", erro); }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  restaurarRascunho();
+  document.getElementById("redacao")?.addEventListener("input", () => {
+    atualizarContador();
+    agendarSalvamentoRascunho();
+  });
+  document.getElementById("login-button")?.addEventListener("click", login);
+  document.getElementById("correct-essay")?.addEventListener("click", corrigir);
+  document.getElementById("open-photo-editor")?.addEventListener("click", () => { window.location.href = "/foto.html"; });
+  document.getElementById("write-new-essay")?.addEventListener("click", voltar);
+  window.addEventListener("pagehide", salvarRascunho);
+});
 async function login() {
   const email = document.getElementById("email").value.trim();
   const senha = document.getElementById("senha").value.trim();
@@ -140,6 +292,7 @@ async function corrigir() {
     if (!resposta.ok || !dados.resultado) throw new Error(dados.erro || "Nao foi possivel corrigir a redacao.");
 
     localStorage.setItem("resultado", dados.resultado);
+    localStorage.removeItem(DRAFT_KEY);
     if (dados.aviso) {
       // A correção continua disponível para a pessoa mesmo se ocorrer uma
       // falha temporária de sincronização. O detalhe técnico fica no console,
@@ -171,21 +324,26 @@ function configurarSeletorTema() {
     option.setAttribute("aria-pressed", "false");
     option.addEventListener("click", () => {
       value.value = option.dataset.theme || "";
+      agendarSalvamentoRascunho();
       selectedLabel.textContent = option.classList.contains("theme-open")
         ? "Tema em aberto"
         : option.querySelector(".theme-name").textContent.trim();
+      atualizarTextoApoio(option);
       picker.querySelectorAll(".theme-option").forEach((item) =>
         item.setAttribute("aria-pressed", String(item === option))
       );
       picker.open = false;
     });
   });
+  const selectedOption = [...picker.querySelectorAll(".theme-option")].find((option) => option.dataset.theme === value.value);
+  selectedOption?.setAttribute("aria-pressed", "true");
+  atualizarTextoApoio(selectedOption);
 }
 
 document.addEventListener("DOMContentLoaded", configurarSeletorTema);
 
 // MOSTRAR RESULTADO
-window.onload = () => {
+window.addEventListener("load", () => {
   const resultado = localStorage.getItem("resultado");
   const aviso = localStorage.getItem("resultado-aviso");
   const avisoElement = document.getElementById("resultado-aviso");
@@ -253,7 +411,7 @@ window.onload = () => {
       document.getElementById('competency-breakdown').hidden = false;
     }
   }
-};
+});
 
 // VOLTAR
 function voltar() {

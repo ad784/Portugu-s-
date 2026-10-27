@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nova redação | Português+</title>
-  <link rel="stylesheet" href="/styles/style.css?v=20261024-writing-scale-1">
+  <link rel="stylesheet" href="/styles/style.css?v=20261027-theme-support-1">
 </head>
 <body class="editor-page">
   <header class="site-header">
@@ -17,8 +17,8 @@
       <a href="/historico.html">Minhas redações</a>
       <a href="/evolucao.html">Minha evolução</a>
       <a href="/exemplos.html">Exemplos de notas</a>
-      <a href="#dicas">Dicas de escrita</a>
-      <a href="/index.html" class="nav-cta" onclick="sair(event)">Sair</a>
+      <a href="#dicas">Textos de apoio</a>
+      <a href="/index.html" class="nav-cta">Sair</a>
     </nav>
   </header>
 
@@ -68,7 +68,7 @@
         </div>
 
         <label class="sr-only" for="redacao">Texto da redação</label>
-        <textarea id="redacao" lang="pt-BR" spellcheck="true" oninput="atualizarContador()" placeholder="Comece a escrever sua redação aqui..."></textarea>
+        <textarea id="redacao" lang="pt-BR" spellcheck="true" placeholder="Comece a escrever sua redação aqui..."></textarea>
 
         <div class="writing-card-bottom">
           <span id="contador-palavras">0 palavras</span>
@@ -76,30 +76,28 @@
         </div>
 
         <div class="editor-actions">
-          <button class="photo-action" onclick="window.location.href='/foto.html'">📷 Enviar foto da redação</button>
-          <button class="primary-action correct-action" onclick="corrigir()">Corrigir minha redação <span>→</span></button>
+          <button id="open-photo-editor" class="photo-action" type="button">📷 Enviar foto da redação</button>
+          <button id="correct-essay" class="primary-action correct-action" type="button">Corrigir minha redação <span>→</span></button>
         </div>
       </section>
 
-      <aside class="tips-panel" id="dicas">
-        <div class="tips-title"><span>💡</span><div><h2>Guia rápido ENEM</h2><p>Use como checklist enquanto escreve.</p></div></div>
-        <div class="tip-item"><b>1</b><div><h3>Tese na introdução</h3><p>Apresente o tema e deixe claro qual ideia você defenderá.</p></div></div>
-        <div class="tip-item"><b>2</b><div><h3>Um argumento por parágrafo</h3><p>Explique a ideia, use repertório e mostre sua relação com o tema.</p></div></div>
-        <div class="tip-item"><b>3</b><div><h3>Conecte as ideias</h3><p>Use conectivos com propósito: “além disso”, “contudo”, “portanto”.</p></div></div>
-        <div class="tip-item"><b>4</b><div><h3>Feche com intervenção</h3><p>Inclua agente, ação, meio, finalidade e um detalhamento.</p></div></div>
-        <div class="writing-checklist">
-          <strong>Antes de corrigir</strong>
-          <ul><li>Tenho um ponto de vista claro?</li><li>Desenvolvi ao menos dois argumentos?</li><li>Minha conclusão propõe uma solução?</li></ul>
+      <aside class="tips-panel" id="dicas" aria-live="polite">
+        <div class="tips-title"><span aria-hidden="true">📚</span><div><h2>Textos de apoio</h2><p>Contexto e fonte para aprofundar o tema.</p></div></div>
+        <div id="theme-support-content" class="theme-support-content">
+          <span class="support-eyebrow">CONTEXTO PARA COMEÇAR</span>
+          <h3 id="theme-support-title">Escolha um tema para ver o texto de apoio</h3>
+          <p id="theme-support-text">Selecione uma proposta no campo acima. Você verá informações iniciais e uma fonte confiável para continuar sua pesquisa.</p>
+          <div class="support-question"><strong>Para desenvolver</strong><p id="theme-support-question">Que fatores ajudam a explicar o problema e quem é mais afetado por ele?</p></div>
+          <a id="theme-support-source" class="support-source" href="https://www.gov.br/" target="_blank" rel="noopener noreferrer" hidden>Consultar fonte de referência ↗</a>
         </div>
         <p id="editor-message" class="form-message" role="status"></p>
-        <div class="encouragement">“Melhorar a redação é revisar escolhas — uma de cada vez.”</div>
       </aside>
     </div>
   </main>
 
   <footer class="site-footer">© 2026 Português+ · Sua prática, seu progresso.</footer>
   <script type="module" src="/scripts/supabase.js"></script>
-  <script src="/scripts/script.js?v=20261023-line-count-1"></script>
-  <script src="/scripts/navigation.js?v=20261023-1"></script>
+  <script type="module" src="/scripts/script.js?v=20261027-theme-support-1"></script>
+  <script type="module" src="/scripts/navigation.js?v=20261023-1"></script>
 </body>
 </html>

@@ -9,3 +9,4 @@ async function recuperarSenha() {
   if (error) showRecoveryMessage(error.message); else showRecoveryMessage('Se o e-mail estiver cadastrado, você receberá o link de recuperação.', 'success');
   button.disabled = false; button.innerHTML = 'Enviar link de recuperação <span>→</span>';
 }
+document.getElementById('recovery-button')?.addEventListener('click', recuperarSenha);

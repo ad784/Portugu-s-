@@ -51,3 +51,4 @@ async function cadastrar() {
 }
 
 window.cadastrar = cadastrar;
+document.getElementById('signup-button')?.addEventListener?.('click', cadastrar);

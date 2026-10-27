@@ -20,7 +20,12 @@
   });
 
   nav.addEventListener('click', (event) => {
-    if (event.target.closest('a')) {
+    const link = event.target.closest('a');
+    if (link?.classList.contains('nav-cta') && typeof window.sair === 'function') {
+      event.preventDefault();
+      window.sair(event);
+    }
+    if (link) {
       header.classList.remove('menu-open');
       button.setAttribute('aria-expanded', 'false');
       button.setAttribute('aria-label', 'Abrir menu');

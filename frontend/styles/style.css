@@ -350,13 +350,22 @@ pre {
 .writing-checklist ul { display: grid; gap: 7px; margin: 10px 0 0; padding: 0; list-style: none; }
 .writing-checklist li { position: relative; padding-left: 17px; color: #66819b; font-size: 11px; line-height: 1.4; }
 .writing-checklist li::before { content: "✓"; position: absolute; left: 0; color: #3a8d78; font-weight: 800; }
+.theme-support-content, .theme-support-sources { grid-column: 1 / -1; }
+.theme-support-content { padding: 15px; border: 1px solid #d5e8f7; border-radius: 10px; background: rgba(255,255,255,.76); }
+.support-eyebrow { color: #5780a6; font-size: 10px; font-weight: 800; letter-spacing: .08em; }
+.theme-support-content h3 { margin: 8px 0; color: #305f8c; font-size: 15px; line-height: 1.4; }
+.theme-support-content > p, .support-question p { margin: 0; color: #526c83; font-size: 12px; line-height: 1.6; }
+.support-question { margin-top: 13px; padding-top: 12px; border-top: 1px solid #d5e8f7; }
+.support-question strong { display: block; margin-bottom: 5px; color: #305f8c; font-size: 11px; }
+.support-source { display: inline-block; margin-top: 13px; color: #2870ad; font-size: 11px; font-weight: 700; line-height: 1.5; text-decoration: underline; text-underline-offset: 2px; }
+.support-source:hover { color: #174d7b; }
 
 @media (max-width: 850px) {
   .editor-main { width: min(calc(100% - 32px), 660px); }
   .editor-heading { align-items: flex-start; flex-direction: column; }
   .editor-layout { grid-template-columns: 1fr; }
   .tips-panel { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 18px; }
-  .tips-title, .writing-checklist, .encouragement { grid-column: 1 / -1; }
+  .tips-title, .writing-checklist, .encouragement, .theme-support-content, .theme-support-sources { grid-column: 1 / -1; }
 }
 
 @media (max-width: 560px) {
@@ -462,7 +471,7 @@ pre {
 .camera-status { color: #5b7590; font-size: 12px; font-weight: 700; white-space: nowrap; }
 .camera-status i { display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: #94a3b8; }
 .camera-status.is-active i { background: #48bb78; box-shadow: 0 0 0 4px rgba(72, 187, 120, 0.15); }
-.camera-viewfinder { position: relative; display: grid; min-height: 370px; aspect-ratio: 3 / 4; place-items: center; overflow: hidden; border: 1px solid #d4e3f0; border-radius: 11px; background: #edf4fa; }
+.camera-viewfinder { position: relative; display: grid; height: clamp(250px, 38vh, 420px); min-height: 0; aspect-ratio: auto; place-items: center; overflow: hidden; border: 1px solid #d4e3f0; border-radius: 11px; background: #edf4fa; }
 .camera-viewfinder video, .camera-viewfinder canvas { display: block; width: 100%; height: 100%; max-height: none; object-fit: contain; }
 /* O preview acompanha a perspectiva de quem segura o aparelho. O canvas nao
    recebe essa inversao, portanto a foto enviada para a IA permanece legivel. */
@@ -493,7 +502,7 @@ pre {
   .photo-main { margin-top: 22px; }
   .camera-card { padding: 20px; }
   .camera-card-top { align-items: flex-start; flex-direction: column; }
-  .camera-viewfinder { min-height: 280px; }
+  .camera-viewfinder { height: clamp(220px, 34vh, 320px); }
   .camera-actions, .send-photo-row { align-items: stretch; flex-direction: column; }
   .camera-actions button, .send-photo-action { width: 100%; height: 45px; }
   .photo-tips { display: block; }
@@ -600,6 +609,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 }
 .photo-action:hover, .back-editor:hover { background: var(--brand-soft); }
 .tips-panel { padding: 24px; border-color: #d6e7df; border-radius: 17px; background: #edf5f0; }
+.theme-support-content { border-color: #d6e5dd; }
+.support-eyebrow, .support-source { color: #376f5c; }
+.theme-support-content h3, .support-question strong { color: #234c40; }
+.theme-support-content > p, .support-question p { color: #526b61; }
+.support-question { border-color: #d6e5dd; }
 .tips-title h2 { color: #234c40; }
 .tips-title span { background: #fff; }
 .tip-item { border-color: #d6e5dd; }
@@ -615,7 +629,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .report-heading h2 { color: var(--ink); }
 .report-heading > span { background: var(--brand-soft); color: var(--brand-dark); }
 .result-page pre { border-color: #e0e9e4; background: #f8fbf9; color: #354f49; font-family: Inter, "Segoe UI", Arial, sans-serif; }
-.camera-viewfinder { min-height: 390px; border-color: #d5e2dc; border-radius: 13px; background: #243b36; }
+.camera-viewfinder { border-color: #d5e2dc; border-radius: 13px; background: #243b36; }
 .viewfinder-guide { border-color: rgba(255,255,255,.88); }
 .send-photo-row { border-color: #d1e5db; border-radius: 12px; background: #f0f7f3; }
 .send-photo-row strong { color: #234c40; }
@@ -639,7 +653,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .auth-card { padding: 26px 22px; }
   .editor-main, .photo-main, .result-main { margin-top: 25px; }
   .editor-page textarea { min-height: 330px; }
-  .camera-viewfinder { min-height: 290px; }
+  .camera-viewfinder { height: clamp(220px, 34vh, 320px); }
   .score-card { gap: 13px; }
 }
 
@@ -789,7 +803,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .editor-heading h1, .result-title h1, .history-heading h1, .progress-main .history-heading h1,
   .profile-card h1, .policy-main h1 { font-size: clamp(42px, 3vw, 88px); }
   .editor-heading p, .result-title p, .history-heading p, .progress-main .history-heading p,
-  .writing-card-top p, .tip-item p { font-size: clamp(17px, 1.05vw, 32px); }
+  .writing-card-top p, .tip-item p, .theme-support-content > p, .support-question p { font-size: clamp(17px, 1.05vw, 32px); }
 
   /* Aumenta campos e botoes de acao em todas as telas principais. */
   main button, main .primary-action, main .photo-action, main .back-editor,
@@ -826,6 +840,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .tip-item b { flex-basis: clamp(28px, 1.8vw, 50px); width: clamp(28px, 1.8vw, 50px); height: clamp(28px, 1.8vw, 50px); font-size: clamp(16px, .9vw, 26px); }
   .tip-item h3 { font-size: clamp(18px, 1.1vw, 32px); }
   .tip-item p, .writing-checklist li { font-size: clamp(16px, .95vw, 28px); }
+  .support-eyebrow { font-size: clamp(13px, .8vw, 23px); }
+  .theme-support-content h3 { font-size: clamp(20px, 1.2vw, 35px); }
+  .support-question strong, .support-source { font-size: clamp(15px, .9vw, 26px); }
   .writing-checklist { margin-top: clamp(14px, 1vw, 30px); padding: clamp(17px, 1.3vw, 38px); }
   .writing-checklist strong, .camera-status { font-size: clamp(16px, .95vw, 28px); }
   .writing-checklist ul { gap: clamp(8px, .6vw, 18px); }
@@ -844,7 +861,40 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .progress-card-heading h2, .competency-card h3 { font-size: clamp(22px, 1.35vw, 40px); }
   .competency-row-label, .competency-name, .competency-comment,
   .chart-description, .chart-note, .chart-legend { font-size: clamp(16px, .95vw, 28px); }
-  .camera-viewfinder { min-height: 48vh; }
+  .camera-viewfinder { height: clamp(250px, 38vh, 420px); }
+}
+
+/* Mantem a previa compacta e a redacao confortavel para leitura em qualquer tela. */
+.camera-viewfinder {
+  height: clamp(250px, 38vh, 420px);
+  min-height: 0;
+  aspect-ratio: auto !important;
+}
+
+.editor-page #redacao {
+  font-size: clamp(26px, 2vw, 32px) !important;
+  line-height: 1.75;
+}
+
+.editor-page #redacao::placeholder {
+  color: #647789;
+  opacity: 1;
+}
+
+.editor-page .writing-card-bottom,
+.editor-page .autosave-label,
+.editor-page .theme-field > label {
+  font-size: clamp(15px, 1vw, 18px) !important;
+}
+
+@media (max-width: 560px) {
+  .camera-viewfinder {
+    height: clamp(220px, 34vh, 320px);
+  }
+
+  .editor-page #redacao {
+    font-size: 20px !important;
+  }
 }
 
 /* Escala compartilhada para todas as paginas do site em telas grandes. */

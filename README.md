@@ -82,23 +82,25 @@ Correções feitas após uma atualização usam a nova calibração. Notas que j
 
 Para habilitar banco, histórico e armazenamento de fotos, execute os arquivos abaixo no SQL Editor do projeto Supabase, nesta ordem:
 
-1. `supabase/migrations/20260805162000_create_profiles_and_redacoes.sql`
-2. `supabase/migrations/20260805170000_add_photo_storage.sql`
-3. `supabase/migrations/20260830190000_add_theme_and_storage_policies.sql`
-4. `supabase/migrations/20261013120000_allow_users_to_insert_own_profile.sql`
-5. `supabase/migrations/20261017120000_allow_users_to_upload_own_essay_photos.sql`
+1. `backend/supabase/migrations/20260805162000_create_profiles_and_redacoes.sql`
+2. `backend/supabase/migrations/20260805170000_add_photo_storage.sql`
+3. `backend/supabase/migrations/20260830190000_add_theme_and_storage_policies.sql`
+4. `backend/supabase/migrations/20261013120000_allow_users_to_insert_own_profile.sql`
+5. `backend/supabase/migrations/20261017120000_allow_users_to_upload_own_essay_photos.sql`
 
 O bucket de fotos é privado. Nunca exponha `GROQ_API_KEY` no frontend, no GitHub ou em mensagens.
 
 ## Rotas da aplicação
 
-As páginas públicas ficam disponíveis em `/`, `/index.html`, `/cadastro.html`, `/nova.html`, `/resultado.html`, `/foto.html`, `/exemplos.html`, `/historico.html`, `/evolucao.html`, `/perfil.html`, `/recuperar.html` e `/privacidade.html`. O servidor Express resolve essas páginas localmente; `vercel.json` aplica os rewrites equivalentes no deploy.
+As páginas públicas ficam disponíveis em `/`, `/index.html`, `/cadastro.html`, `/nova.html`, `/resultado.html`, `/foto.html`, `/exemplos.html`, `/historico.html`, `/evolucao.html`, `/perfil.html`, `/recuperar.html` e `/privacidade.html`. O servidor Express resolve essas páginas localmente; `vercel.json` direciona as páginas e os arquivos estáticos no deploy.
 
 | Método e rota | Uso |
 | --- | --- |
+| `GET /api/me` | Retorna a identidade e o papel da sessão autenticada. |
 | `POST /api/corrigir` | Envia uma redação em texto para correção. |
 | `POST /api/corrigir-foto` | Envia uma imagem para transcrição e correção. |
 | `GET /api/redacoes` | Lista o histórico da conta autenticada. |
+| `GET /api/admin/redacoes` | Lista redações para contas com papel de administrador. |
 | `GET /api/perfil` e `PUT /api/perfil` | Consulta e atualiza o perfil. |
 
 O seletor de temas funciona no navegador e envia o tema selecionado junto com a redação em `POST /api/corrigir`; **Tema em aberto** envia o campo de tema vazio. A troca de senha usa a sessão autenticada do Supabase Auth.
@@ -107,7 +109,7 @@ As rotas de dados exigem uma sessão válida do Supabase, exceto no modo de demo
 
 ## Deploy na Vercel
 
-O arquivo `vercel.json` configura as páginas e as rotas `/api/*`. Importe este repositório na Vercel e configure `GROQ_API_KEY` e, se necessário, `GROQ_MODEL` ou `GROQ_VISION_MODEL` nas variáveis de ambiente de produção e preview. A correção por foto usa `qwen/qwen3.8-27b` por padrão. Depois de mudar variáveis, faça um novo deploy. No Supabase, ajuste **Authentication → URL Configuration** para aceitar o domínio publicado e as URLs locais necessárias.
+O arquivo `vercel.json` compila a função da API a partir de `backend/api/index.js` e serve o frontend estático a partir de `frontend/`. Importe este repositório na Vercel e configure `GROQ_API_KEY` e, se necessário, `GROQ_MODEL` ou `GROQ_VISION_MODEL` nas variáveis de ambiente de produção e preview. A correção por foto usa `qwen/qwen3.8-27b` por padrão. Depois de mudar variáveis, faça um novo deploy. No Supabase, ajuste **Authentication → URL Configuration** para aceitar o domínio publicado e as URLs locais necessárias.
 
 ## Testes
 
@@ -123,12 +125,12 @@ O `package.json` da raiz é o manifesto único do projeto. Ele instala as depend
 - `frontend/scripts/`: scripts do navegador, incluindo autenticação e gráficos.
 - `frontend/styles/`: folhas de estilo.
 - `frontend/assets/`: imagens e outros recursos estáticos.
-- `backend/server.js`: composição do servidor Express e configuração das rotas.
-- `backend/routes/`: endpoints separados de perfil, redações, correção por texto e por foto.
+- `backend/server.js`: composição do servidor Express e montagem dos prefixos das rotas.
+- `backend/api/index.js`: handler serverless da API na Vercel.
+- `backend/routes/`: endpoints de perfil, redações, correção por texto e por foto.
 - `backend/middleware/`: autenticação e autorização das rotas.
 - `backend/services/`: integração com IA, validação de imagem e persistência no Supabase.
-- `api/index.js`: entrada da função da Vercel.
-- `supabase/migrations/`: estrutura do banco, políticas e armazenamento.
+- `backend/supabase/migrations/`: estrutura do banco, políticas e armazenamento.
 - `docs/BANCA.md`: material técnico para apresentação do projeto.
 - `tests/`: testes automatizados do backend e dos fluxos de correção.
 - `.env.example`: modelo de configuração local, sem chaves privadas.

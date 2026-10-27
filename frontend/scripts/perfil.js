@@ -127,6 +127,6 @@ async function sair(event) {
 }
 
 window.sair = sair;
-window.salvarPerfil = salvarPerfil;
-window.alterarSenha = alterarSenha;
+document.getElementById('profile-save')?.addEventListener('click', salvarPerfil);
+document.getElementById('password-save')?.addEventListener('click', alterarSenha);
 window.addEventListener('DOMContentLoaded', loadProfile);

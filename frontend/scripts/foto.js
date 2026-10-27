@@ -3,16 +3,9 @@ const canvas = document.getElementById('snapshot');
 const ctx = canvas.getContext('2d');
 let cameraStream = null;
 
-function setPreviewAspectRatio(width, height) {
-  const viewfinder = video.closest('.camera-viewfinder');
-  if (!viewfinder || !width || !height) return;
-  viewfinder.style.aspectRatio = `${width} / ${height}`;
-}
-
 // Mantem a orientacao natural da camera. A pre-visualizacao tambem nao e
 // espelhada, entao a captura corresponde ao que o estudante esta vendo.
 function drawPortraitImage(source, sourceWidth, sourceHeight) {
-  setPreviewAspectRatio(sourceWidth, sourceHeight);
   const limit = 1600;
   const scale = Math.min(1, limit / Math.max(sourceWidth, sourceHeight));
 
@@ -35,6 +28,10 @@ async function sair(event) {
 }
 
 window.sair = sair;
+document.getElementById('reset-photo')?.addEventListener('click', resetPhoto);
+document.getElementById('take-photo')?.addEventListener('click', takePhoto);
+document.getElementById('salvar-foto')?.addEventListener('click', salvarFoto);
+document.getElementById('back-to-editor')?.addEventListener('click', () => { window.location.href = '/nova.html'; });
 
 function setCameraIndicator(text, active = false) {
   const indicator = document.getElementById('camera-status');
@@ -87,8 +84,8 @@ async function initCamera() {
   }
 
   video.srcObject = cameraStream;
+  video.style.transform = 'none';
   await video.play();
-  setPreviewAspectRatio(video.videoWidth, video.videoHeight);
   setPhotoStatus('Câmera pronta. Posicione a redação e tire a foto.');
   setCameraIndicator('Câmera ativa', true);
 }
@@ -109,7 +106,6 @@ function takePhoto() {
 function resetPhoto() {
   canvas.style.display = 'none';
   video.style.display = 'block';
-  setPreviewAspectRatio(video.videoWidth, video.videoHeight);
   if (!cameraStream) initCamera();
   else setPhotoStatus('Câmera pronta. Tire outra foto quando desejar.');
 }

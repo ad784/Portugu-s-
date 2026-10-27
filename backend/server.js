@@ -41,10 +41,20 @@ const { createEssayRouter } = require("./routes/essays");
 const { createProfileRouter } = require("./routes/profile");
 const { createTextCorrectionRouter } = require("./routes/text-correction");
 
-app.use(createEssayRouter({ requireSupabaseUser, requireAdmin }));
-app.use(createProfileRouter({ requireSupabaseUser }));
-app.use(createTextCorrectionRouter({ requireSupabaseUser, saveCorrection, apiKey: groqApiKey, model: process.env.GROQ_MODEL }));
-app.use(createPhotoRouter({ requireSupabaseUser, saveCorrection, apiKey: groqApiKey, model: process.env.GROQ_VISION_MODEL }));
+app.use("/api", createEssayRouter({ requireSupabaseUser, requireAdmin }));
+app.use("/api/perfil", createProfileRouter({ requireSupabaseUser }));
+app.use(createTextCorrectionRouter({
+  requireSupabaseUser,
+  saveCorrection,
+  apiKey: groqApiKey,
+  model: process.env.GROQ_MODEL
+}));
+app.use(createPhotoRouter({
+  requireSupabaseUser,
+  saveCorrection,
+  apiKey: groqApiKey,
+  model: process.env.GROQ_VISION_MODEL
+}));
 
 // Servir arquivos estaticos e resolver as paginas organizadas por pastas.
 const frontendRoot = path.join(__dirname, "../frontend");
