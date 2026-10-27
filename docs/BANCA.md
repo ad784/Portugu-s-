@@ -91,5 +91,5 @@ flowchart TD
 ## Limitações e trabalhos futuros
 
 - A IA fornece uma estimativa pedagógica; a nota oficial depende da avaliação humana do ENEM.
-- É recomendável incluir gráficos de evolução, exclusão de redações pelo estudante e painel administrativo em uma próxima versão.
+- O projeto já apresenta a evolução das notas e das competências. Como melhorias futuras, podem ser incluídas a exclusão de redações pelo estudante e ferramentas administrativas para a equipe responsável.
 - A disponibilidade da correção depende da API externa de IA.
