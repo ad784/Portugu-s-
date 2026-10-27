@@ -8,6 +8,7 @@
     "build": "cd frontend && react-router build",
     "prestart": "npm run build",
     "start": "node backend/server.js",
+    "format": "prettier --write \"frontend/src/**/*.{js,jsx}\" \"frontend/*.mjs\"",
     "test": "node --test tests/*.test.js"
   },
   "keywords": [],
@@ -25,13 +26,13 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "html-react-parser": "^6.1.9",
     "isbot": "^5",
     "jose": "^6.2.8",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
   "devDependencies": {
+    "prettier": "^3.9.10",
     "vite": "^8.3.5"
   }
 }

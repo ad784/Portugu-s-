@@ -76,7 +76,7 @@ Na correção por foto, o backend também recalcula a nota a partir das cinco co
 
 ## Histórico e evolução
 
-A página `frontend/pages/historico.html` lista as redações corrigidas. Em `frontend/pages/evolucao.html`, o estudante acompanha um gráfico com as notas salvas em ordem cronológica, a média geral, a variação desde a primeira redação e a comparação das médias por competência entre os primeiros e os registros mais recentes. As notas por competência aparecem quando o relatório salvo contém essa informação. Os dados vêm do histórico autenticado e incluem registros locais ainda não sincronizados.
+O componente `frontend/src/pages/content/HistoryPage.jsx` lista as redações corrigidas. Em `ProgressPage.jsx`, o estudante acompanha um gráfico com as notas salvas em ordem cronológica, a média geral, a variação desde a primeira redação e a comparação das médias por competência entre os primeiros e os registros mais recentes. As notas por competência aparecem quando o relatório salvo contém essa informação. Os dados vêm do histórico autenticado e incluem registros locais ainda não sincronizados.
 
 Correções feitas após uma atualização usam a nova calibração. Notas que já foram salvas não são recalculadas automaticamente.
 
@@ -126,9 +126,9 @@ O `package.json` da raiz é o manifesto único do projeto. Ele instala as depend
 - `frontend/src/root.jsx`: layout raiz e folha de estilos da aplicação React.
 - `frontend/src/routes.js`: definição das rotas no framework React Router.
 - `frontend/src/routes/`: componentes de rota para a página inicial e demais páginas.
-- `frontend/src/pages/`: componente React que transforma os modelos HTML em elementos React.
+- `frontend/src/pages/content/`: componentes JSX das onze telas do site.
+- `frontend/src/pages/PageFrame.jsx`: aplica título, idioma, classe visual e inicializa os recursos de cada tela.
 - `frontend/react-router.config.mjs`: configura o React Router em modo SPA.
-- `frontend/pages/`: modelos HTML das telas atuais, mantidos para preservar o visual durante a migração gradual.
 - `frontend/scripts/`: lógica legada do navegador, carregada pelas rotas React durante a transição.
 - `frontend/styles/`: folhas de estilo.
 - `frontend/public/assets/`: imagens e outros recursos estáticos copiados para o build.

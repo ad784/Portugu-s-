@@ -1,5 +1,5 @@
-import LegacyPage from "../pages/LegacyPage.jsx";
+import HomePage from "../pages/content/HomePage.jsx";
 
 export default function HomeRoute() {
-  return <LegacyPage name="index" />;
+  return <HomePage />;
 }

@@ -6,7 +6,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-  useRouteError
+  useRouteError,
 } from "react-router";
 
 export const links = () => [{ rel: "stylesheet", href: stylesheetUrl }];
