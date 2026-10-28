@@ -28,6 +28,21 @@ function createServerClient(accessToken) {
   });
 }
 
+async function getUserWithRetry(accessToken) {
+  const client = createServerClient();
+  let result;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      result = await client.auth.getUser(accessToken);
+    } catch (error) {
+      result = { data: { user: null }, error };
+    }
+    if (!result.error || [400, 401, 403].includes(Number(result.error.status))) return result;
+    if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+  }
+  return result;
+}
+
 const localDemoAuthEnabled = process.env.LOCAL_DEMO_AUTH === "true" && process.env.VERCEL !== "1";
 
 function sendAuthFailure(req, res, next, status, message, options = {}) {
@@ -87,7 +102,7 @@ async function requireSupabaseUser(req, res, next, options = {}) {
       }
     }
 
-    const { data, error } = await createServerClient().auth.getUser(token);
+    const { data, error } = await getUserWithRetry(token);
     if (error || !data.user) {
       const invalid = [400, 401, 403].includes(Number(error?.status));
       const status = invalid ? 401 : 503;

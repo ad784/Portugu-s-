@@ -78,11 +78,12 @@ test('creates and opens an account directly when Supabase auto-confirms it', asy
   assert.equal(button.disabled, false);
 });
 
-test('recusa redação com menos de 10 linhas', async () => {
+test('recusa redação com menos de 8 linhas', async () => {
   const response = await fetch(`${baseUrl}/api/corrigir`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ texto: 'Texto curto.', linhasVisuais: 1 }) });
   const data = await response.json();
-  assert.equal(response.status, 200);
-  assert.match(data.resultado, /^Nota: 0/m);
+  assert.equal(response.status, 400);
+  assert.match(data.erro, /pelo menos 8 linhas/);
+  assert.equal(data.resultado, undefined);
 });
 
 test('histórico local responde sem erro', async () => {

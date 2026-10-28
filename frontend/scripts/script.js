@@ -214,6 +214,8 @@ async function sair(event) {
 window.sair = sair;
 
 // ENVIAR REDAÇÃO
+let enviandoCorrecao = false;
+
 async function requisicaoApi(url, options) {
   let ultimoErro;
   for (let tentativa = 0; tentativa < 2; tentativa += 1) {
@@ -243,6 +245,14 @@ async function corrigir() {
     return;
   }
 
+  if (enviandoCorrecao) return;
+  enviandoCorrecao = true;
+  if (button) {
+    button.disabled = true;
+    button.dataset.label = button.innerHTML;
+    button.textContent = "Corrigindo redação...";
+  }
+
   try {
     const session = await getSession();
     if (!session) return;
@@ -256,12 +266,6 @@ async function corrigir() {
       body: JSON.stringify({ texto, linhasVisuais, tema })
     };
 
-    if (button) {
-      button.disabled = true;
-      button.dataset.label = button.innerHTML;
-      button.textContent = "Corrigindo redação...";
-    }
-
     let resposta = await requisicaoApi("/api/corrigir", options);
 
     // Um access token pode expirar entre a abertura da página e o clique no
@@ -272,6 +276,18 @@ async function corrigir() {
       if (sessaoRenovada) {
         options.headers.Authorization = `Bearer ${sessaoRenovada.access_token}`;
         resposta = await requisicaoApi("/api/corrigir", options);
+      }
+    }
+
+    if (resposta.status === 503) {
+      const mensagemTemporaria = await resposta.clone().text().catch(() => "");
+      if (/validar sua sess[aã]o|autenticacao supabase/i.test(mensagemTemporaria)) {
+        await new Promise((resolve) => setTimeout(resolve, 350));
+        const sessaoRenovada = await getSession(true);
+        if (sessaoRenovada) {
+          options.headers.Authorization = `Bearer ${sessaoRenovada.access_token}`;
+          resposta = await requisicaoApi("/api/corrigir", options);
+        }
       }
     }
 
@@ -308,6 +324,7 @@ async function corrigir() {
     showMessage("editor-message", erro.message || "Erro ao conectar com o servidor");
     console.error(erro);
   } finally {
+    enviandoCorrecao = false;
     if (button) {
       button.disabled = false;
       button.innerHTML = button.dataset.label || "Corrigir minha redação <span>→</span>";
@@ -478,19 +495,41 @@ async function getSession(forceRefresh = false) {
     return null;
   }
 
-  const { data, error } = await window.supabaseClient.auth.getSession();
-  let session = data.session;
+  let resultadoSessao;
+  for (let tentativa = 0; tentativa < 2; tentativa += 1) {
+    try {
+      resultadoSessao = await window.supabaseClient.auth.getSession();
+    } catch (erro) {
+      resultadoSessao = { data: null, error: erro };
+    }
+    if (resultadoSessao?.data?.session || !resultadoSessao?.error || tentativa === 1) break;
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+
+  let session = resultadoSessao?.data?.session || null;
+  const erroSessao = resultadoSessao?.error;
+  if (!session && erroSessao) {
+    console.warn("Falha temporaria ao ler a sessao:", erroSessao.message || erroSessao);
+    showMessage("editor-message", "NÃ£o foi possÃ­vel confirmar sua sessÃ£o agora. Tente novamente em instantes.");
+    return null;
+  }
 
   // O cliente do Supabase renova a sessão automaticamente. Só forçamos uma
   // renovação quando o token já está próximo do vencimento ou após um 401.
   const expiraEmBreve = session?.expires_at && session.expires_at * 1000 < Date.now() + 60_000;
   if (forceRefresh || expiraEmBreve) {
-    const renovacao = await window.supabaseClient.auth.refreshSession();
-    session = renovacao.data.session;
+    let renovacao;
+    try {
+      renovacao = await window.supabaseClient.auth.refreshSession();
+    } catch (erro) {
+      console.warn("Falha temporaria ao renovar a sessao:", erro.message || erro);
+      renovacao = { data: null, error: erro };
+    }
+    if (renovacao?.data?.session) session = renovacao.data.session;
     if (renovacao.error) console.warn("Não foi possível renovar a sessão:", renovacao.error.message);
   }
 
-  if (!session || error) {
+  if (!session) {
     if (forceRefresh) return null;
     await window.supabaseClient.auth.signOut();
     alert("Entre na sua conta para enviar uma redacao.");

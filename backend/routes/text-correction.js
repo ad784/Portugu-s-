@@ -38,6 +38,25 @@ function parseJsonObject(content) {
   try { return JSON.parse(raw.slice(start, end + 1)); } catch { return null; }
 }
 
+function isCompleteCorrection(correcao) {
+  if (!correcao || typeof correcao !== "object" || Array.isArray(correcao)) return false;
+  const nota = Number(correcao.nota_final ?? correcao.notaFinal);
+  const justificativa = String(correcao.justificativa_nota ?? correcao.justificativaNota ?? "").trim();
+  if (!Number.isInteger(nota) || nota < 0 || nota > 1000 || justificativa.length < 40) return false;
+  if (!Array.isArray(correcao.competencias) || correcao.competencias.length !== 5) return false;
+
+  const numeros = new Set();
+  for (const [index, item] of correcao.competencias.entries()) {
+    const competencia = numeroDaCompetencia(item, index);
+    const notaCompetencia = Number(item?.nota ?? item?.score);
+    const comentario = String(item?.comentario ?? item?.feedback ?? item?.justificativa ?? "").trim();
+    if (competencia < 1 || competencia > 5 || numeros.has(competencia)) return false;
+    if (!NOTAS_ENEM.has(notaCompetencia) || comentario.length < 35) return false;
+    numeros.add(competencia);
+  }
+  return numeros.size === 5;
+}
+
 function numeroDaCompetencia(item, index) {
   const value = Number(item?.competencia);
   if (Number.isInteger(value) && value >= 1 && value <= 5) return value;
@@ -165,11 +184,11 @@ function createTextCorrectionRouter({ requireSupabaseUser, saveCorrection, apiKe
     }
 
     try {
-      const { response: resposta, data: dados } = await requestGroq(apiKey, {
+      const payload = {
           model: model || "openai/gpt-oss-120b",
           temperature: 0,
           seed: 42,
-          max_tokens: 2200,
+          max_tokens: 3200,
           messages: [
             {
               role: "system",
@@ -180,19 +199,50 @@ function createTextCorrectionRouter({ requireSupabaseUser, saveCorrection, apiKe
               content: `Tema da proposta: ${tema?.trim() || "Não informado. Avalie a competência 2 apenas pelo que puder ser confirmado no texto."}\nLinhas visuais informadas pelo editor: ${linhasPreenchidas}.\n\nRedacao para avaliar:\n---\n${texto}\n---`
             }
           ]
-      });
-      if (!resposta.ok || !dados.choices?.[0]?.message?.content) {
-        console.error("Erro na chamada unica da Groq:", dados.error?.code || resposta.status, dados.error?.message || "sem detalhes");
-        return res.status(502).json({ erro: "A API de correção não conseguiu avaliar a redação. Tente novamente." });
+      };
+
+      let correcao;
+      let ultimoErroAvaliacao;
+      for (let tentativa = 0; tentativa < 2; tentativa += 1) {
+        let resultadoGroq;
+        try {
+          resultadoGroq = await requestGroq(apiKey, payload);
+        } catch (erro) {
+          ultimoErroAvaliacao = erro.message || "Falha de conexão com a Groq";
+          console.error("Falha temporaria ao chamar a Groq:", ultimoErroAvaliacao);
+          if (tentativa === 0) {
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            continue;
+          }
+          break;
+        }
+
+        const { response: resposta, data: dados } = resultadoGroq;
+        const conteudo = dados.choices?.[0]?.message?.content;
+        if (resposta.ok && conteudo) {
+          const candidata = parseJsonObject(conteudo);
+          if (isCompleteCorrection(candidata)) {
+            correcao = candidata;
+            break;
+          }
+          ultimoErroAvaliacao = "Resposta incompleta ou fora do formato esperado";
+        } else {
+          ultimoErroAvaliacao = dados.error?.message || `Groq HTTP ${resposta.status}`;
+          console.error("Erro na chamada da Groq:", dados.error?.code || resposta.status, ultimoErroAvaliacao);
+          if (resposta.status < 500 && resposta.status !== 408) {
+            return res.status(502).json({ erro: "O serviço de correção recusou a avaliação. Tente novamente em instantes." });
+          }
+        }
+
+        if (tentativa === 0) await new Promise((resolve) => setTimeout(resolve, 400));
+      }
+      if (!correcao) {
+        console.error("A Groq não retornou uma correção completa após nova tentativa:", ultimoErroAvaliacao);
+        return res.status(502).json({ erro: "A correção demorou ou veio incompleta. Tentamos novamente automaticamente; tente outra vez em instantes." });
       }
 
-      const correcao = parseJsonObject(dados.choices[0].message.content);
-      if (!correcao) {
-        console.error("Resposta da Groq não contém JSON válido.");
-        return res.status(502).json({ erro: "A API retornou uma correção em formato inválido. Tente novamente." });
-      }
       const correcaoFinal = normalizarCorrecao(
-        correcao && typeof correcao === "object" && !Array.isArray(correcao) ? correcao : {},
+        correcao,
         texto
       );
       const resultado = formatarCorrecaoEnem(correcaoFinal, texto);
