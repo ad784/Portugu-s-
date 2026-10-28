@@ -14,16 +14,15 @@ function limitarNotaPorEvidencia(competencia, nota, comentario) {
   }
   const repertorioInsuficiente = /repertorio.{0,35}limitad|sem repertorio|falta repertorio|nao apresenta.{0,25}repertorio/.test(texto);
   const argumentacaoGenerica = /superficial|pouco aprofund|argumentos genericos|argumentos simples|argumentos basicos|argumentacao.{0,30}gener|generica|previsiv|sem desenvolvimento/.test(texto);
-  if (competencia === 2 && repertorioInsuficiente && argumentacaoGenerica) return Math.min(nota, 80);
-  if (competencia === 2 && (repertorioInsuficiente || argumentacaoGenerica)) return Math.min(nota, 120);
+  if (competencia === 2 && repertorioInsuficiente && argumentacaoGenerica) return Math.min(nota, 120);
+  if (competencia === 2 && (repertorioInsuficiente || argumentacaoGenerica)) return Math.min(nota, 160);
   if (competencia === 3 && /gener|basico|simples|listagem|superficial|limitad|falta.{0,40}aprofund|falta.{0,40}justific/.test(texto)
     && /sem aprofund|falta.{0,40}aprofund|sem justific|falta.{0,40}justific|sem dado|sem exemplo|pouco aprofund|sem desenvolv|nao.{0,20}desenvolv|pouco desenvolv|superficial|sem sustent|falta de evid|nao explica|sem explic|pouca explic/.test(texto)) {
-    return Math.min(nota, 80);
+    return Math.min(nota, 120);
   }
   const coesaoLimitada = /conectivos.{0,30}limitad|repertorio.{0,30}(conectivos|coesivos).{0,30}(limitad|pouco diversificad)|pouca variedade|pouco diversificado/.test(texto);
   const coesaoRepetitiva = /repeti|mecanicamente|conectivos basicos/.test(texto);
-  if (competencia === 4 && coesaoLimitada && coesaoRepetitiva) return Math.min(nota, 80);
-  if (competencia === 4 && (coesaoLimitada || coesaoRepetitiva)) return Math.min(nota, 80);
+  if (competencia === 4 && (coesaoLimitada || coesaoRepetitiva)) return Math.min(nota, 120);
   if (competencia === 5 && /falta detalh|sem detalh|pouco detalh|proposta vaga/.test(texto)) {
     return Math.min(nota, /campanh|conscientiz/.test(texto) ? 80 : 120);
   }
