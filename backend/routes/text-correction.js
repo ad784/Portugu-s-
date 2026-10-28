@@ -45,7 +45,7 @@ function numeroDaCompetencia(item, index) {
   return label ? Number(label) : index + 1;
 }
 
-function normalizarCorrecao(correcao, texto, linhasVisuais) {
+function normalizarCorrecao(correcao, texto) {
   const recebidas = Array.isArray(correcao.competencias) ? correcao.competencias : [];
   const competencias = Array.from({ length: 5 }, (_, index) => {
     const numero = index + 1;
@@ -74,10 +74,7 @@ function normalizarCorrecao(correcao, texto, linhasVisuais) {
     ? Math.max(0, Math.min(1000, Math.floor(notaInformada / 20) * 20))
     : 0;
   let justificativaNota = String(correcao.justificativa_nota ?? correcao.justificativaNota ?? "").trim();
-  if (Number.isInteger(linhasVisuais) && linhasVisuais <= 7) {
-    notaFinal = 0;
-    justificativaNota = "A redação tem até 7 linhas visuais e, por isso, recebe nota zero pela regra de extensão do ENEM.";
-  } else if (!justificativaNota) {
+  if (!justificativaNota) {
     const pontos = competencias
       .filter((item) => item.comentario && !item.comentario.startsWith("A resposta da IA"))
       .map((item) => `C${item.competencia}: ${item.comentario}`);
@@ -155,26 +152,9 @@ function createTextCorrectionRouter({ requireSupabaseUser, saveCorrection, apiKe
       ? linhasVisuais
       : texto.split(/\r?\n/).filter((linha) => linha.trim()).length;
 
-    // A regra de extensao do ENEM pode ser aplicada sem depender da Groq:
-    // textos com ate 7 linhas recebem zero, mas ainda recebem a devolutiva.
-    if (linhasPreenchidas <= 7) {
-      const correcaoFinal = normalizarCorrecao({
-        nota_final: 0,
-        justificativa_nota: "A redação tem até 7 linhas visuais e recebe nota zero pela regra de extensão do ENEM.",
-        competencias: Array.from({ length: 5 }, (_, index) => ({
-          competencia: index + 1,
-          nota: 0,
-          comentario: "A redação não pode ser pontuada nesta competência porque não atingiu a extensão mínima prevista para avaliação no ENEM."
-        })),
-        erros: [],
-        sugestoes: ["Amplie o texto para que as competências possam ser avaliadas com base no desenvolvimento apresentado."]
-      }, texto, linhasPreenchidas);
-      const resultado = formatarCorrecaoEnem(correcaoFinal, texto);
-      return respondWithResult(req, res, saveCorrection, {
-        texto,
-        resultado,
-        linhas: linhasPreenchidas,
-        tema
+    if (linhasPreenchidas < 8) {
+      return res.status(400).json({
+        erro: "Sua redação precisa ter pelo menos 8 linhas para ser enviada à correção."
       });
     }
 
@@ -213,8 +193,7 @@ function createTextCorrectionRouter({ requireSupabaseUser, saveCorrection, apiKe
       }
       const correcaoFinal = normalizarCorrecao(
         correcao && typeof correcao === "object" && !Array.isArray(correcao) ? correcao : {},
-        texto,
-        linhasPreenchidas
+        texto
       );
       const resultado = formatarCorrecaoEnem(correcaoFinal, texto);
       return respondWithResult(req, res, saveCorrection, {
