@@ -864,11 +864,24 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .camera-viewfinder { height: clamp(250px, 38vh, 420px); }
 }
 
-/* Mantem a previa compacta e a redacao confortavel para leitura em qualquer tela. */
+/* Mantem o visor quadrado para facilitar o enquadramento da redação. */
 .camera-viewfinder {
-  height: clamp(250px, 38vh, 420px);
+  width: 100%;
+  max-width: none;
+  height: auto;
   min-height: 0;
-  aspect-ratio: auto !important;
+  aspect-ratio: 1 / 1 !important;
+  margin-inline: 0;
+}
+
+.camera-viewfinder video,
+.camera-viewfinder canvas {
+  object-fit: cover;
+}
+
+.viewfinder-guide {
+  width: 82%;
+  height: 82%;
 }
 
 .editor-page #redacao {
@@ -889,7 +902,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 
 @media (max-width: 560px) {
   .camera-viewfinder {
-    height: clamp(220px, 34vh, 320px);
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1 !important;
   }
 
   .editor-page #redacao {

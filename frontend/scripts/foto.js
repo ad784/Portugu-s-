@@ -85,7 +85,15 @@ async function initCamera() {
 
   video.srcObject = cameraStream;
   video.style.transform = 'none';
-  await video.play();
+  try {
+    await video.play();
+  } catch (error) {
+    console.error('Não foi possível iniciar a pré-visualização da câmera:', error);
+    stopCamera();
+    setPhotoStatus('A câmera foi acessada, mas não iniciou a pré-visualização. Tente novamente ou selecione uma foto do dispositivo.');
+    setCameraIndicator('Pré-visualização indisponível');
+    return;
+  }
   setPhotoStatus('Câmera pronta. Posicione a redação e tire a foto.');
   setCameraIndicator('Câmera ativa', true);
 }

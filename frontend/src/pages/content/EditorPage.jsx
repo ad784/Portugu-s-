@@ -300,8 +300,8 @@ export default function EditorPage() {
             <div className="writing-card-bottom">
               {" "}
               <span id="contador-palavras">{"0 palavras"}</span>{" "}
-              <span id="contador-linhas" className="line-target">
-                {"Mínimo para correção: 10 linhas"}
+              <span id="contador-linhas" className="line-target line-target-ok">
+                {"Linhas escritas:"}
               </span>{" "}
             </div>{" "}
             <div className="editor-actions">

@@ -1,12 +1,24 @@
 const { createClient } = require("@supabase/supabase-js");
 
-// `@supabase/server/core` and `jose` are ESM packages. Keep their loading
-// dynamic so Vercel's CommonJS function bundle does not turn them into
-// `require()` calls (which fail with ERR_REQUIRE_ESM at cold start).
-let jwtModules;
-function getJwtModules() {
-  jwtModules ||= Promise.all([import("@supabase/server/core"), import("jose")]);
-  return jwtModules;
+// jose is ESM; load it dynamically because this backend uses CommonJS.
+let joseModule;
+let supabaseJwks;
+function getJose() {
+  joseModule ||= import("jose");
+  return joseModule;
+}
+
+function getSupabaseJwks(jose) {
+  if (supabaseJwks) return supabaseJwks;
+  const jwksUrl = process.env.SUPABASE_JWKS_URL
+    || `${String(process.env.SUPABASE_URL || "").replace(/\/+$/, "")}/auth/v1/.well-known/jwks.json`;
+  if (!jwksUrl.startsWith("https://")) return null;
+  supabaseJwks = jose.createRemoteJWKSet(new URL(jwksUrl), {
+    timeoutDuration: 3000,
+    cooldownDuration: 30_000,
+    cacheMaxAge: 10 * 60_000
+  });
+  return supabaseJwks;
 }
 
 function createServerClient(accessToken) {
@@ -41,41 +53,37 @@ async function requireSupabaseUser(req, res, next, options = {}) {
   const token = (req.get("authorization") || "").match(/^Bearer\s+(.+)$/i)?.[1];
   if (!token) return sendAuthFailure(req, res, next, 401, "Sessao invalida ou expirada", options);
   try {
-    // Tokens assinados com as chaves assimetricas do Supabase podem ser
-    // verificados localmente. Isso evita uma chamada ao Auth para cada foto.
+    // Tokens com assinatura assimetrica podem ser validados localmente com o
+    // JWKS do projeto. O jose mantem as chaves em cache, evitando que uma
+    // indisponibilidade momentanea do endpoint Auth invalide sessoes ativas.
     // Tokens HS256 antigos continuam usando getUser como fallback.
     let alg;
+    let jose;
     try {
-      const [, jose] = await getJwtModules();
+      jose = await getJose();
       ({ alg } = jose.decodeProtectedHeader(token));
     } catch {
       return res.status(401).json({ erro: "Sessao invalida ou expirada" });
     }
-    if (alg !== "HS256" && process.env.SUPABASE_JWKS_URL) {
-      // A validacao local e mais rapida, mas a consulta ao JWKS pode falhar
-      // temporariamente. Nesse caso, deixe o Auth do Supabase validar o token.
+    if (alg !== "HS256" && (process.env.SUPABASE_JWKS_URL || process.env.SUPABASE_URL)) {
       try {
-        const [supabaseServer] = await getJwtModules();
-        const { data: verified, error: verificationError } = await supabaseServer.verifyCredentials(
-          { token, apikey: null },
-          { auth: "user" }
-        );
-        if (!verificationError && verified?.userClaims) {
-          const claims = verified.userClaims;
+        const issuer = `${String(process.env.SUPABASE_URL).replace(/\/+$/, "")}/auth/v1`;
+        const { payload: claims } = await jose.jwtVerify(token, getSupabaseJwks(jose), {
+          issuer,
+          audience: "authenticated"
+        });
+        if (claims.sub) {
           req.supabaseUser = {
-            id: claims.id,
+            id: claims.sub,
             email: claims.email,
-            app_metadata: claims.appMetadata || {}
+            app_metadata: claims.app_metadata || {}
           };
           req.isAdmin = req.supabaseUser.app_metadata.role === "admin";
-          req.supabase = supabaseServer.createContextClient({ auth: { token } });
+          req.supabase = createServerClient(token);
           return next();
         }
-        if (verificationError) {
-          console.warn("Validacao local da sessao falhou; usando Auth do Supabase:", verificationError.message);
-        }
       } catch (verificationError) {
-        console.warn("JWKS indisponivel; usando Auth do Supabase:", verificationError.message);
+        console.warn("Validacao local do JWT falhou; usando Auth do Supabase:", verificationError.message);
       }
     }
 

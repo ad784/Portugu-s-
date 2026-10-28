@@ -237,11 +237,6 @@ async function corrigir() {
     return;
   }
 
-  if (linhasVisuais < 10) {
-    showMessage("editor-message", `Sua redação possui ${linhasVisuais} linhas visuais. Escreva pelo menos 10 linhas antes de corrigir.`);
-    return;
-  }
-
   try {
     const session = await getSession();
     if (!session) return;
@@ -430,8 +425,7 @@ function atualizarContador() {
   contador.innerText = `${total} ${total === 1 ? "palavra" : "palavras"}`;
 
   if (contadorLinhas) {
-    contadorLinhas.innerText = `${linhas}/10 linhas para correção`;
-    contadorLinhas.classList.toggle("line-target-ok", linhas >= 10);
+    contadorLinhas.innerText = `${linhas} linhas`;
   }
 }
 
