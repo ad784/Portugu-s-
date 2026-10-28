@@ -170,6 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("open-photo-editor")?.addEventListener("click", () => { window.location.href = "/foto.html"; });
   document.getElementById("write-new-essay")?.addEventListener("click", voltar);
   window.addEventListener("pagehide", salvarRascunho);
+  window.addEventListener("resize", atualizarContador);
 });
 async function login() {
   const email = document.getElementById("email").value.trim();
@@ -234,6 +235,11 @@ async function corrigir() {
 
   if (!texto) {
     showMessage("editor-message", "Digite sua redação antes de corrigir.");
+    return;
+  }
+
+  if (linhasVisuais < 8) {
+    showMessage("editor-message", "Sua redação precisa ter pelo menos 8 linhas para ser enviada à correção.");
     return;
   }
 
@@ -425,7 +431,10 @@ function atualizarContador() {
   contador.innerText = `${total} ${total === 1 ? "palavra" : "palavras"}`;
 
   if (contadorLinhas) {
-    contadorLinhas.innerText = `${linhas} linhas`;
+    contadorLinhas.innerText = linhas < 8
+      ? `${linhas}/8 linhas mínimas para correção`
+      : `${linhas} linhas — mínimo atingido`;
+    contadorLinhas.classList.toggle("line-target-ok", linhas >= 8);
   }
 }
 
