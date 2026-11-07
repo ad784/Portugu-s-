@@ -24,7 +24,7 @@ function updateRetryButton() {
   const seconds = Math.max(0, Math.ceil((Number(button.dataset.retryUntil || 0) - Date.now()) / 1000));
   button.disabled = sendingPhoto || seconds > 0;
   button.setAttribute('aria-busy', String(sendingPhoto));
-  for (const id of ['reset-photo', 'take-photo', 'foto-arquivo', 'foto-tema']) {
+  for (const id of ['reset-photo', 'take-photo', 'foto-arquivo']) {
     const control = document.getElementById(id); if (control) control.disabled = sendingPhoto;
   }
   button.textContent = sendingPhoto ? 'Enviando para correção...' : seconds > 0
@@ -149,7 +149,6 @@ async function initCamera() {
         facingMode: { ideal: 'environment' },
         width: { ideal: 1080 },
         height: { ideal: 1440 },
-        aspectRatio: { ideal: 0.75 }
       },
       audio: false
     });
@@ -247,7 +246,7 @@ async function salvarFoto() {
   if (Number(button.dataset.retryUntil || 0) > Date.now()) { setPhotoStatus('Aguarde o prazo informado antes de enviar novamente.'); return; }
   const dataUrl = preparedPhoto();
   if (dataUrl.length > 4 * 1024 * 1024) { setPhotoStatus('A imagem ainda está muito grande. Selecione uma foto menor.'); return; }
-  const tema = document.getElementById('foto-tema')?.value.trim() || '';
+  const tema = '';
   preservePhoto();
   sendingPhoto = true;
   updateRetryButton();
@@ -293,8 +292,6 @@ async function salvarFoto() {
 window.addEventListener('pagehide', () => { stopCamera(); clearTimeout(retryTimer); });
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('foto-arquivo')?.addEventListener('change', (event) => loadPhoto(event.target.files?.[0]));
-  document.getElementById('foto-tema').value = window.userStorage.getItem('tema-foto') || '';
-  document.getElementById('foto-tema')?.addEventListener('input', event => window.userStorage.setItem('tema-foto', event.target.value));
   const saved = window.userStorage.getItem(PHOTO_DRAFT_KEY);
   if (saved) {
     const image = new Image();

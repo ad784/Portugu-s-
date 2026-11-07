@@ -867,24 +867,34 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .camera-viewfinder { height: clamp(250px, 38vh, 420px); }
 }
 
-/* Mantem o visor quadrado para facilitar o enquadramento da redação. */
+/* Respeita a proporcao real da camera, sem corte ou faixa de preenchimento. */
 .camera-viewfinder {
+  display: block;
   width: 100%;
   max-width: none;
   height: auto;
   min-height: 0;
-  aspect-ratio: 1 / 1 !important;
+  aspect-ratio: auto;
+  padding: 0;
+  background: #eef2f4;
   margin-inline: 0;
 }
 
 .camera-viewfinder video,
 .camera-viewfinder canvas {
-  object-fit: cover;
+  display: block;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  object-fit: contain;
+  background: #eef2f4;
 }
 
 .viewfinder-guide {
   width: 82%;
   height: 82%;
+  top: 9%;
+  left: 9%;
 }
 
 .editor-page #redacao {
@@ -907,7 +917,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .camera-viewfinder {
     width: 100%;
     height: auto;
-    aspect-ratio: 1 / 1 !important;
+    aspect-ratio: auto;
   }
 
   .editor-page #redacao {

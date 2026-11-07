@@ -50,10 +50,6 @@ export default function PhotoPage() {
           </div>{" "}
           <span className="editor-badge">{"📷 Leitura automática"}</span>{" "}
         </section>{" "}
-        <div className="theme-field">
-          <label htmlFor="foto-tema">Tema da redação</label>
-          <input id="foto-tema" type="text" maxLength={500} placeholder="Informe a proposta para avaliar a adequação ao tema" />
-        </div>
         <div className="photo-layout">
           {" "}
           <section className="camera-card" aria-labelledby="camera-title">

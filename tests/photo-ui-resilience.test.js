@@ -4,21 +4,29 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 
 function setup({ status = 503, error = 'Serviço temporariamente indisponível.', retry = null } = {}) {
-  const fields = Object.fromEntries(['camera', 'snapshot', 'salvar-foto', 'foto-status', 'camera-status', 'reset-photo', 'take-photo', 'toggle-flash', 'flash-status', 'foto-arquivo', 'foto-tema', 'back-to-editor'].map(id => [id, { value: '', dataset: {}, style: {}, addEventListener() {}, setAttribute(name, value) { this[name] = value; }, classList: { toggle() {} }, lastChild: {} }]));
+  const fields = Object.fromEntries(['camera', 'snapshot', 'salvar-foto', 'foto-status', 'camera-status', 'reset-photo', 'take-photo', 'toggle-flash', 'flash-status', 'foto-arquivo', 'back-to-editor'].map(id => [id, { value: '', dataset: {}, style: {}, addEventListener() {}, setAttribute(name, value) { this[name] = value; }, classList: { toggle() {} }, lastChild: {} }]));
   fields.snapshot.style.display = 'block';
   fields.snapshot.getContext = () => ({ setTransform() {}, clearRect() {}, drawImage() {} });
   fields.snapshot.toDataURL = () => 'data:image/jpeg;base64,test-photo';
   const storage = new Map(); let requests = 0;
+  const listeners = {};
   const context = { document: { getElementById: id => fields[id] }, navigator: {}, console: { error() {}, warn() {} }, setTimeout: () => 1, clearTimeout() {},
     window: {
-      location: {}, addEventListener() {},
+      location: {}, addEventListener(name, handler) { listeners[name] = handler; },
       userStorage: { getItem: key => storage.get(key) || null, setItem: (key, value) => storage.set(key, value), removeItem: key => storage.delete(key) },
       portuguesSession: { request: async () => { requests++; return { status, ok: false, text: async () => JSON.stringify({ erro: error, retryAfterSeconds: retry }) }; } }
     }
   };
   vm.runInNewContext(fs.readFileSync('frontend/scripts/foto.js', 'utf8'), context);
-  return { context, fields, storage, requests: () => requests };
+  return { context, fields, storage, listeners, requests: () => requests };
 }
+
+test('photo page initializes without a theme input or stale theme restoration', () => {
+  const env = setup();
+  env.storage.set('tema-foto', 'Tema antigo');
+  assert.doesNotThrow(() => env.listeners.DOMContentLoaded());
+  assert.match(env.fields['foto-status'].textContent, /câmera não está disponível/);
+});
 
 test('photo service failure preserves the photo and restores controls for another attempt', async () => {
   const env = setup();
