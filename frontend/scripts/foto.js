@@ -3,6 +3,7 @@ const canvas = document.getElementById('snapshot');
 const ctx = canvas.getContext('2d');
 let cameraStream = null;
 let sendingPhoto = false;
+let cancelPhotoWait = false;
 let retryTimer;
 const PHOTO_DRAFT_KEY = 'rascunho-foto-v1';
 let photoSelection = 0;
@@ -53,6 +54,7 @@ window.sair = sair;
 document.getElementById('reset-photo')?.addEventListener('click', resetPhoto);
 document.getElementById('take-photo')?.addEventListener('click', takePhoto);
 document.getElementById('salvar-foto')?.addEventListener('click', salvarFoto);
+document.getElementById('cancel-photo-wait')?.addEventListener('click', () => { cancelPhotoWait = true; });
 document.getElementById('back-to-editor')?.addEventListener('click', () => { window.location.href = "/nova"; });
 
 function setCameraIndicator(text, active = false) {
@@ -182,6 +184,44 @@ function loadPhoto(file) {
   reader.readAsDataURL(file);
 }
 
+async function waitForPhotoCapacity(seconds) {
+  const cancelButton = document.getElementById('cancel-photo-wait');
+  if (cancelButton) cancelButton.hidden = false;
+  try {
+    for (let remaining = seconds; remaining > 0; remaining--) {
+      if (cancelPhotoWait) throw new Error('Espera cancelada.');
+      setPhotoStatus(`Aguardando disponibilidade da correção. Tentaremos enviar automaticamente em ${remaining} segundo(s). Mantenha esta página aberta; sua foto está guardada.`);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    if (cancelPhotoWait) throw new Error('Espera cancelada.');
+  } finally { if (cancelButton) cancelButton.hidden = true; }
+}
+
+async function requestPhotoWithWait(options) {
+  // Browser-side waiting releases the Vercel function between attempts.
+  // Only explicitly transient limits qualify, never daily quotas or bad images.
+  let budget = 300;
+  const owner = window.portuguesSession.userId?.();
+  for (let attempt = 0; attempt <= 6; attempt++) {
+    if (cancelPhotoWait) throw new Error('Espera cancelada.');
+    if (owner && window.portuguesSession.userId() !== owner) throw new Error('A conta mudou durante a espera. Entre novamente na conta original.');
+    const response = await window.portuguesSession.request('/api/corrigir-foto', { ...options, expectedUserId: owner });
+    const body = await response.text();
+    let data;
+    try { data = body ? JSON.parse(body) : {}; }
+    catch { throw new Error('O servidor está indisponível no momento. Tente novamente em instantes.'); }
+    const temporary = response.status === 429 && ['PHOTO_PROVIDER_BUSY', 'CORRECTION_BUSY'].includes(data.codigo);
+    const requestedWait = Number(data.retryAfterSeconds);
+    if (!temporary || attempt === 6 || !Number.isFinite(requestedWait) || requestedWait < 1) return { response, data };
+    // A small spread reduces simultaneous resends from different evaluators.
+    const seconds = Math.ceil(requestedWait) + 1 + Math.floor(Math.random() * 4);
+    if (seconds > budget) return { response, data };
+    budget -= seconds;
+    await waitForPhotoCapacity(seconds);
+    setPhotoStatus('Enviando sua foto para leitura e avaliação...');
+  }
+}
+
 async function salvarFoto() {
   if (sendingPhoto) return;
   if (canvas.style.display !== 'block') {
@@ -197,20 +237,14 @@ async function salvarFoto() {
   const tema = '';
   preservePhoto();
   sendingPhoto = true;
+  cancelPhotoWait = false;
   updateRetryButton();
   setPhotoStatus('Lendo e avaliando a foto. Isso pode levar até um minuto. Sua foto permanece disponível durante a espera.');
 
   try {
-    const response = await window.portuguesSession.request('/api/corrigir-foto', {
+    const { response, data } = await requestPhotoWithWait({
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imagem: dataUrl, tema })
     });
-    const body = await response.text();
-    let data;
-    try {
-      data = body ? JSON.parse(body) : {};
-    } catch {
-      throw new Error('O servidor esta indisponivel no momento. Tente novamente em instantes.');
-    }
     if (response.status === 429 && data.retryAfterSeconds) button.dataset.retryUntil = String(Date.now() + data.retryAfterSeconds * 1000);
     if (!response.ok || !data.resultado) throw new Error(data.erro || 'Nao foi possivel corrigir a foto.');
 
@@ -237,7 +271,7 @@ async function salvarFoto() {
   }
 }
 
-window.addEventListener('pagehide', () => { stopCamera(); clearTimeout(retryTimer); });
+window.addEventListener('pagehide', () => { cancelPhotoWait = true; stopCamera(); clearTimeout(retryTimer); });
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('foto-arquivo')?.addEventListener('change', (event) => loadPhoto(event.target.files?.[0]));
   const saved = window.userStorage.getItem(PHOTO_DRAFT_KEY);

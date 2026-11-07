@@ -54,7 +54,8 @@ function createPhotoRouter({ requireSupabaseUser, saveCorrection, apiKey, model 
       res.json(body);
     } catch (error) {
       if (error.retryAfterSeconds) res.set('Retry-After', String(error.retryAfterSeconds));
-      res.status(error.status || 502).json({ erro: error.message || 'Não foi possível corrigir a foto. Tente novamente.', retryAfterSeconds: error.retryAfterSeconds || null });
+      const codigo = ['PHOTO_REQUEST_TOO_LARGE', 'PHOTO_DAILY_LIMIT', 'PHOTO_PROVIDER_BUSY', 'CORRECTION_BUSY'].includes(error.code) ? error.code : null;
+      res.status(error.status || 502).json({ erro: error.message || 'Não foi possível corrigir a foto. Tente novamente.', codigo, retryAfterSeconds: error.retryAfterSeconds || null });
     }
   });
   return router;

@@ -11,10 +11,10 @@ async function acquireCorrection(req) {
   for (const [id, data] of users) if (now - data.dayStart > 86400000) users.delete(id);
   const data = users.get(key) || { dayStart: now, count: 0, attempts: [], active: 0 };
   data.attempts = data.attempts.filter(at => now - at < 60000);
-  const reject = (message, seconds) => { const error = new Error(message); error.status = 429; error.retryAfterSeconds = seconds; throw error; };
+  const reject = (message, seconds, code) => { const error = new Error(message); error.status = 429; error.retryAfterSeconds = seconds; error.code = code; throw error; };
   if (data.count >= dayLimit) reject('Você atingiu seu limite diário de correções. Tente novamente mais tarde.', Math.ceil((data.dayStart + 86400000 - now) / 1000));
   if (data.attempts.length >= minuteLimit) reject('Aguarde um pouco antes de enviar outra redação.', 60);
-  if (data.active || active >= concurrentLimit) reject('Já há uma correção em andamento. Aguarde sua conclusão.', 15);
+  if (data.active || active >= concurrentLimit) reject('Já há uma correção em andamento. Aguarde sua conclusão.', 15, 'CORRECTION_BUSY');
   data.attempts.push(now); data.count++; data.active++; active++;
   users.set(key, data);
   let released = false;

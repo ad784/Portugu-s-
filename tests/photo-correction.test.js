@@ -108,7 +108,27 @@ test('new accounts see shared capacity warning and provider reset instead of gue
   await assert.rejects(analyzePhoto({ image, apiKey: 'test-key', fetchImpl: async () => ({
     ok: false, status: 429, headers: { get: name => name === 'x-ratelimit-reset-tokens' ? '12.5s' : null },
     json: async () => ({ error: { message: 'Rate limit reached: tokens per minute (TPM), Limit 8000, Used 5000, Requested 4000' } })
-  }) }), error => error.status === 429 && error.retryAfterSeconds === 13 && /compartilhado/.test(error.message));
+  }) }), error => error.status === 429 && error.code === 'PHOTO_PROVIDER_BUSY' && error.retryAfterSeconds === 13 && /compartilhado/.test(error.message));
+});
+
+test('photo endpoint exposes a safe retry code so browsers can wait automatically', async t => {
+  const app = express();
+  app.use(express.json());
+  app.use(createPhotoRouter({
+    apiKey: 'test-key', model: 'retry-code-' + require('node:crypto').randomUUID(),
+    requireSupabaseUser: (req, _res, next) => { req.supabaseUser = { id: 'retry-code-user' }; req.isLocalDemo = true; next(); },
+    analyze: async () => { const error = new Error('Temporary capacity'); error.status = 429; error.code = 'PHOTO_PROVIDER_BUSY'; error.retryAfterSeconds = 12; throw error; },
+    saveCorrection: async () => assert.fail('no incomplete report may be saved')
+  }));
+  const server = await new Promise(resolve => { const listener = app.listen(0, () => resolve(listener)); });
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const response = await fetch(`http://127.0.0.1:${server.address().port}/api/corrigir-foto`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imagem: image })
+  });
+  const body = await response.json();
+  assert.equal(response.status, 429);
+  assert.equal(body.codigo, 'PHOTO_PROVIDER_BUSY');
+  assert.equal(body.retryAfterSeconds, 12);
 });
 
 test('photo rejects provider image errors without retrying or claiming an outage', async () => {

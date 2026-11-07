@@ -163,11 +163,13 @@ async function analyzePhoto({ image, apiKey, model = 'qwen/qwen3.8-27b', tema = 
       const quota = providerLimit(response, data);
       if (quota.category === 'request_too_large') {
         error.status = 503;
+        error.code = 'PHOTO_REQUEST_TOO_LARGE';
         error.message = 'O pedido de leitura excede a capacidade por minuto disponível no serviço de IA do site. Aguardar um minuto pode não resolver; o responsável precisa revisar a capacidade contratada. Sua foto foi mantida.';
         throw error;
       }
       error.retryAfterSeconds = require('./text-evaluation').retrySeconds(response, data);
       const daily = /tokens per day|requests per day|\bTPD\b|\bRPD\b/i.test(data.error?.message || '');
+      error.code = daily ? 'PHOTO_DAILY_LIMIT' : 'PHOTO_PROVIDER_BUSY';
       const seconds = error.retryAfterSeconds;
       const wait = seconds < 60 ? `${seconds} segundos` : seconds < 3600 ? `${Math.ceil(seconds / 60)} minutos` : `${Math.ceil(seconds / 3600)} horas`;
       error.message = `${daily ? 'A cota diária compartilhada de leitura de fotos foi atingida.' : 'A capacidade temporária de leitura de fotos do site está ocupada.'} Esse limite é compartilhado entre todos os usuários, mesmo em contas novas. Tente novamente em cerca de ${wait}. A foto continua nesta página.`;
