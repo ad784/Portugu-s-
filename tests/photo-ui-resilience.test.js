@@ -3,8 +3,8 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-function setup({ status = 503, error = 'Serviço temporariamente indisponível.', retry = null } = {}) {
-  const fields = Object.fromEntries(['camera', 'snapshot', 'salvar-foto', 'foto-status', 'camera-status', 'reset-photo', 'take-photo', 'foto-arquivo', 'back-to-editor'].map(id => [id, { value: '', dataset: {}, style: {}, events: {}, click() { this.clicked = true; }, addEventListener(name, handler) { this.events[name] = handler; }, setAttribute(name, value) { this[name] = value; }, classList: { toggle() {} }, lastChild: {} }]));
+function setup({ status = 503, error = 'Serviço temporariamente indisponível.', retry = null, sequence } = {}) {
+  const fields = Object.fromEntries(['camera', 'snapshot', 'salvar-foto', 'foto-status', 'camera-status', 'reset-photo', 'take-photo', 'foto-arquivo', 'back-to-editor', 'cancel-photo-wait'].map(id => [id, { value: '', dataset: {}, style: {}, events: {}, click() { this.clicked = true; }, addEventListener(name, handler) { this.events[name] = handler; }, setAttribute(name, value) { this[name] = value; }, classList: { toggle() {} }, lastChild: {} }]));
   fields.snapshot.style.display = 'block';
   fields.snapshot.getContext = () => ({ setTransform() {}, clearRect() {}, drawImage() {} });
   fields.snapshot.toDataURL = () => 'data:image/jpeg;base64,test-photo';
@@ -14,7 +14,11 @@ function setup({ status = 503, error = 'Serviço temporariamente indisponível.'
     window: {
       location: {}, addEventListener(name, handler) { listeners[name] = handler; },
       userStorage: { getItem: key => storage.get(key) || null, setItem: (key, value) => storage.set(key, value), removeItem: key => storage.delete(key) },
-      portuguesSession: { request: async () => { requests++; return { status, ok: false, text: async () => JSON.stringify({ erro: error, retryAfterSeconds: retry }) }; } }
+      portuguesSession: { request: async () => {
+        const entry = sequence ? sequence[Math.min(requests, sequence.length - 1)] : { status, erro: error, retryAfterSeconds: retry };
+        requests++;
+        return { status: entry.status, ok: entry.status === 200, text: async () => JSON.stringify(entry) };
+      } }
     }
   };
   vm.runInNewContext(fs.readFileSync('frontend/scripts/foto.js', 'utf8'), context);
@@ -46,4 +50,85 @@ test('photo rate limit preserves the draft and blocks resend until the cooldown 
   await env.context.salvarFoto();
   assert.equal(env.requests(), 1);
   assert.ok(env.storage.has('rascunho-foto-v1'));
+});
+
+const busy = { status: 429, codigo: 'PHOTO_PROVIDER_BUSY', retryAfterSeconds: 12, erro: 'Capacidade ocupada.' };
+
+test('temporary provider saturation waits and automatically completes the original photo', async () => {
+  const env = setup({ sequence: [busy, { status: 200, resultado: 'Nota: 760\nRedacao:\nTexto original', salvo: true }] });
+  const waits = [];
+  env.context.waitForPhotoCapacity = async seconds => {
+    waits.push(seconds);
+    assert.equal(env.fields['salvar-foto'].disabled, true);
+    assert.ok(env.storage.has('rascunho-foto-v1'));
+  };
+  await env.context.salvarFoto();
+  assert.equal(env.requests(), 2);
+  assert.equal(waits.length, 1);
+  assert.ok(waits[0] >= 13 && waits[0] <= 16);
+  assert.match(env.storage.get('resultado'), /Nota: 760/);
+  assert.equal(env.context.window.location.href, '/resultado');
+});
+
+test('automatic waits are bounded and never retry daily or oversized requests', async () => {
+  for (const response of [
+    { status: 429, codigo: 'PHOTO_DAILY_LIMIT', retryAfterSeconds: 60 },
+    { status: 503, codigo: 'PHOTO_REQUEST_TOO_LARGE' },
+    { status: 429, codigo: 'PHOTO_PROVIDER_BUSY', retryAfterSeconds: 400 }
+  ]) {
+    const env = setup({ sequence: [response] });
+    env.context.waitForPhotoCapacity = async () => assert.fail('must not wait');
+    await env.context.requestPhotoWithWait({});
+    assert.equal(env.requests(), 1);
+  }
+  const env = setup({ sequence: [busy] });
+  env.context.waitForPhotoCapacity = async () => {};
+  await env.context.requestPhotoWithWait({});
+  assert.equal(env.requests(), 7, 'initial request plus at most six automatic retries');
+});
+
+test('changing account during automatic waiting prevents resending the photo', async () => {
+  const env = setup({ sequence: [busy] });
+  let owner = 'original';
+  env.context.window.portuguesSession.userId = () => owner;
+  env.context.waitForPhotoCapacity = async () => { owner = 'another'; };
+  await env.context.salvarFoto();
+  assert.equal(env.requests(), 1);
+  assert.match(env.fields['foto-status'].textContent, /conta mudou/);
+  assert.equal(env.storage.has('resultado'), false);
+});
+
+test('cancelling automatic waiting preserves photo and makes no further request', async () => {
+  const env = setup({ sequence: [busy] });
+  env.context.waitForPhotoCapacity = async () => env.fields['cancel-photo-wait'].events.click();
+  await env.context.salvarFoto();
+  assert.equal(env.requests(), 1);
+  assert.ok(env.storage.has('rascunho-foto-v1'));
+  assert.match(env.fields['foto-status'].textContent, /Espera cancelada/);
+  assert.equal(env.fields['salvar-foto'].disabled, false);
+});
+
+test('three simultaneous evaluators recover from temporary capacity rejections', async () => {
+  let active = false;
+  let rejections = 0;
+  const evaluators = Array.from({ length: 3 }, () => setup());
+  for (const env of evaluators) {
+    env.context.waitForPhotoCapacity = async () => new Promise(resolve => setImmediate(resolve));
+    env.context.window.portuguesSession.request = async () => {
+      if (active) {
+        rejections++;
+        return { status: 429, ok: false, text: async () => JSON.stringify(busy) };
+      }
+      active = true;
+      await new Promise(resolve => setImmediate(resolve));
+      active = false;
+      return { status: 200, ok: true, text: async () => JSON.stringify({ resultado: 'Nota: 760', salvo: true }) };
+    };
+  }
+  await Promise.all(evaluators.map(env => env.context.salvarFoto()));
+  assert.ok(rejections >= 2);
+  evaluators.forEach(env => {
+    assert.equal(env.storage.get('resultado'), 'Nota: 760');
+    assert.equal(env.context.window.location.href, '/resultado');
+  });
 });
