@@ -2,6 +2,9 @@ const video = document.getElementById('camera');
 const canvas = document.getElementById('snapshot');
 const ctx = canvas.getContext('2d');
 let cameraStream = null;
+let flashSupported = false;
+let flashEnabled = false;
+let flashBusy = false;
 let sendingPhoto = false;
 let retryTimer;
 const PHOTO_DRAFT_KEY = 'rascunho-foto-v1';
@@ -29,6 +32,7 @@ function updateRetryButton() {
     : 'Enviar e corrigir';
   clearTimeout(retryTimer);
   if (seconds > 0) retryTimer = setTimeout(updateRetryButton, 1000);
+  updateFlashButton();
 }
 
 // Mantem a orientacao natural da camera. A pre-visualizacao tambem nao e
@@ -52,6 +56,7 @@ async function sair(event) {
 window.sair = sair;
 document.getElementById('reset-photo')?.addEventListener('click', resetPhoto);
 document.getElementById('take-photo')?.addEventListener('click', takePhoto);
+document.getElementById('toggle-flash')?.addEventListener('click', toggleFlash);
 document.getElementById('salvar-foto')?.addEventListener('click', salvarFoto);
 document.getElementById('back-to-editor')?.addEventListener('click', () => { window.location.href = "/nova"; });
 
@@ -67,9 +72,63 @@ function setPhotoStatus(message) {
   if (status) status.textContent = message;
 }
 
+function updateFlashButton() {
+  const button = document.getElementById('toggle-flash');
+  if (!button) return;
+  button.disabled = !cameraStream || !flashSupported || flashBusy || sendingPhoto;
+  button.setAttribute('aria-pressed', String(flashEnabled));
+  button.setAttribute('aria-busy', String(flashBusy));
+  button.textContent = flashBusy ? 'Ajustando flash...' : flashEnabled ? '⚡ Desativar flash' : '⚡ Ativar flash';
+}
+
+function setFlashStatus(message) {
+  const status = document.getElementById('flash-status');
+  if (status) status.textContent = message;
+}
+
+function configureFlash() {
+  const track = cameraStream?.getVideoTracks?.()[0];
+  try {
+    const torch = track?.getCapabilities?.().torch;
+    flashSupported = typeof track?.applyConstraints === 'function'
+      && (torch === true || (Array.isArray(torch) && torch.includes(true)));
+    flashEnabled = flashSupported && track.getSettings?.().torch === true;
+  } catch { flashSupported = false; flashEnabled = false; }
+  updateFlashButton();
+  setFlashStatus(flashSupported ? 'Ligue a lanterna para iluminar o papel antes de tirar a foto.'
+    : 'Esta câmera ou navegador não permite controlar o flash. Use uma boa iluminação ou a câmera do celular e selecione a foto.');
+}
+
+async function toggleFlash() {
+  if (!cameraStream || !flashSupported || flashBusy || sendingPhoto) return;
+  const stream = cameraStream;
+  const track = stream.getVideoTracks()[0];
+  const requested = !flashEnabled;
+  flashBusy = true;
+  updateFlashButton();
+  try {
+    await track.applyConstraints({ ...track.getConstraints?.(), advanced: [{ torch: requested }] });
+    if (cameraStream !== stream) return;
+    const actual = track.getSettings?.().torch;
+    flashEnabled = typeof actual === 'boolean' ? actual : requested;
+    setFlashStatus(flashEnabled === requested
+      ? flashEnabled ? 'Flash ligado. A luz permanece acesa até tirar a foto ou desligar.' : 'Flash desligado.'
+      : 'A câmera não aplicou a mudança do flash. Tente novamente ou use outra iluminação.');
+  } catch {
+    if (cameraStream === stream) setFlashStatus('Não foi possível alterar o flash. A câmera continua disponível; tente novamente ou use outra iluminação.');
+  } finally {
+    if (cameraStream === stream) { flashBusy = false; updateFlashButton(); }
+  }
+}
+
 function stopCamera() {
   cameraStream?.getTracks().forEach((track) => track.stop());
   cameraStream = null;
+  flashSupported = false;
+  flashEnabled = false;
+  flashBusy = false;
+  updateFlashButton();
+  setFlashStatus('Flash desligado. Ative a câmera para verificar a disponibilidade.');
   video.srcObject = null;
   setCameraIndicator('Câmera pausada');
 }
@@ -118,6 +177,7 @@ async function initCamera() {
   }
   setPhotoStatus('Câmera pronta. Posicione a redação e tire a foto.');
   setCameraIndicator('Câmera ativa', true);
+  configureFlash();
 }
 
 function takePhoto() {
@@ -130,6 +190,7 @@ function takePhoto() {
   drawPortraitImage(video, video.videoWidth, video.videoHeight);
   canvas.style.display = 'block';
   video.style.display = 'none';
+  stopCamera();
   setPhotoStatus('Foto pronta para envio.');
   setCameraIndicator('Foto capturada');
   preservePhoto();
