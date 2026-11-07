@@ -153,6 +153,19 @@ async function analyzePhoto({ image, apiKey, model = 'qwen/qwen3.8-27b', tema = 
     console.warn('Falha no provedor de fotos:', response.status, data.error?.code || 'sem código');
     const error = new Error('O serviço de leitura de fotos está indisponível. Tente novamente.');
     error.status = response.status === 429 ? 429 : 502;
+    if ([500, 502, 503, 504].includes(response.status)) {
+      error.status = 503;
+      error.code = 'PHOTO_PROVIDER_UNAVAILABLE';
+      const wait = Number(response.headers?.get('retry-after'));
+      error.retryAfterSeconds = Number.isFinite(wait) && wait > 0 ? Math.ceil(wait) : 15;
+      error.message = 'O serviço de leitura está temporariamente indisponível. Sua foto foi mantida e o envio poderá ser repetido automaticamente.';
+    } else if ([401, 403].includes(response.status)) {
+      error.code = 'PHOTO_PROVIDER_AUTH';
+      error.message = 'O site não conseguiu autorização no serviço de leitura. O responsável precisa revisar a chave e as permissões da IA na Vercel.';
+    } else if (response.status === 404) {
+      error.code = 'PHOTO_PROVIDER_MODEL';
+      error.message = 'O modelo de leitura configurado no site não está disponível. O responsável precisa revisar a configuração da IA na Vercel.';
+    }
     if (response.status === 400 && /image/i.test(data.error?.message || '')) {
       error.status = 400;
       error.message = 'O serviço não conseguiu abrir esta imagem. Selecione outra foto JPG, PNG ou WEBP ou tire uma nova foto.';
@@ -164,7 +177,9 @@ async function analyzePhoto({ image, apiKey, model = 'qwen/qwen3.8-27b', tema = 
       if (quota.category === 'request_too_large') {
         error.status = 503;
         error.code = 'PHOTO_REQUEST_TOO_LARGE';
-        error.message = 'O pedido de leitura excede a capacidade por minuto disponível no serviço de IA do site. Aguardar um minuto pode não resolver; o responsável precisa revisar a capacidade contratada. Sua foto foi mantida.';
+        error.message = quota.dimension === 'output_per_minute'
+          ? 'A capacidade de geração de respostas contratada para a leitura não comporta esta avaliação completa. Aguardar um minuto pode não resolver; o responsável precisa ampliar esse limite na Groq. Sua foto foi mantida.'
+          : 'O pedido de leitura excede a capacidade por minuto disponível no serviço de IA do site. Aguardar um minuto pode não resolver; o responsável precisa revisar a capacidade contratada. Sua foto foi mantida.';
         throw error;
       }
       error.retryAfterSeconds = require('./text-evaluation').retrySeconds(response, data);

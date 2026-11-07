@@ -140,6 +140,20 @@ test('photo rejects provider image errors without retrying or claiming an outage
   assert.equal(calls, 1);
 });
 
+test('provider 503 is identified as transient and permits browser retry', async () => {
+  await assert.rejects(analyzePhoto({ image, apiKey: 'test-key', fetchImpl: async () => ({
+    ok: false, status: 503, json: async () => ({ error: { message: 'Service unavailable' } })
+  }) }), error => error.status === 503 && error.code === 'PHOTO_PROVIDER_UNAVAILABLE' && error.retryAfterSeconds === 15);
+});
+
+test('output quota too small is distinguished without truncating the correction', async () => {
+  await assert.rejects(analyzePhoto({ image, apiKey: 'test-key', fetchImpl: async () => ({
+    ok: false, status: 429, json: async () => ({ error: {
+      message: 'Request too large on output tokens per minute (OTPM): Limit 1000, Requested 1065'
+    } })
+  }) }), error => error.code === 'PHOTO_REQUEST_TOO_LARGE' && !error.retryAfterSeconds && /geração de respostas/.test(error.message));
+});
+
 test("photo endpoint saves the image, transcript and correction before returning success", async (t) => {
   let savedRecord, uploaded = false;
   const app = express();

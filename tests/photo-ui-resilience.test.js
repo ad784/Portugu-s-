@@ -132,3 +132,20 @@ test('three simultaneous evaluators recover from temporary capacity rejections',
     assert.equal(env.context.window.location.href, '/resultado');
   });
 });
+
+test('provider 503 recovers automatically but configuration failures are never repeated', async () => {
+  const env = setup({ sequence: [
+    { status: 503, codigo: 'PHOTO_PROVIDER_UNAVAILABLE', retryAfterSeconds: 15 },
+    { status: 200, resultado: 'Nota: 760', salvo: true }
+  ] });
+  env.context.waitForPhotoCapacity = async () => {};
+  await env.context.salvarFoto();
+  assert.equal(env.requests(), 2);
+  assert.equal(env.storage.get('resultado'), 'Nota: 760');
+  for (const codigo of ['PHOTO_PROVIDER_AUTH', 'PHOTO_PROVIDER_MODEL']) {
+    const broken = setup({ sequence: [{ status: 503, codigo }] });
+    broken.context.waitForPhotoCapacity = async () => assert.fail('configuration failure must not be retried');
+    await broken.context.salvarFoto();
+    assert.equal(broken.requests(), 1);
+  }
+});
