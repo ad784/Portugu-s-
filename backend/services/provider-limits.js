@@ -16,6 +16,8 @@ function providerLimit(response, data) {
   const tooLarge = /request too large|reduce (?:your )?(?:message|input|requested)|exceeds.*(?:token|limit)/i.test(message)
     || (requested !== null && limit !== null && requested > limit);
   return {
+    dimension: /output tokens per minute|\bOTPM\b/i.test(message) ? 'output_per_minute'
+      : /input tokens per minute|\bITPM\b/i.test(message) ? 'input_per_minute' : 'other',
     category: tooLarge ? 'request_too_large' : /tokens per day|requests per day|\bTPD\b|\bRPD\b/i.test(message) ? 'daily' : 'temporary',
     limit, requested, used: value('Used'),
     tokensPerMinute: header('x-ratelimit-limit-tokens'),

@@ -210,7 +210,8 @@ async function requestPhotoWithWait(options) {
     let data;
     try { data = body ? JSON.parse(body) : {}; }
     catch { throw new Error('O servidor está indisponível no momento. Tente novamente em instantes.'); }
-    const temporary = response.status === 429 && ['PHOTO_PROVIDER_BUSY', 'CORRECTION_BUSY'].includes(data.codigo);
+    const temporary = (response.status === 429 && ['PHOTO_PROVIDER_BUSY', 'CORRECTION_BUSY'].includes(data.codigo))
+      || (response.status === 503 && data.codigo === 'PHOTO_PROVIDER_UNAVAILABLE');
     const requestedWait = Number(data.retryAfterSeconds);
     if (!temporary || attempt === 6 || !Number.isFinite(requestedWait) || requestedWait < 1) return { response, data };
     // A small spread reduces simultaneous resends from different evaluators.
