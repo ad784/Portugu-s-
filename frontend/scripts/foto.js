@@ -2,9 +2,6 @@ const video = document.getElementById('camera');
 const canvas = document.getElementById('snapshot');
 const ctx = canvas.getContext('2d');
 let cameraStream = null;
-let flashSupported = false;
-let flashEnabled = false;
-let flashBusy = false;
 let sendingPhoto = false;
 let retryTimer;
 const PHOTO_DRAFT_KEY = 'rascunho-foto-v1';
@@ -24,7 +21,7 @@ function updateRetryButton() {
   const seconds = Math.max(0, Math.ceil((Number(button.dataset.retryUntil || 0) - Date.now()) / 1000));
   button.disabled = sendingPhoto || seconds > 0;
   button.setAttribute('aria-busy', String(sendingPhoto));
-  for (const id of ['reset-photo', 'take-photo', 'foto-arquivo', 'foto-camera', 'open-native-camera']) {
+  for (const id of ['reset-photo', 'take-photo', 'foto-arquivo']) {
     const control = document.getElementById(id); if (control) control.disabled = sendingPhoto;
   }
   button.textContent = sendingPhoto ? 'Enviando para correção...' : seconds > 0
@@ -32,7 +29,6 @@ function updateRetryButton() {
     : 'Enviar e corrigir';
   clearTimeout(retryTimer);
   if (seconds > 0) retryTimer = setTimeout(updateRetryButton, 1000);
-  updateFlashButton();
 }
 
 // Mantem a orientacao natural da camera. A pre-visualizacao tambem nao e
@@ -56,13 +52,6 @@ async function sair(event) {
 window.sair = sair;
 document.getElementById('reset-photo')?.addEventListener('click', resetPhoto);
 document.getElementById('take-photo')?.addEventListener('click', takePhoto);
-document.getElementById('toggle-flash')?.addEventListener('click', toggleFlash);
-document.getElementById('open-native-camera')?.addEventListener('click', () => {
-  if (sendingPhoto) return;
-  stopCamera();
-  setPhotoStatus('Use os controles de flash da câmera do celular. Se cancelar, toque em Refazer foto para reabrir o visor.');
-  document.getElementById('foto-camera')?.click();
-});
 document.getElementById('salvar-foto')?.addEventListener('click', salvarFoto);
 document.getElementById('back-to-editor')?.addEventListener('click', () => { window.location.href = "/nova"; });
 
@@ -78,74 +67,9 @@ function setPhotoStatus(message) {
   if (status) status.textContent = message;
 }
 
-function updateFlashButton() {
-  const button = document.getElementById('toggle-flash');
-  if (!button) return;
-  button.disabled = !cameraStream || !flashSupported || flashBusy || sendingPhoto;
-  button.setAttribute('aria-pressed', String(flashEnabled));
-  button.setAttribute('aria-busy', String(flashBusy));
-  button.textContent = flashBusy ? 'Ajustando flash...' : cameraStream && !flashSupported ? 'Flash indisponível neste navegador' : flashEnabled ? '⚡ Desativar flash' : '⚡ Ativar flash';
-}
-
-function setFlashStatus(message) {
-  const status = document.getElementById('flash-status');
-  if (status) status.textContent = message;
-}
-
-function configureFlash() {
-  const track = cameraStream?.getVideoTracks?.()[0];
-  try {
-    const torch = track?.getCapabilities?.().torch;
-    flashSupported = typeof track?.applyConstraints === 'function'
-      && (torch === true || (Array.isArray(torch) && torch.includes(true)));
-    flashEnabled = flashSupported && track.getSettings?.().torch === true;
-  } catch { flashSupported = false; flashEnabled = false; }
-  updateFlashButton();
-  setFlashStatus(flashSupported ? 'Ligue a lanterna para iluminar o papel antes de tirar a foto.'
-    : 'Esta câmera ou navegador não permite controlar o flash. Toque em Abrir câmera do celular para usar os controles de flash do próprio aparelho.');
-}
-
-async function toggleFlash() {
-  if (!cameraStream || !flashSupported || flashBusy || sendingPhoto) return;
-  const stream = cameraStream;
-  const track = stream.getVideoTracks()[0];
-  const requested = !flashEnabled;
-  flashBusy = true;
-  updateFlashButton();
-  try {
-    const base = { ...track.getConstraints?.() };
-    // Some mobile implementations accept the basic constraint, others advanced.
-    // Confirm settings and try the alternative instead of assuming success.
-    let firstError;
-    try { await track.applyConstraints({ ...base, torch: requested, advanced: [{ torch: requested }] }); }
-    catch (error) { firstError = error; }
-    if (cameraStream !== stream) return;
-    if (firstError || track.getSettings?.().torch !== requested) {
-      const { advanced, torch, ...other } = base;
-      await track.applyConstraints({ ...other, torch: { exact: requested } });
-    }
-    if (cameraStream !== stream) return;
-    const actual = track.getSettings?.().torch;
-    flashEnabled = typeof actual === 'boolean' ? actual : requested;
-    setFlashStatus(flashEnabled === requested
-      ? typeof actual !== 'boolean' ? 'O comando foi enviado, mas o navegador não confirma a luz. Se ela não acender, use Abrir câmera do celular.'
-        : flashEnabled ? 'Flash ligado. A luz permanece acesa até tirar a foto ou desligar.' : 'Flash desligado.'
-      : 'A câmera não aplicou a mudança do flash. Use Abrir câmera do celular para controlar o flash pelo aparelho.');
-  } catch {
-    if (cameraStream === stream) setFlashStatus('Não foi possível alterar o flash. A câmera continua disponível; tente novamente ou use outra iluminação.');
-  } finally {
-    if (cameraStream === stream) { flashBusy = false; updateFlashButton(); }
-  }
-}
-
 function stopCamera() {
   cameraStream?.getTracks().forEach((track) => track.stop());
   cameraStream = null;
-  flashSupported = false;
-  flashEnabled = false;
-  flashBusy = false;
-  updateFlashButton();
-  setFlashStatus('Flash desligado. Ative a câmera para verificar a disponibilidade.');
   video.srcObject = null;
   setCameraIndicator('Câmera pausada');
 }
@@ -201,7 +125,6 @@ async function initCamera() {
   }
   setPhotoStatus('Câmera pronta. Posicione a redação e tire a foto.');
   setCameraIndicator('Câmera ativa', true);
-  configureFlash();
 }
 
 function takePhoto() {
@@ -317,10 +240,6 @@ async function salvarFoto() {
 window.addEventListener('pagehide', () => { stopCamera(); clearTimeout(retryTimer); });
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('foto-arquivo')?.addEventListener('change', (event) => loadPhoto(event.target.files?.[0]));
-  document.getElementById('foto-camera')?.addEventListener('change', (event) => {
-    loadPhoto(event.target.files?.[0]);
-    event.target.value = '';
-  });
   const saved = window.userStorage.getItem(PHOTO_DRAFT_KEY);
   if (saved) {
     const image = new Image();

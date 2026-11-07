@@ -480,10 +480,6 @@ pre {
 .camera-viewfinder canvas { position: relative; z-index: 2; }
 .viewfinder-guide { position: absolute; z-index: 1; width: 79%; height: 76%; border: 2px solid rgba(255,255,255,0.78); border-radius: 10px; box-shadow: 0 0 0 999px rgba(15,44,76,0.14); pointer-events: none; }
 .camera-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 13px; margin-top: 18px; }
-.flash-action[aria-pressed="true"] { background: #fff1bf; border-color: #ba850a; color: #654600; }
-.flash-action:disabled { opacity: .6; cursor: not-allowed; }
-.flash-status { margin: 10px 0; color: var(--muted, #52746b); font-size: 13px; line-height: 1.5; }
-.native-camera-action { width: 100%; margin: 10px 0; }
 .camera-actions button { width: auto; margin: 0; }
 .capture-action { min-width: 145px; }
 .file-photo-action { display: block; width: fit-content; margin: 14px auto 0; color: #3d6d99; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }

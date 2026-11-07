@@ -74,16 +74,6 @@ export default function PhotoPage() {
               <div className="viewfinder-guide" aria-hidden="true"></div>
             </div>{" "}
             <div className="camera-actions">
-              <button
-                id="toggle-flash"
-                className="photo-action flash-action"
-                type="button"
-                aria-pressed="false"
-                aria-describedby="flash-status"
-                disabled
-              >
-                {"⚡ Ativar flash"}
-              </button>
               <button id="reset-photo" className="photo-action" type="button">
                 {"↻ Refazer foto"}
               </button>
@@ -95,14 +85,6 @@ export default function PhotoPage() {
                 {"📷 Tirar foto"}
               </button>
             </div>{" "}
-            <p id="flash-status" className="flash-status" role="status" aria-live="polite">
-              O flash fica disponível quando a câmera e o navegador permitem controlar a lanterna.
-            </p>
-            <button id="open-native-camera" className="photo-action native-camera-action" type="button">
-              📱 Abrir câmera do celular
-            </button>
-            <p className="flash-status">Prefere a câmera do aparelho? Abra por aqui e escolha o flash nos controles dela.</p>
-            <input id="foto-camera" className="file-photo-input" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" />
             <label className="file-photo-action" htmlFor="foto-arquivo">
               {"ou selecione uma foto do dispositivo"}
             </label>{" "}
