@@ -13,7 +13,7 @@ export default function SignupPage() {
         {" "}
         <a
           className="brand"
-          href="/index.html"
+          href="/"
           aria-label="Página inicial do Português+"
         >
           {" "}
@@ -29,8 +29,8 @@ export default function SignupPage() {
         </a>{" "}
         <nav className="site-nav" aria-label="Navegação principal">
           {" "}
-          <a href="/index.html">{"Entrar"}</a>{" "}
-          <a href="#cadastro" className="nav-cta">
+          <a href="/">{"Entrar"}</a>{" "}
+          <a href="#signup-form" className="nav-cta">
             {"Criar conta"}
           </a>{" "}
         </nav>{" "}
@@ -67,9 +67,8 @@ export default function SignupPage() {
             </div>{" "}
           </div>{" "}
         </section>{" "}
-        <section
-          className="auth-card"
-          id="cadastro"
+        <form data-auth-form="signup-form" className="auth-card"
+          id="signup-form"
           aria-labelledby="cadastro-title"
         >
           {" "}
@@ -104,7 +103,11 @@ export default function SignupPage() {
             autoComplete="new-password"
           />{" "}
           <label className="consent-field">
-            <input type="checkbox" id="consentimento" />
+            <input type="checkbox" id="termos" required />
+            <span>Li e aceito os <a href="/termos" target="_blank" rel="noopener noreferrer">Termos de uso</a> e li a <a href="/privacidade" target="_blank" rel="noopener noreferrer">Política de privacidade</a>.</span>
+          </label>
+          <label className="consent-field">
+            <input type="checkbox" id="consentimento" required />
             <span>
               {
                 "Concordo com o uso das redações e fotos para gerar a correção por IA."
@@ -117,19 +120,19 @@ export default function SignupPage() {
             role="status"
             aria-live="polite"
           ></p>{" "}
-          <button id="signup-button" className="primary-action" type="button">
+          <button id="signup-button" className="primary-action" type="submit">
             {"Criar minha conta "}
             <span>{"→"}</span>
           </button>{" "}
           <p className="form-footer">
             {"Ao criar a conta, você confirma a leitura da "}
-            <a href="/privacidade.html">{"política de privacidade"}</a>
+            <a href="/privacidade">{"política de privacidade"}</a>
             {"."}
             <br />
             {"Já possui uma conta? "}
-            <a href="/index.html">{"Fazer login"}</a>
+            <a href="/">{"Fazer login"}</a>
           </p>{" "}
-        </section>{" "}
+        </form>{" "}
       </main>{" "}
       <footer className="site-footer">
         {"© 2026 Português+ · Sua prática, seu progresso."}

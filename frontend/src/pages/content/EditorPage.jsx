@@ -13,7 +13,7 @@ export default function EditorPage() {
         {" "}
         <a
           className="brand"
-          href="/nova.html"
+          href="/nova"
           aria-label="Página inicial do Português+"
         >
           {" "}
@@ -29,12 +29,12 @@ export default function EditorPage() {
         </a>{" "}
         <nav className="site-nav" aria-label="Navegação principal">
           {" "}
-          <a href="/perfil.html">{"Meu perfil"}</a>{" "}
-          <a href="/historico.html">{"Minhas redações"}</a>{" "}
-          <a href="/evolucao.html">{"Minha evolução"}</a>{" "}
-          <a href="/exemplos.html">{"Exemplos de notas"}</a>{" "}
+          <a href="/perfil">{"Meu perfil"}</a>{" "}
+          <a href="/historico">{"Minhas redações"}</a>{" "}
+          <a href="/evolucao">{"Minha evolução"}</a>{" "}
+          <a href="/exemplos">{"Exemplos de notas"}</a>{" "}
           <a href="#dicas">{"Textos de apoio"}</a>{" "}
-          <a href="/index.html" className="nav-cta">
+          <a href="/" data-action="signout" className="nav-cta">
             {"Sair"}
           </a>{" "}
         </nav>{" "}
@@ -293,6 +293,7 @@ export default function EditorPage() {
             </label>{" "}
             <textarea
               id="redacao"
+              maxLength={12000}
               lang="pt-BR"
               spellCheck="true"
               placeholder="Comece a escrever sua redação aqui..."
@@ -301,7 +302,7 @@ export default function EditorPage() {
               {" "}
               <span id="contador-palavras">{"0 palavras"}</span>{" "}
               <span id="contador-linhas" className="line-target">
-                {"0/8 linhas mínimas para correção"}
+                {"0/8 linhas de referência mínimas para correção"}
               </span>{" "}
             </div>{" "}
             <div className="editor-actions">
@@ -368,6 +369,7 @@ export default function EditorPage() {
               id="editor-message"
               className="form-message"
               role="status"
+              aria-live="polite"
             ></p>{" "}
           </aside>{" "}
         </div>{" "}

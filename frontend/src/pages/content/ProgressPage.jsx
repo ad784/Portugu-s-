@@ -13,7 +13,7 @@ export default function ProgressPage() {
         {" "}
         <a
           className="brand"
-          href="/nova.html"
+          href="/nova"
           aria-label="Página inicial do Português+"
         >
           <img
@@ -28,10 +28,10 @@ export default function ProgressPage() {
         </a>{" "}
         <nav className="site-nav" aria-label="Navegação principal">
           {" "}
-          <a href="/nova.html">{"Nova redação"}</a>
-          <a href="/historico.html">{"Minhas redações"}</a>
-          <a href="/perfil.html">{"Meu perfil"}</a>
-          <a href="/index.html" className="nav-cta">
+          <a href="/nova">{"Nova redação"}</a>
+          <a href="/historico">{"Minhas redações"}</a>
+          <a href="/perfil">{"Meu perfil"}</a>
+          <a href="/" data-action="signout" className="nav-cta">
             {"Sair"}
           </a>{" "}
         </nav>{" "}
@@ -93,10 +93,10 @@ export default function ProgressPage() {
           </p>{" "}
         </section>{" "}
         <section className="progress-actions">
-          <a className="secondary-action" href="/historico.html">
+          <a className="secondary-action" href="/historico">
             {"Ver todas as redações"}
           </a>
-          <a className="primary-action" href="/nova.html">
+          <a className="primary-action" href="/nova">
             {"Escrever nova redação "}
             <span aria-hidden="true">{"→"}</span>
           </a>

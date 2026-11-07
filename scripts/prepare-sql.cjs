@@ -1,0 +1,10 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const folder = path.join(__dirname, '../backend/supabase/migrations');
+const target = path.join(__dirname, '../docs/SUPABASE-NOVO-PROJETO.sql');
+const files = fs.readdirSync(folder).filter(file => file.endsWith('.sql')).sort();
+const output = '-- SOMENTE PARA UM BANCO NOVO. Em banco existente, execute apenas migrations ainda não aplicadas.\nBEGIN;\n' + files.map(file => `\n-- ${file}\n${fs.readFileSync(path.join(folder, file), 'utf8')}\n`).join('') + '\nCOMMIT;\n';
+fs.writeFileSync(target, output);
+const updates = files.filter(file => file >= '20261029120000');
+fs.writeFileSync(path.join(__dirname, '../docs/SUPABASE-ATUALIZACAO.sql'), '-- Para o projeto existente com as migrations anteriores a 29/10/2026 aplicadas.\nBEGIN;\n' + updates.map(file => `\n-- ${file}\n${fs.readFileSync(path.join(folder, file), 'utf8')}\n`).join('') + '\nCOMMIT;\n');
+console.log(`SQL de instalação preparado com ${files.length} migrations, em docs/SUPABASE-NOVO-PROJETO.sql. Nenhuma conexão ou alteração remota foi realizada.`);

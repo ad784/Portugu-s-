@@ -13,7 +13,7 @@ export default function HomePage() {
         {" "}
         <a
           className="brand"
-          href="/index.html"
+          href="/"
           aria-label="Página inicial do Português+"
         >
           {" "}
@@ -29,9 +29,9 @@ export default function HomePage() {
         </a>{" "}
         <nav className="site-nav" aria-label="Navegação principal">
           {" "}
-          <a href="/exemplos.html">{"Exemplos"}</a>{" "}
+          <a href="/exemplos">{"Exemplos"}</a>{" "}
           <a href="#como-funciona">{"Como funciona"}</a>{" "}
-          <a href="/cadastro.html" className="nav-cta">
+          <a href="/cadastro" className="nav-cta">
             {"Criar conta"}
           </a>{" "}
         </nav>{" "}
@@ -67,7 +67,7 @@ export default function HomePage() {
             </div>{" "}
           </div>{" "}
         </section>{" "}
-        <section className="auth-card" aria-labelledby="login-title">
+        <form id="login-form" className="auth-card" aria-labelledby="login-title">
           {" "}
           <div className="form-heading">
             {" "}
@@ -93,17 +93,17 @@ export default function HomePage() {
             autoComplete="current-password"
           />{" "}
           <p id="login-message" className="form-message" role="status"></p>{" "}
-          <button id="login-button" className="primary-action" type="button">
+          <button id="login-button" className="primary-action" type="submit">
             {"Entrar na plataforma "}
             <span>{"→"}</span>
           </button>{" "}
           <p className="form-footer">
-            <a href="/recuperar.html">{"Esqueci minha senha"}</a>
+            <a href="/recuperar">{"Esqueci minha senha"}</a>
             <br />
             {"Ainda não possui conta? "}
-            <a href="/cadastro.html">{"Criar minha conta"}</a>
+            <a href="/cadastro">{"Criar minha conta"}</a>
           </p>{" "}
-        </section>{" "}
+        </form>{" "}
       </main>{" "}
       <section
         className="how-it-works"
@@ -156,7 +156,7 @@ export default function HomePage() {
       </section>{" "}
       <footer className="site-footer">
         {"© 2026 Português+ · "}
-        <a href="/privacidade.html">{"Privacidade"}</a>
+        <a href="/privacidade">{"Privacidade"}</a>
         {" · Sua prática, seu progresso."}
       </footer>{" "}
     </PageFrame>

@@ -1,0 +1,6 @@
+{
+  "charactersPerLine": 80,
+  "minimumLines": 8,
+  "maximumCharacters": 12000,
+  "maximumThemeCharacters": 500
+}

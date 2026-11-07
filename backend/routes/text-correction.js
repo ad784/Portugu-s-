@@ -1,34 +1,16 @@
 const express = require("express");
 const {
   formatarCorrecaoEnem,
-  PROMPT_CORRECAO_ENEM
+  PROMPT_CORRECAO_ENEM,
+  ENEM_RESPONSE_FORMAT
 } = require("../services/essay-storage");
 
 const NOTAS_ENEM = new Set([0, 40, 80, 120, 160, 200]);
-
-function limitarNotaPorEvidencia(competencia, nota, comentario) {
-  const texto = String(comentario || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  if (competencia === 1 && /sem erros|sem desvios|nao ha erros|nao apresenta erros|sem erros ortograficos/.test(texto)
-    && !/exemplo concreto|concordancia|regencia|pontuacao adequada|construcao sintatica/.test(texto)) {
-    return Math.min(nota, 160);
-  }
-  const repertorioInsuficiente = /repertorio.{0,35}limitad|sem repertorio|falta repertorio|nao apresenta.{0,25}repertorio/.test(texto);
-  const argumentacaoGenerica = /superficial|pouco aprofund|argumentos genericos|argumentos simples|argumentos basicos|argumentacao.{0,30}gener|generica|previsiv|sem desenvolvimento/.test(texto);
-  if (competencia === 2 && repertorioInsuficiente && argumentacaoGenerica) return Math.min(nota, 120);
-  if (competencia === 2 && (repertorioInsuficiente || argumentacaoGenerica)) return Math.min(nota, 160);
-  if (competencia === 3 && /gener|basico|simples|listagem|superficial|limitad|falta.{0,40}aprofund|falta.{0,40}justific/.test(texto)
-    && /sem aprofund|falta.{0,40}aprofund|sem justific|falta.{0,40}justific|sem dado|sem exemplo|pouco aprofund|sem desenvolv|nao.{0,20}desenvolv|pouco desenvolv|superficial|sem sustent|falta de evid|nao explica|sem explic|pouca explic/.test(texto)) {
-    return Math.min(nota, 120);
-  }
-  const coesaoLimitada = /conectivos.{0,30}limitad|repertorio.{0,30}(conectivos|coesivos).{0,30}(limitad|pouco diversificad)|pouca variedade|pouco diversificado/.test(texto);
-  const coesaoRepetitiva = /repeti|mecanicamente|conectivos basicos/.test(texto);
-  if (competencia === 4 && (coesaoLimitada || coesaoRepetitiva)) return Math.min(nota, 120);
-  if (competencia === 5 && /falta detalh|sem detalh|pouco detalh|proposta vaga/.test(texto)) {
-    return Math.min(nota, /campanh|conscientiz/.test(texto) ? 80 : 120);
-  }
-  return nota;
+function correctionResponseFormat(model) {
+  return ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b", "meta-models/muse-spark-open"].includes(model)
+    ? ENEM_RESPONSE_FORMAT
+    : { type: "json_object" };
 }
-
 function parseJsonObject(content) {
   const raw = String(content || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
   try { return JSON.parse(raw); } catch {}
@@ -38,11 +20,11 @@ function parseJsonObject(content) {
   try { return JSON.parse(raw.slice(start, end + 1)); } catch { return null; }
 }
 
-function isCompleteCorrection(correcao) {
+function isCompleteCorrection(correcao, texto) {
   if (!correcao || typeof correcao !== "object" || Array.isArray(correcao)) return false;
   const nota = Number(correcao.nota_final ?? correcao.notaFinal);
   const justificativa = String(correcao.justificativa_nota ?? correcao.justificativaNota ?? "").trim();
-  if (!Number.isInteger(nota) || nota < 0 || nota > 1000 || justificativa.length < 40) return false;
+  if (!Number.isInteger(nota) || nota < 0 || nota > 1000 || !justificativa) return false;
   if (!Array.isArray(correcao.competencias) || correcao.competencias.length !== 5) return false;
 
   const numeros = new Set();
@@ -51,7 +33,9 @@ function isCompleteCorrection(correcao) {
     const notaCompetencia = Number(item?.nota ?? item?.score);
     const comentario = String(item?.comentario ?? item?.feedback ?? item?.justificativa ?? "").trim();
     if (competencia < 1 || competencia > 5 || numeros.has(competencia)) return false;
-    if (!NOTAS_ENEM.has(notaCompetencia) || comentario.length < 35) return false;
+    // Completude depende dos dados exibidos. Metadados auxiliares de evidencia
+    // ou tamanho do comentario nao devem descartar uma avaliacao completa.
+    if (!NOTAS_ENEM.has(notaCompetencia) || !comentario) return false;
     numeros.add(competencia);
   }
   return numeros.size === 5;
@@ -81,37 +65,15 @@ function normalizarCorrecao(correcao, texto) {
       : "A resposta da IA nao trouxe justificativa para este criterio; a nota foi mantida em 0.";
     return {
       competencia: numero,
-      nota: limitarNotaPorEvidencia(numero, notaBase, textoComentario),
+      nota: notaBase,
       comentario: textoComentario
     };
   });
 
-  // A nota global vem do avaliador e de sua justificativa; heuristicas simples
-  // de palavras nao devem impor tetos arbitrarios ao resultado.
-  const notaInformada = Number(String(correcao.nota_final ?? correcao.notaFinal ?? "").match(/\d+/)?.[0]);
-  let notaFinal = Number.isFinite(notaInformada)
-    ? Math.max(0, Math.min(1000, Math.floor(notaInformada / 20) * 20))
-    : 0;
-  let justificativaNota = String(correcao.justificativa_nota ?? correcao.justificativaNota ?? "").trim();
-  if (!justificativaNota) {
-    const pontos = competencias
-      .filter((item) => item.comentario && !item.comentario.startsWith("A resposta da IA"))
-      .map((item) => `C${item.competencia}: ${item.comentario}`);
-    justificativaNota = Number.isFinite(notaInformada) && notaInformada >= 0 && notaInformada <= 1000
-      ? `A nota global considera o desenvolvimento da tese, a relação com o tema e a concretude da intervenção. ${pontos.slice(0, 2).join(" ")}`.trim()
-      : "A resposta da avaliação não trouxe uma nota global válida; a redação precisa ser reavaliada.";
-  }
-
-  const limiteCompetencia = notaFinal === 0 ? 0
-    : notaFinal < 200 ? 80
-      : notaFinal < 400 ? 120
-        : notaFinal < 600 ? 160 : 200;
-  for (const item of competencias) {
-    if (item.nota <= limiteCompetencia) continue;
-    item.nota = limiteCompetencia;
-    item.comentario += " Nota ajustada para ficar coerente com a avaliação global.";
-  }
-
+  const notaFinal = competencias.reduce((total, item) => total + item.nota, 0);
+  const justificativaNota = 'Nota global calculada pela soma das cinco competencias: '
+    + competencias.map(item => 'C' + item.competencia + ' = ' + item.nota).join(' + ')
+    + ' = ' + notaFinal + '. Os comentarios abaixo explicam os requisitos atendidos e ausentes.';
   return {
     notaFinal,
     justificativaNota,
@@ -119,146 +81,11 @@ function normalizarCorrecao(correcao, texto) {
     erros: Array.isArray(correcao.erros) ? correcao.erros.filter((item) => typeof item === "string") : [],
     sugestoes: Array.isArray(correcao.sugestoes) ? correcao.sugestoes.filter((item) => typeof item === "string") : []
   };
-}async function requestGroq(apiKey, payload) {
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    let response;
-    try {
-      response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify(payload)
-      });
-    } catch (error) {
-      if (attempt === 2) throw error;
-      await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
-      continue;
-    }
-    let data;
-    try { data = await response.json(); } catch { data = {}; }
-    const retryable = response.status === 429 || response.status >= 500;
-    if (!retryable || attempt === 2) return { response, data };
-
-    const fromMessage = Number(data.error?.message?.match(/try again in ([\d.]+)s/i)?.[1]);
-    const fromHeader = Number(response.headers.get("retry-after"));
-    const seconds = Number.isFinite(fromHeader) && fromHeader > 0
-      ? fromHeader
-      : Number.isFinite(fromMessage) && fromMessage > 0 ? fromMessage : 5;
-    await new Promise((resolve) => setTimeout(resolve, Math.min(30_000, Math.ceil(seconds * 1000) + 250)));
-  }
-}
-
-async function respondWithResult(req, res, saveCorrection, { texto, resultado, linhas, tema }) {
-  const persistencia = await saveCorrection(req, {
-    conteudo: texto,
-    resultado,
-    tipo: "texto",
-    linhas,
-    tema
-  });
-  return res.json({ resultado, salvo: persistencia.ok, aviso: persistencia.ok ? null : persistencia.erro });
-}
-
-function createTextCorrectionRouter({ requireSupabaseUser, saveCorrection, apiKey, model }) {
+}function createTextCorrectionRouter({ requireSupabaseUser, saveCorrection, apiKey, model }) {
   const router = express.Router();
-
-  router.post(["/api/corrigir", "/corrigir"], requireSupabaseUser, async (req, res) => {
-    const { texto, linhasVisuais, tema } = req.body || {};
-    if (typeof texto !== "string" || !texto.trim()) {
-      return res.status(400).json({ erro: "Texto não enviado." });
-    }
-
-    const linhasPreenchidas = Number.isInteger(linhasVisuais) && linhasVisuais >= 0
-      ? linhasVisuais
-      : texto.split(/\r?\n/).filter((linha) => linha.trim()).length;
-
-    if (linhasPreenchidas < 8) {
-      return res.status(400).json({
-        erro: "Sua redação precisa ter pelo menos 8 linhas para ser enviada à correção."
-      });
-    }
-
-    if (!apiKey) {
-      return res.status(503).json({
-        erro: "A correção por IA ainda não está configurada. Defina GROQ_API_KEY no servidor e tente novamente."
-      });
-    }
-
-    try {
-      const payload = {
-          model: model || "openai/gpt-oss-120b",
-          temperature: 0,
-          seed: 42,
-          max_tokens: 3200,
-          messages: [
-            {
-              role: "system",
-              content: `${PROMPT_CORRECAO_ENEM}\n\nResponda com um unico objeto JSON valido, sem markdown. Primeiro leia o texto inteiro e decida a nota_final sem pontuar, somar ou consultar os valores de C1-C5; somente depois avalie as competencias. A nota_final e uma avaliacao global holistica independente: NAO some, nao tire media e nao derive a nota dos pontos de C1-C5. Calibre-a pelo desenvolvimento real das ideias no texto. Uma redacao compreensivel e organizada, mas com argumentos basicos/pouco explicados e proposta incompleta, deve ficar aproximadamente entre 440 e 560, mesmo que C1 seja alta; nao atribua 600 ou mais apenas por ortografia correta, paragrafos ou atendimento ao tema. Reserve 620+ para texto que demonstre desenvolvimento consistente de varias ideias e proposta concreta, e notas acima de 800 para desempenho forte em todo o texto. Antes de finalizar, confira se a justificativa global explica a nota usando pelo menos duas evidencias identificaveis e se nao contradiz a faixa escolhida. Em cada comentario de competencia, cite uma frase curta ou retome uma ideia, construcao, conectivo ou elemento da proposta que realmente aparece no texto; diga como isso atende ou falha no criterio. Em C1, nao escreva apenas 'sem erros': identifique um exemplo observavel de dominio formal ou cite o desvio real e sua correcao. Nunca invente dado, erro, trecho, argumento ou elemento da proposta. Seja criterioso, consistente e especifico.`
-            },
-            {
-              role: "user",
-              content: `Tema da proposta: ${tema?.trim() || "Não informado. Avalie a competência 2 apenas pelo que puder ser confirmado no texto."}\nLinhas visuais informadas pelo editor: ${linhasPreenchidas}.\n\nRedacao para avaliar:\n---\n${texto}\n---`
-            }
-          ]
-      };
-
-      let correcao;
-      let ultimoErroAvaliacao;
-      for (let tentativa = 0; tentativa < 2; tentativa += 1) {
-        let resultadoGroq;
-        try {
-          resultadoGroq = await requestGroq(apiKey, payload);
-        } catch (erro) {
-          ultimoErroAvaliacao = erro.message || "Falha de conexão com a Groq";
-          console.error("Falha temporaria ao chamar a Groq:", ultimoErroAvaliacao);
-          if (tentativa === 0) {
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            continue;
-          }
-          break;
-        }
-
-        const { response: resposta, data: dados } = resultadoGroq;
-        const conteudo = dados.choices?.[0]?.message?.content;
-        if (resposta.ok && conteudo) {
-          const candidata = parseJsonObject(conteudo);
-          if (isCompleteCorrection(candidata)) {
-            correcao = candidata;
-            break;
-          }
-          ultimoErroAvaliacao = "Resposta incompleta ou fora do formato esperado";
-        } else {
-          ultimoErroAvaliacao = dados.error?.message || `Groq HTTP ${resposta.status}`;
-          console.error("Erro na chamada da Groq:", dados.error?.code || resposta.status, ultimoErroAvaliacao);
-          if (resposta.status < 500 && resposta.status !== 408) {
-            return res.status(502).json({ erro: "O serviço de correção recusou a avaliação. Tente novamente em instantes." });
-          }
-        }
-
-        if (tentativa === 0) await new Promise((resolve) => setTimeout(resolve, 400));
-      }
-      if (!correcao) {
-        console.error("A Groq não retornou uma correção completa após nova tentativa:", ultimoErroAvaliacao);
-        return res.status(502).json({ erro: "A correção demorou ou veio incompleta. Tentamos novamente automaticamente; tente outra vez em instantes." });
-      }
-
-      const correcaoFinal = normalizarCorrecao(
-        correcao,
-        texto
-      );
-      const resultado = formatarCorrecaoEnem(correcaoFinal, texto);
-      return respondWithResult(req, res, saveCorrection, {
-        texto,
-        resultado,
-        linhas: linhasPreenchidas,
-        tema
-      });
-    } catch (error) {
-      console.error("Erro ao corrigir redação:", error);
-      res.status(500).json({ erro: "Não foi possível corrigir a redação. Tente novamente." });
-    }
-  });
-
+  const { createTextHandler } = require('../services/text-evaluation');
+  router.post(['/api/corrigir', '/corrigir'], requireSupabaseUser, createTextHandler({ saveCorrection, apiKey, model, parseJsonObject, isCompleteCorrection, normalizarCorrecao, correctionResponseFormat }));
   return router;
 }
 
-module.exports = { createTextCorrectionRouter };
+module.exports = { createTextCorrectionRouter, normalizarCorrecao, correctionResponseFormat };

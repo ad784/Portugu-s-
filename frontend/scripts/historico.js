@@ -1,11 +1,16 @@
 async function sair(event) {
   event?.preventDefault();
-  try { await window.supabaseClient?.auth.signOut({ scope: 'local' }); }
-  finally { window.location.href = '/index.html'; }
+  return window.portuguesSession.signOut();
 }
 
 function formatDate(value) {
+  if (!Number.isFinite(Date.parse(value))) return 'Data indisponível';
   return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+}
+function mergeHistory(remote, local) {
+  const ids = new Set(remote.map(item => item.id));
+  const hashes = new Set(remote.map(item => item.avaliacao_hash || item.hash).filter(Boolean));
+  return [...remote, ...local.filter(item => !ids.has(item.id) && (!item.hash || !hashes.has(item.hash)))];
 }
 
 function extractPreview(resultado) {
@@ -14,7 +19,7 @@ function extractPreview(resultado) {
 }
 
 function getLocalHistory() {
-  try { return JSON.parse(localStorage.getItem('historico-redacoes-local') || '[]'); }
+  try { return JSON.parse(window.userStorage.getItem('historico-redacoes-local') || '[]'); }
   catch { return []; }
 }
 
@@ -24,7 +29,7 @@ function renderHistory(redacoes) {
   list.replaceChildren();
   summary.replaceChildren();
   if (!redacoes.length) {
-    list.innerHTML = '<div class="history-empty"><h2>Você ainda não possui redações salvas.</h2><p>Quando uma redação for corrigida com sua conta, ela aparecerá aqui.</p><a href="/nova.html" class="primary-action">Escrever minha primeira redação <span>→</span></a></div>';
+    list.innerHTML = '<div class="history-empty"><h2>Você ainda não possui redações salvas.</h2><p>Quando uma redação for corrigida com sua conta, ela aparecerá aqui.</p><a href="/nova" class="primary-action">Escrever minha primeira redação <span>→</span></a></div>';
     return;
   }
   const notas = redacoes.map(item => item.nota).filter(Number.isFinite);
@@ -59,25 +64,43 @@ function renderHistory(redacoes) {
     view.className = 'history-view';
     view.textContent = 'Ver correção';
     article.append(score, content, view);
-    view.addEventListener('click', () => { localStorage.setItem('resultado', item.resultado); window.location.href = '/resultado.html'; });
+    view.addEventListener('click', () => { window.userStorage.setItem('resultado', item.resultado); window.userStorage.removeItem('resultado-aviso'); if (!window.portuguesSession.presentResult?.(item.resultado)) window.location.href = "/resultado"; });
     list.append(article);
   });
 }
 
 async function loadHistory() {
   try {
-    const { data: { session } } = await window.supabaseClient.auth.getSession();
-    if (!session) { window.location.href = '/index.html'; return; }
-    const response = await fetch('/api/redacoes', { headers: { Authorization: `Bearer ${session.access_token}` } });
+    await window.portuguesSession.syncPending();
+    const response = await window.portuguesSession.request('/api/redacoes');
     const data = await response.json();
     if (!response.ok) throw new Error(data.erro || 'Não foi possível carregar o histórico.');
     const remoteHistory = data.redacoes || [];
     const localHistory = getLocalHistory();
-    const ids = new Set(remoteHistory.map(item => item.id));
-    renderHistory([...remoteHistory, ...localHistory.filter(item => !ids.has(item.id))]);
+    renderHistory(mergeHistory(remoteHistory, localHistory));
+    if (data.hasMore) {
+      let page = 0; const records = [...remoteHistory];
+      const more = document.createElement('button'); more.className = 'primary-action'; more.textContent = 'Carregar mais redações';
+      more.addEventListener('click', async () => {
+        more.disabled = true;
+        try {
+          const response = await window.portuguesSession.request('/api/redacoes?page=' + (page + 1));
+          const next = await response.json(); if (!response.ok) throw Error(next.erro);
+          records.push(...next.redacoes); page++;
+          renderHistory(mergeHistory(records, getLocalHistory())); if (next.hasMore) document.getElementById('history-list').append(more);
+        } catch { more.textContent = 'Não foi possível carregar. Tentar novamente'; }
+        finally { more.disabled = false; }
+      });
+      document.getElementById('history-list').append(more);
+    }
   } catch (error) {
     const localHistory = getLocalHistory();
-    if (localHistory.length) renderHistory(localHistory);
+    if (localHistory.length) {
+      renderHistory(localHistory);
+      const notice = document.createElement('p'); notice.className = 'form-message error'; notice.setAttribute('role', 'status');
+      notice.textContent = 'Não foi possível atualizar a conta. Mostrando somente as avaliações pendentes deste dispositivo.';
+      document.getElementById('history-list').prepend(notice);
+    }
     else {
       const empty = document.createElement('div');
       empty.className = 'history-empty';
@@ -88,6 +111,9 @@ async function loadHistory() {
       empty.append(title, message);
       document.getElementById('history-list').replaceChildren(empty);
     }
+    const retry = document.createElement('button'); retry.type = 'button'; retry.className = 'secondary-action'; retry.textContent = 'Tentar carregar novamente';
+    retry.addEventListener('click', async () => { retry.disabled = true; retry.textContent = 'Carregando...'; await loadHistory(); });
+    document.getElementById('history-list').append(retry);
   }
 }
 

@@ -13,15 +13,12 @@ function extractScore(resultado) {
 }
 
 function saveLocalHistory({ resultado, tema = "", tipo = "texto" }) {
-  const key = "historico-redacoes-local";
-  let history = [];
-  try { history = JSON.parse(localStorage.getItem(key) || "[]"); } catch { history = []; }
-  history.unshift({ id: `local-${Date.now()}`, tipo, tema, nota: extractScore(resultado), resultado, created_at: new Date().toISOString(), local: true });
-  localStorage.setItem(key, JSON.stringify(history.slice(0, 30)));
+  window.portuguesSession.savePending({ tipo, tema, nota: extractScore(resultado), resultado });
 }
 
 const DRAFT_KEY = "rascunho-redacao-v1";
 let draftSaveTimer;
+let completedDraft = null;
 
 const textosDeApoio = {
   "2025": {
@@ -126,8 +123,9 @@ function salvarRascunho() {
   if (!redacao) return;
   const draft = { texto: redacao.value, tema: document.getElementById("tema-enem")?.value || "" };
   try {
-    if (draft.texto || draft.tema) localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-    else localStorage.removeItem(DRAFT_KEY);
+    if (completedDraft?.texto === draft.texto && completedDraft?.tema === draft.tema) window.userStorage.removeItem(DRAFT_KEY);
+    else if (draft.texto || draft.tema) window.userStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    else window.userStorage.removeItem(DRAFT_KEY);
   } catch (erro) { console.warn("Não foi possível salvar o rascunho neste navegador.", erro); }
 }
 
@@ -140,7 +138,7 @@ function restaurarRascunho() {
   const redacao = document.getElementById("redacao");
   if (!redacao) return;
   try {
-    const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null");
+    const draft = JSON.parse(window.userStorage.getItem(DRAFT_KEY) || "null");
     if (!draft) return;
     redacao.value = typeof draft.texto === "string" ? draft.texto : "";
     const tema = document.getElementById("tema-enem");
@@ -161,20 +159,23 @@ function restaurarRascunho() {
 
 document.addEventListener("DOMContentLoaded", () => {
   restaurarRascunho();
+  if (new URLSearchParams(location.search).get('senha') === 'alterada') showMessage('login-message', 'Senha atualizada. Entre com sua nova senha.', 'success');
+  if (new URLSearchParams(location.search).get('sessao') === 'expirada') showMessage('login-message', 'Sua sessão expirou. Entre na mesma conta para recuperar o rascunho salvo neste dispositivo.');
   document.getElementById("redacao")?.addEventListener("input", () => {
     atualizarContador();
     agendarSalvamentoRascunho();
   });
-  document.getElementById("login-button")?.addEventListener("click", login);
+  document.getElementById("login-form")?.addEventListener("submit", login);
   document.getElementById("correct-essay")?.addEventListener("click", corrigir);
-  document.getElementById("open-photo-editor")?.addEventListener("click", () => { window.location.href = "/foto.html"; });
+  document.getElementById("open-photo-editor")?.addEventListener("click", () => { window.location.href = "/foto"; });
   document.getElementById("write-new-essay")?.addEventListener("click", voltar);
   window.addEventListener("pagehide", salvarRascunho);
   window.addEventListener("resize", atualizarContador);
 });
-async function login() {
+async function login(event) {
+  event?.preventDefault();
   const email = document.getElementById("email").value.trim();
-  const senha = document.getElementById("senha").value.trim();
+  const senha = document.getElementById("senha").value;
 
   if (!email || !senha) {
     showMessage("login-message", "Preencha e-mail e senha para entrar.");
@@ -191,42 +192,43 @@ async function login() {
     return;
   }
 
-  const { error } = await window.supabaseClient.auth.signInWithPassword({ email, password: senha });
-  if (error) {
-    showMessage("login-message", error.message);
-    return;
-  }
-
-  showMessage("login-message", "Login realizado. Abrindo seu editor...", "success");
-  window.location.href = "/nova.html";
+  const button = document.getElementById('login-button');
+  button.disabled = true;
+  try {
+    const { error } = await window.supabaseClient.auth.signInWithPassword({ email, password: senha });
+    if (error) throw error;
+    window.location.href = "/nova";
+  } catch (error) {
+    showMessage('login-message', window.authErrorMessage ? window.authErrorMessage(error) : error.message || 'Não foi possível entrar. Tente novamente.');
+  } finally { button.disabled = false; }
 }
 
 async function sair(event) {
   event?.preventDefault();
-  try {
-    await window.supabaseClient?.auth.signOut({ scope: "local" });
-  } finally {
-    localStorage.removeItem("resultado");
-    window.location.href = "/index.html";
-  }
+  return window.portuguesSession.signOut();
 }
 
 window.sair = sair;
 
 // ENVIAR REDAÇÃO
 let enviandoCorrecao = false;
+let correctionRetryTimer;
+function updateCorrectionButton() {
+  const button = document.querySelector('.correct-action'); if (!button) return;
+  const seconds = Math.max(0, Math.ceil((Number(button.dataset.retryUntil || 0) - Date.now()) / 1000));
+  button.disabled = enviandoCorrecao || seconds > 0;
+  button.setAttribute('aria-busy', String(enviandoCorrecao));
+  if (enviandoCorrecao) button.textContent = 'Corrigindo redação...';
+  else if (seconds > 0) button.textContent = `Aguarde ${seconds >= 60 ? `${Math.ceil(seconds / 60)} min` : `${seconds} s`}`;
+  else button.innerHTML = button.dataset.label || 'Corrigir minha redação <span>→</span>';
+  clearTimeout(correctionRetryTimer);
+  if (seconds > 0) correctionRetryTimer = setTimeout(updateCorrectionButton, 1000);
+}
+window.addEventListener('pagehide', () => clearTimeout(correctionRetryTimer));
 
 async function requisicaoApi(url, options) {
-  let ultimoErro;
-  for (let tentativa = 0; tentativa < 2; tentativa += 1) {
-    try {
-      return await fetch(url, options);
-    } catch (erro) {
-      ultimoErro = erro;
-      if (tentativa === 0) await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-  }
-  throw new Error("Não foi possível conectar ao servidor local. Confirme que http://localhost:3000 está aberto e tente novamente.");
+  try { return await window.portuguesSession.request(url, options); }
+  catch (error) { throw new Error(error.name === 'TimeoutError' ? 'A correção demorou além do esperado. Seu rascunho foi mantido; tente novamente.' : error.message || 'Não foi possível conectar ao serviço. Tente novamente.'); }
 }
 
 async function corrigir() {
@@ -235,6 +237,9 @@ async function corrigir() {
   const linhasVisuais = contarLinhasVisuais();
   const button = document.querySelector(".correct-action");
 
+  if (Number(button?.dataset.retryUntil || 0) > Date.now()) {
+    showMessage('editor-message', 'Aguarde o prazo informado antes de tentar novamente. Seu texto permanece no editor.'); return;
+  }
   if (!texto) {
     showMessage("editor-message", "Digite sua redação antes de corrigir.");
     return;
@@ -246,11 +251,13 @@ async function corrigir() {
   }
 
   if (enviandoCorrecao) return;
+  salvarRascunho();
   enviandoCorrecao = true;
   if (button) {
     button.disabled = true;
     button.dataset.label = button.innerHTML;
-    button.textContent = "Corrigindo redação...";
+    updateCorrectionButton();
+    showMessage('editor-message', 'Analisando sua redação. Isso pode levar até um minuto. Seu texto permanece no editor.', 'info');
   }
 
   try {
@@ -268,29 +275,6 @@ async function corrigir() {
 
     let resposta = await requisicaoApi("/api/corrigir", options);
 
-    // Um access token pode expirar entre a abertura da página e o clique no
-    // botão. Atualizamos a sessão e repetimos uma única vez antes de pedir
-    // que a pessoa entre novamente.
-    if (resposta.status === 401) {
-      const sessaoRenovada = await getSession(true);
-      if (sessaoRenovada) {
-        options.headers.Authorization = `Bearer ${sessaoRenovada.access_token}`;
-        resposta = await requisicaoApi("/api/corrigir", options);
-      }
-    }
-
-    if (resposta.status === 503) {
-      const mensagemTemporaria = await resposta.clone().text().catch(() => "");
-      if (/validar sua sess[aã]o|autenticacao supabase/i.test(mensagemTemporaria)) {
-        await new Promise((resolve) => setTimeout(resolve, 350));
-        const sessaoRenovada = await getSession(true);
-        if (sessaoRenovada) {
-          options.headers.Authorization = `Bearer ${sessaoRenovada.access_token}`;
-          resposta = await requisicaoApi("/api/corrigir", options);
-        }
-      }
-    }
-
     const corpo = await resposta.text();
     let dados;
     try {
@@ -302,32 +286,38 @@ async function corrigir() {
     if (resposta.status === 401) {
       await window.supabaseClient.auth.signOut();
       alert("Sua sessao expirou. Entre novamente para corrigir a redacao.");
-      window.location.href = "/index.html";
+      window.location.href = "/";
       return;
     }
 
+    if (resposta.status === 429 && dados.retryAfterSeconds) {
+      button.dataset.retryUntil = String(Date.now() + dados.retryAfterSeconds * 1000);
+    }
     if (!resposta.ok || !dados.resultado) throw new Error(dados.erro || "Nao foi possivel corrigir a redacao.");
 
-    localStorage.setItem("resultado", dados.resultado);
-    localStorage.removeItem(DRAFT_KEY);
+    window.userStorage.setItem("resultado", dados.resultado);
+    completedDraft = { texto, tema };
+    salvarRascunho();
     if (dados.aviso) {
       // A correção continua disponível para a pessoa mesmo se ocorrer uma
       // falha temporária de sincronização. O detalhe técnico fica no console,
       // sem exibir mensagens internas do Supabase na tela de resultado.
       console.warn("A redação não foi sincronizada com o histórico:", dados.aviso);
-      saveLocalHistory({ resultado: dados.resultado, tema, tipo: "texto" });
+      window.portuguesSession.savePending({ resultado: dados.resultado, tema, tipo: 'texto', hash: dados.hash, conteudo: texto, nota: extractScore(dados.resultado) });
     }
-    localStorage.removeItem("resultado-aviso");
-    window.location.href = "/resultado.html";
+    if (dados.aviso) window.userStorage.setItem('resultado-aviso', 'Sua avaliação está disponível, mas ainda não foi salva na conta. Mantenha este dispositivo conectado para sincronizar antes de sair.');
+    else window.userStorage.removeItem('resultado-aviso');
+    if (window.portuguesSession.presentResult?.(dados.resultado, dados.aviso || '')) return;
+    window.location.href = "/resultado";
 
   } catch (erro) {
-    showMessage("editor-message", erro.message || "Erro ao conectar com o servidor");
+    salvarRascunho();
+    showMessage("editor-message", (erro.name === 'TypeError' ? 'Não foi possível conectar ao serviço. Verifique a internet e tente novamente.' : erro.message || 'Não foi possível concluir a correção.') + ' Seu texto permanece no editor.');
     console.error(erro);
   } finally {
     enviandoCorrecao = false;
     if (button) {
-      button.disabled = false;
-      button.innerHTML = button.dataset.label || "Corrigir minha redação <span>→</span>";
+      updateCorrectionButton();
     }
   }
 }
@@ -362,8 +352,8 @@ document.addEventListener("DOMContentLoaded", configurarSeletorTema);
 
 // MOSTRAR RESULTADO
 window.addEventListener("load", () => {
-  const resultado = localStorage.getItem("resultado");
-  const aviso = localStorage.getItem("resultado-aviso");
+  const resultado = window.userStorage.getItem("resultado");
+  const aviso = window.userStorage.getItem("resultado-aviso");
   const avisoElement = document.getElementById("resultado-aviso");
   if (aviso && avisoElement) {
     avisoElement.textContent = aviso;
@@ -373,6 +363,10 @@ window.addEventListener("load", () => {
   const elResultado = document.getElementById("resultado");
   const elNota = document.getElementById("nota");
 
+  if (!resultado && elResultado) {
+    document.querySelector('.result-title h1').textContent = 'Você ainda não abriu uma avaliação';
+    document.querySelector('.result-title > p').textContent = 'Envie uma redação ou abra uma correção pelo seu histórico.';
+  }
   if (resultado && elResultado) {
     elResultado.innerText = resultado;
 
@@ -433,7 +427,7 @@ window.addEventListener("load", () => {
 
 // VOLTAR
 function voltar() {
-  window.location.href = "/nova.html";
+  window.location.href = "/nova";
 }
 
 function atualizarContador() {
@@ -456,85 +450,19 @@ function atualizarContador() {
 }
 
 function contarLinhasVisuais() {
-  const redacao = document.getElementById("redacao");
-  if (!redacao || !redacao.value.trim()) return 0;
-
-  const styles = window.getComputedStyle(redacao);
-  const medidor = document.createElement("div");
-  medidor.textContent = redacao.value;
-  Object.assign(medidor.style, {
-    position: "absolute",
-    visibility: "hidden",
-    pointerEvents: "none",
-    boxSizing: "border-box",
-    width: `${redacao.clientWidth}px`,
-    padding: styles.padding,
-    border: styles.border,
-    font: styles.font,
-    lineHeight: styles.lineHeight,
-    letterSpacing: styles.letterSpacing,
-    whiteSpace: "pre-wrap",
-    overflowWrap: "break-word",
-    wordBreak: "break-word"
-  });
-  document.body.appendChild(medidor);
-  const lineHeight = Number.parseFloat(styles.lineHeight) || Number.parseFloat(styles.fontSize) * 1.75;
-  const alturaConteudo = medidor.scrollHeight
-    - Number.parseFloat(styles.paddingTop)
-    - Number.parseFloat(styles.paddingBottom);
-  // scrollHeight e arredondado para pixels inteiros; ceil transformava
-  // uma unica linha com poucos decimos de pixel extras em duas.
-  const linhas = Math.round(alturaConteudo / lineHeight);
-  medidor.remove();
-  return Math.max(1, linhas);
+  return window.portuguesSession?.estimateLines(document.getElementById("redacao")?.value || "") || 0;
 }
 
 async function getSession(forceRefresh = false) {
-  if (!window.supabaseClient) {
-    showMessage("login-message", "O serviço de autenticação ainda está carregando. Tente novamente.");
-    return null;
-  }
-
-  let resultadoSessao;
-  for (let tentativa = 0; tentativa < 2; tentativa += 1) {
-    try {
-      resultadoSessao = await window.supabaseClient.auth.getSession();
-    } catch (erro) {
-      resultadoSessao = { data: null, error: erro };
+  try {
+    const session = await window.portuguesSession.getSession(forceRefresh);
+    if (!session) {
+      window.dispatchEvent(new Event('portugues:session-expired'));
+      if (!window.portuguesStorageUnavailable) window.location.replace('/?sessao=expirada');
     }
-    if (resultadoSessao?.data?.session || !resultadoSessao?.error || tentativa === 1) break;
-    await new Promise((resolve) => setTimeout(resolve, 250));
-  }
-
-  let session = resultadoSessao?.data?.session || null;
-  const erroSessao = resultadoSessao?.error;
-  if (!session && erroSessao) {
-    console.warn("Falha temporaria ao ler a sessao:", erroSessao.message || erroSessao);
-    showMessage("editor-message", "NÃ£o foi possÃ­vel confirmar sua sessÃ£o agora. Tente novamente em instantes.");
+    return session;
+  } catch (error) {
+    showMessage('editor-message', error.message);
     return null;
   }
-
-  // O cliente do Supabase renova a sessão automaticamente. Só forçamos uma
-  // renovação quando o token já está próximo do vencimento ou após um 401.
-  const expiraEmBreve = session?.expires_at && session.expires_at * 1000 < Date.now() + 60_000;
-  if (forceRefresh || expiraEmBreve) {
-    let renovacao;
-    try {
-      renovacao = await window.supabaseClient.auth.refreshSession();
-    } catch (erro) {
-      console.warn("Falha temporaria ao renovar a sessao:", erro.message || erro);
-      renovacao = { data: null, error: erro };
-    }
-    if (renovacao?.data?.session) session = renovacao.data.session;
-    if (renovacao.error) console.warn("Não foi possível renovar a sessão:", renovacao.error.message);
-  }
-
-  if (!session) {
-    if (forceRefresh) return null;
-    await window.supabaseClient.auth.signOut();
-    alert("Entre na sua conta para enviar uma redacao.");
-    window.location.href = "/index.html";
-    return null;
-  }
-  return session;
 }

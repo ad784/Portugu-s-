@@ -2,6 +2,9 @@ import { lazy, Suspense } from "react";
 import { Navigate, useLocation } from "react-router";
 
 const pages = {
+  aceite: lazy(() => import("../pages/content/ConsentPage.jsx")),
+  termos: lazy(() => import("../pages/content/TermsPage.jsx")),
+  index: lazy(() => import("../pages/content/HomePage.jsx")),
   cadastro: lazy(() => import("../pages/content/SignupPage.jsx")),
   nova: lazy(() => import("../pages/content/EditorPage.jsx")),
   resultado: lazy(() => import("../pages/content/ResultPage.jsx")),
@@ -19,7 +22,7 @@ export default function PageRoute() {
   const pageName =
     pathname.replace(/^\/+|\/+$/g, "").replace(/\.html$/, "") || "index";
 
-  if (!pages[pageName]) return <Navigate to="/index.html" replace />;
+  if (!pages[pageName]) return <Navigate to="/" replace />;
   const Page = pages[pageName];
   return (
     <Suspense fallback={null}>

@@ -13,7 +13,7 @@ export default function HistoryPage() {
         {" "}
         <a
           className="brand"
-          href="/nova.html"
+          href="/nova"
           aria-label="Página inicial do Português+"
         >
           <img
@@ -27,13 +27,13 @@ export default function HistoryPage() {
           </span>
         </a>{" "}
         <nav className="site-nav" aria-label="Navegação principal">
-          <a href="/nova.html">{"Nova redação"}</a>
-          <a href="/evolucao.html" aria-current="page">
+          <a href="/nova">{"Nova redação"}</a>
+          <a href="/evolucao" aria-current="page">
             {"Minha evolução"}
           </a>
-          <a href="/perfil.html">{"Meu perfil"}</a>
-          <a href="/exemplos.html">{"Exemplos"}</a>
-          <a href="/index.html" className="nav-cta">
+          <a href="/perfil">{"Meu perfil"}</a>
+          <a href="/exemplos">{"Exemplos"}</a>
+          <a href="/" data-action="signout" className="nav-cta">
             {"Sair"}
           </a>
         </nav>{" "}
@@ -50,7 +50,7 @@ export default function HistoryPage() {
           </p>
         </section>{" "}
         <p className="history-progress-link">
-          <a href="/evolucao.html">
+          <a href="/evolucao">
             {"Ver gráfico da minha evolução "}
             <span aria-hidden="true">{"→"}</span>
           </a>

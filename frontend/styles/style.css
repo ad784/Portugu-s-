@@ -1086,3 +1086,31 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
     font-size: clamp(22px, 1.35vw, 36px) !important;
   }
 }
+/* Shared privacy controls must retain checkbox sizing on large auth layouts. */
+.auth-page .auth-card .consent-field input[type="checkbox"],
+.consent-field input[type="checkbox"] {
+  width: 20px !important;
+  height: 20px !important;
+  min-height: 20px !important;
+  padding: 0 !important;
+  flex: 0 0 20px;
+  accent-color: #087d68;
+}
+.legal-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px 24px; padding: 20px; font-size: 14px; }
+.resource-error { padding: 16px; background: #fff1db; color: #543600; text-align: center; }
+button:disabled { cursor: not-allowed; opacity: .65; }
+:focus-visible { outline: 3px solid #157eaa; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+#inline-correction-result { margin-top: 24px; }
+#inline-correction-result pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 20px 0; }
+.consent-page .consent-main { max-width: 720px; margin: 48px auto; }
+.consent-page .consent-main h1 { font-size: clamp(28px, 5vw, 40px); line-height: 1.2; margin: 12px 0 16px; }
+.consent-page .consent-main > p { line-height: 1.65; }
+.consent-card { margin: 24px 0; padding: clamp(20px, 4vw, 36px); border: 1px solid #d3e6df; border-radius: 18px; background: #fff; box-shadow: 0 8px 28px #173e3310; }
+.consent-card h2 { font-size: 21px; margin: 0 0 12px; color: #164b40; }
+.consent-card > p { font-size: 15px; line-height: 1.65; color: #526f69; }
+.consent-card .consent-field { padding: 14px; border: 1px solid #d9e8e2; border-radius: 10px; background: #f7fbf9; font-size: 15px !important; line-height: 1.6; }
+.consent-card .primary-action { width: 100%; margin-top: 16px; }
+.consent-alternative { text-align: center; font-size: 14px; }
