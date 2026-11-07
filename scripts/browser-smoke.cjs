@@ -74,7 +74,7 @@ async function main() {
         state = JSON.parse(result.result.value);
         const report = { route, width, ...state, exceptions: [...exceptions] }; reports.push(report);
         console.log(JSON.stringify(report));
-        if (['/cadastro', '/nova', '/aceite'].includes(route)) {
+        if (['/cadastro', '/nova', '/aceite', '/foto'].includes(route)) {
           const shot = await call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
           fs.writeFileSync(path.join(reportDir, `${route.slice(1)}-${width}.png`), Buffer.from(shot.data, 'base64'));
         }

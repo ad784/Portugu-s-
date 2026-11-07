@@ -98,6 +98,11 @@ export default function PhotoPage() {
             <p id="flash-status" className="flash-status" role="status" aria-live="polite">
               O flash fica disponível quando a câmera e o navegador permitem controlar a lanterna.
             </p>
+            <button id="open-native-camera" className="photo-action native-camera-action" type="button">
+              📱 Abrir câmera do celular
+            </button>
+            <p className="flash-status">Prefere a câmera do aparelho? Abra por aqui e escolha o flash nos controles dela.</p>
+            <input id="foto-camera" className="file-photo-input" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" />
             <label className="file-photo-action" htmlFor="foto-arquivo">
               {"ou selecione uma foto do dispositivo"}
             </label>{" "}
@@ -106,7 +111,6 @@ export default function PhotoPage() {
               className="file-photo-input"
               type="file"
               accept="image/png,image/jpeg,image/webp"
-              capture="environment"
             />{" "}
             <div className="send-photo-row">
               <div>

@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 
 function setup({ status = 503, error = 'Serviço temporariamente indisponível.', retry = null } = {}) {
-  const fields = Object.fromEntries(['camera', 'snapshot', 'salvar-foto', 'foto-status', 'camera-status', 'reset-photo', 'take-photo', 'toggle-flash', 'flash-status', 'foto-arquivo', 'back-to-editor'].map(id => [id, { value: '', dataset: {}, style: {}, addEventListener() {}, setAttribute(name, value) { this[name] = value; }, classList: { toggle() {} }, lastChild: {} }]));
+  const fields = Object.fromEntries(['camera', 'snapshot', 'salvar-foto', 'foto-status', 'camera-status', 'reset-photo', 'take-photo', 'toggle-flash', 'flash-status', 'foto-arquivo', 'foto-camera', 'open-native-camera', 'back-to-editor'].map(id => [id, { value: '', dataset: {}, style: {}, events: {}, click() { this.clicked = true; }, addEventListener(name, handler) { this.events[name] = handler; }, setAttribute(name, value) { this[name] = value; }, classList: { toggle() {} }, lastChild: {} }]));
   fields.snapshot.style.display = 'block';
   fields.snapshot.getContext = () => ({ setTransform() {}, clearRect() {}, drawImage() {} });
   fields.snapshot.toDataURL = () => 'data:image/jpeg;base64,test-photo';
@@ -48,19 +48,21 @@ test('photo rate limit preserves the draft and blocks resend until the cooldown 
   assert.ok(env.storage.has('rascunho-foto-v1'));
 });
 
-async function cameraSetup({ supported = true, fail = false, deferred = false } = {}) {
+async function cameraSetup({ supported = true, fail = false, deferred = false, basicOnly = false, ignored = false, unconfirmed = false } = {}) {
   const env = setup();
   let torch = false, stopped = false, finish;
   const calls = [];
   const track = {
     getCapabilities: () => ({ torch: supported }),
-    getSettings: () => ({ torch }),
+    getSettings: () => unconfirmed ? {} : ({ torch }),
     getConstraints: () => ({ width: { ideal: 1080 } }),
     applyConstraints: async constraints => {
       calls.push(constraints);
       if (fail) throw new Error('device refused');
       if (deferred) await new Promise(resolve => { finish = resolve; });
-      if (!stopped) torch = constraints.advanced[0].torch;
+      if (!stopped && !ignored && (!basicOnly || typeof constraints.torch === 'object')) {
+        torch = typeof constraints.torch === 'object' ? constraints.torch.exact : constraints.torch;
+      }
     },
     stop: () => { stopped = true; torch = false; }
   };
@@ -119,4 +121,34 @@ test('late flash response cannot turn captured-photo controls back on', async ()
   assert.equal(env.torch(), false);
   assert.equal(env.fields['toggle-flash'].disabled, true);
   assert.equal(env.fields['toggle-flash']['aria-pressed'], 'false');
+});
+
+test('flash retries with a required basic constraint when mobile ignores the first request', async () => {
+  const env = await cameraSetup({ basicOnly: true });
+  await env.context.toggleFlash();
+  assert.equal(env.calls.length, 2);
+  assert.equal(env.calls[1].torch.exact, true);
+  assert.equal(env.torch(), true);
+  assert.match(env.fields['flash-status'].textContent, /Flash ligado/);
+});
+
+test('ignored hardware requests are not reported as working flash', async () => {
+  const env = await cameraSetup({ ignored: true });
+  await env.context.toggleFlash();
+  assert.equal(env.fields['toggle-flash']['aria-pressed'], 'false');
+  assert.match(env.fields['flash-status'].textContent, /não aplicou/);
+});
+
+test('unconfirmed hardware state is explicitly disclosed instead of claiming light is on', async () => {
+  const env = await cameraSetup({ unconfirmed: true });
+  await env.context.toggleFlash();
+  assert.doesNotMatch(env.fields['flash-status'].textContent, /Flash ligado/);
+  assert.match(env.fields['flash-status'].textContent, /não confirma/);
+});
+
+test('native camera action releases the video stream before opening the system picker', async () => {
+  const env = await cameraSetup({ supported: false });
+  env.fields['open-native-camera'].events.click();
+  assert.equal(env.stopped(), true);
+  assert.equal(env.fields['foto-camera'].clicked, true);
 });
