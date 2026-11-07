@@ -93,6 +93,24 @@ test('photo retries strict schema failure once using JSON mode', async () => {
   assert.match(result.result, /^Nota: 760/);
 });
 
+test('oversized photo request does not claim waiting one minute will fix it', async () => {
+  let calls = 0;
+  await assert.rejects(analyzePhoto({ image, apiKey: 'test-key', fetchImpl: async () => {
+    calls++;
+    return { ok: false, status: 429, json: async () => ({ error: {
+      message: 'Request too large for model: tokens per minute (TPM): Limit 8000, Requested 9200. Please reduce your message size.'
+    } }) };
+  } }), error => error.status === 503 && !error.retryAfterSeconds && /Aguardar um minuto pode não resolver/.test(error.message));
+  assert.equal(calls, 1);
+});
+
+test('new accounts see shared capacity warning and provider reset instead of guessed minute', async () => {
+  await assert.rejects(analyzePhoto({ image, apiKey: 'test-key', fetchImpl: async () => ({
+    ok: false, status: 429, headers: { get: name => name === 'x-ratelimit-reset-tokens' ? '12.5s' : null },
+    json: async () => ({ error: { message: 'Rate limit reached: tokens per minute (TPM), Limit 8000, Used 5000, Requested 4000' } })
+  }) }), error => error.status === 429 && error.retryAfterSeconds === 13 && /compartilhado/.test(error.message));
+});
+
 test('photo rejects provider image errors without retrying or claiming an outage', async () => {
   let calls = 0;
   await assert.rejects(analyzePhoto({ image, apiKey: 'test-key', fetchImpl: async () => {
