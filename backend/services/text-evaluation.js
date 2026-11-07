@@ -3,6 +3,7 @@ const { fingerprint, readCache, writeCache, findSavedCorrection, singleFlight } 
 const { acquireCorrection } = require('../middleware/correction-limits');
 const rules = require('./writing-rules');
 const { recordUsage, recordEvent } = require('./groq-metrics');
+const { providerLimit } = require('./provider-limits');
 
 function serviceError(message, status = 502, seconds) {
   const error = new Error(message);
@@ -14,7 +15,12 @@ function serviceError(message, status = 502, seconds) {
 function retrySeconds(response, data) {
   const duration = data.error?.message?.match(/try again in\s+(?:(\d+(?:\.\d+)?)h)?(?:(\d+(?:\.\d+)?)m)?(?:(\d+(?:\.\d+)?)s)?/i);
   const fromMessage = duration ? Number(duration[1] || 0) * 3600 + Number(duration[2] || 0) * 60 + Number(duration[3] || 0) : 0;
-  return Math.ceil(Number(response.headers?.get('retry-after')) || fromMessage || 60);
+  const reset = response.headers?.get('x-ratelimit-reset-tokens') || '';
+  const resetDuration = String(reset).match(/^(?:(\d+(?:\.\d+)?)h)?(?:(\d+(?:\.\d+)?)m)?(?:(\d+(?:\.\d+)?)s)?$/i);
+  const fromReset = resetDuration ? Number(resetDuration[1] || 0) * 3600 + Number(resetDuration[2] || 0) * 60 + Number(resetDuration[3] || 0) : 0;
+  // A token reset cannot describe a daily request/token quota.
+  const daily = /tokens per day|requests per day|\bTPD\b|\bRPD\b/i.test(data.error?.message || '');
+  return Math.max(1, Math.ceil(Number(response.headers?.get('retry-after')) || fromMessage || (!daily && fromReset) || 60));
 }
 
 function createTextHandler({ saveCorrection, apiKey, model = 'openai/gpt-oss-120b', parseJsonObject, isCompleteCorrection, normalizarCorrecao, correctionResponseFormat }) {
@@ -46,6 +52,9 @@ function createTextHandler({ saveCorrection, apiKey, model = 'openai/gpt-oss-120
       try { data = await response.json(); } catch { data = {}; }
       recordUsage('texto', model, attempt + 1, response, data, started);
       if (response.status === 429) {
+        if (providerLimit(response, data).category === 'request_too_large') {
+          throw serviceError('O pedido excede a capacidade por minuto disponível no serviço de IA do site. Aguardar um minuto pode não resolver; o responsável precisa revisar a capacidade contratada. Seu rascunho foi mantido.', 503);
+        }
         const seconds = retrySeconds(response, data);
         const daily = /tokens per day|requests per day|\bTPD\b|\bRPD\b/i.test(data.error?.message || '');
         throw serviceError((daily ? 'A cota diaria do servico de correcao foi atingida.' : 'O limite de uso da IA foi atingido.')

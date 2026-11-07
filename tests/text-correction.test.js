@@ -294,7 +294,7 @@ test("cota diaria informa o tempo real sem repeticoes demoradas", async () => {
   } finally { global.fetch = realFetch; }
 });
 
-test("informa limite da IA sem repetir pedido grande demais", async () => {
+test("pedido grande demais informa capacidade insuficiente sem prometer retorno em um minuto", async () => {
   const realFetch = global.fetch;
   let calls = 0;
   global.fetch = async (url, options) => {
@@ -309,8 +309,10 @@ test("informa limite da IA sem repetir pedido grande demais", async () => {
       method: "POST", headers: {"Content-Type": "application/json"},
       body: JSON.stringify({texto: evidence + require("node:crypto").randomUUID(), linhasVisuais: 8})
     });
-    assert.equal(response.status, 429);
-    assert.match((await response.json()).erro, /limite de uso/);
+    assert.equal(response.status, 503);
+    const body = await response.json();
+    assert.match(body.erro, /Aguardar um minuto pode não resolver/);
+    assert.equal(body.retryAfterSeconds, null);
     assert.equal(calls, 1);
   } finally { global.fetch = realFetch; }
 });

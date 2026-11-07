@@ -54,3 +54,15 @@ test('failed work releases duplicate lock for a later retry', async () => {
   await assert.rejects(singleFlight('failed', async () => { throw new Error('offline'); }), /offline/);
   assert.equal(await singleFlight('failed', async () => 'recovered'), 'recovered');
 });
+
+test('quota diagnostics retain numeric limits without organization details', () => {
+  const { providerLimit } = require('../backend/services/provider-limits');
+  const quota = providerLimit({ headers: { get: name => name === 'x-ratelimit-limit-tokens' ? '8000' : null } }, {
+    error: { message: 'Rate limit reached for org_PRIVATE: tokens per minute: Limit 8,000, Used 5000, Requested 4000' }
+  });
+  assert.equal(quota.category, 'temporary');
+  assert.equal(quota.limit, 8000);
+  assert.equal(quota.requested, 4000);
+  assert.equal(quota.tokensPerMinute, 8000);
+  assert.doesNotMatch(JSON.stringify(quota), /PRIVATE/);
+});

@@ -1,5 +1,6 @@
 const PHOTO_MAX_BYTES = 3 * 1024 * 1024;
 const { recordUsage } = require('./groq-metrics');
+const { providerLimit } = require('./provider-limits');
 const PHOTO_DATA_URL = /^data:image\/(png|jpe?g|webp);base64,([a-z\d+/]+=*)$/i;
 
 function parsePhotoDataUrl(value) {
@@ -159,11 +160,17 @@ async function analyzePhoto({ image, apiKey, model = 'qwen/qwen3.8-27b', tema = 
       error.message = 'A leitura não gerou uma avaliação completa. Tente uma foto mais nítida com toda a redação visível.';
     }
     if (response.status === 429) {
+      const quota = providerLimit(response, data);
+      if (quota.category === 'request_too_large') {
+        error.status = 503;
+        error.message = 'O pedido de leitura excede a capacidade por minuto disponível no serviço de IA do site. Aguardar um minuto pode não resolver; o responsável precisa revisar a capacidade contratada. Sua foto foi mantida.';
+        throw error;
+      }
       error.retryAfterSeconds = require('./text-evaluation').retrySeconds(response, data);
       const daily = /tokens per day|requests per day|\bTPD\b|\bRPD\b/i.test(data.error?.message || '');
       const seconds = error.retryAfterSeconds;
       const wait = seconds < 60 ? `${seconds} segundos` : seconds < 3600 ? `${Math.ceil(seconds / 60)} minutos` : `${Math.ceil(seconds / 3600)} horas`;
-      error.message = `${daily ? 'A cota diária de leitura de fotos foi atingida.' : 'O limite temporário de leitura de fotos foi atingido.'} Tente novamente em cerca de ${wait}. A foto continua nesta página.`;
+      error.message = `${daily ? 'A cota diária compartilhada de leitura de fotos foi atingida.' : 'A capacidade temporária de leitura de fotos do site está ocupada.'} Esse limite é compartilhado entre todos os usuários, mesmo em contas novas. Tente novamente em cerca de ${wait}. A foto continua nesta página.`;
     }
     throw error;
   }

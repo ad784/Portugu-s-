@@ -1,6 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
+const { providerLimit } = require('./provider-limits');
 
 const directory = process.env.GROQ_METRICS_DIR || (process.env.VERCEL === '1'
   ? path.join(os.tmpdir(), 'portugues-groq-usage') : path.join(__dirname, '../../.groq-usage'));
@@ -28,6 +29,7 @@ function recordUsage(kind, model, attempt, response, data, started) {
     totalTokens: count(usage?.total_tokens),
     cachedTokens: count(usage?.prompt_tokens_details?.cached_tokens),
     reasoningTokens: count(usage?.completion_tokens_details?.reasoning_tokens),
+    rateLimit: response.status === 429 ? providerLimit(response, data) : null,
     finishReason: ['stop', 'length', 'content_filter', 'tool_calls'].includes(data?.choices?.[0]?.finish_reason)
       ? data.choices[0].finish_reason : null });
 }
