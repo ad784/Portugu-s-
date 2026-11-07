@@ -1,0 +1,12 @@
+{
+  "dataDaCopia": "2026-11-06",
+  "modeloTexto": "openai/gpt-oss-120b",
+  "modeloFoto": "qwen/qwen3.8-27b",
+  "caracteresPromptTexto": 5572,
+  "caracteresPromptFoto": 5824,
+  "caracteresExemplosCalibracao": 0,
+  "quantidadeExemplos": 0,
+  "caracteresSchemaTexto": 1014,
+  "limiteSaidaTexto": 4000,
+  "limiteSaidaFoto": 3000
+}

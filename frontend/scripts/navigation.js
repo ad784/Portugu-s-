@@ -21,14 +21,28 @@
 
   nav.addEventListener('click', (event) => {
     const link = event.target.closest('a');
-    if (link?.classList.contains('nav-cta') && typeof window.sair === 'function') {
+    if (link?.dataset.action === 'signout') {
       event.preventDefault();
-      window.sair(event);
+      window.portuguesSession?.signOut();
     }
     if (link) {
       header.classList.remove('menu-open');
       button.setAttribute('aria-expanded', 'false');
       button.setAttribute('aria-label', 'Abrir menu');
+    }
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && header.classList.contains('menu-open')) {
+      header.classList.remove('menu-open');
+      button.setAttribute('aria-expanded', 'false');
+      button.setAttribute('aria-label', 'Abrir menu');
+      button.focus();
+    }
+  });
+  document.addEventListener('click', (event) => {
+    if (!header.contains(event.target)) {
+      header.classList.remove('menu-open');
+      button.setAttribute('aria-expanded', 'false');
     }
   });
 })();

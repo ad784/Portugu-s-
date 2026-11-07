@@ -13,7 +13,7 @@ export default function ResultPage() {
         {" "}
         <a
           className="brand"
-          href="/nova.html"
+          href="/nova"
           aria-label="Página inicial do Português+"
         >
           {" "}
@@ -29,9 +29,9 @@ export default function ResultPage() {
         </a>{" "}
         <nav className="site-nav" aria-label="Navegação principal">
           {" "}
-          <a href="/nova.html">{"Nova redação"}</a>{" "}
-          <a href="/historico.html">{"Minhas redações"}</a>{" "}
-          <a href="/index.html" className="nav-cta">
+          <a href="/nova">{"Nova redação"}</a>{" "}
+          <a href="/historico">{"Minhas redações"}</a>{" "}
+          <a href="/" data-action="signout" className="nav-cta">
             {"Sair"}
           </a>{" "}
         </nav>{" "}

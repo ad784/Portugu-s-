@@ -1,5 +1,7 @@
 # Português+
 
+> Preparação atual e pendências externas: [docs/ESTADO-PUBLICACAO.md](docs/ESTADO-PUBLICACAO.md). Inclui aceite e revogação de IA, exportação, migrations e e-mail. Confira a configuração local com `npm.cmd run check:readiness`.
+
 Plataforma de prática de redação no modelo ENEM. A pessoa pode escrever no editor ou enviar uma foto de uma redação manuscrita e receber uma devolutiva pedagógica. O site também oferece textos de apoio por tema, exemplos, histórico, evolução das notas, perfil e recuperação de senha.
 
 A interface das páginas é construída com **React 19**, **React Router** e **Vite**. O servidor usa **Express 5**. O Supabase cuida da autenticação, do banco de dados e do armazenamento de fotos; a Groq fornece os modelos de correção.
@@ -59,7 +61,7 @@ O texto e o tema selecionado no editor são salvos automaticamente no armazename
 
 ### Texto
 
-O editor envia a redação e o tema para `POST /api/corrigir`. A correção avalia o texto no formato ENEM, apresenta comentários para as cinco competências e uma justificativa para a nota global. A nota global é holística, de 0 a 1000, e **não é calculada pela soma ou média das competências**. As notas por competência são exibidas separadamente como diagnóstico. A calibração exige evidências no próprio texto e permite notas altas quando a qualidade demonstrada as justifica.
+O editor envia a redacao e o tema para `POST /api/corrigir`. A nota global e a soma das cinco competencias (0 a 200 cada, em faixas de 40). Cada faixa exige evidencias concretas no texto. Envios identicos do mesmo usuario, tema, linhas e modelo reutilizam a avaliacao local. Alteracoes na rubrica geram uma nova avaliacao.
 
 O editor pede pelo menos dez linhas para iniciar uma correção. A API também aplica a regra de extensão do ENEM: redações com até sete linhas visuais recebem nota zero e uma devolutiva sem depender de uma chamada à Groq.
 
@@ -76,7 +78,7 @@ As rotas Express são separadas por domínio em `backend/routes/`. Rotas, autent
 | Método e rota | Função |
 | --- | --- |
 | `GET /api/me` | Identidade e papel da sessão atual. |
-| `POST /api/corrigir` | Correção de redação em texto. |
+| `POST /api/corrigir` | Correcao de redacao em texto. |
 | `POST /api/corrigir-foto` | Transcrição e correção de redação fotografada. |
 | `GET /api/redacoes` | Histórico da pessoa autenticada. |
 | `GET /api/admin/redacoes` | Histórico para contas com papel de administrador. |

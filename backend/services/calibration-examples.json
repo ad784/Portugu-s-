@@ -1,0 +1,40 @@
+{
+  "tema": "Desafios para reduzir a desinformacao nas redes sociais brasileiras.",
+  "exemplos": [
+    {
+      "referenciaDidatica": 800,
+      "faixaTreinamento": [
+        680,
+        720,
+        760
+      ],
+      "alvo": 720,
+      "competencias": [
+        160,
+        120,
+        120,
+        160,
+        160
+      ],
+      "motivos": "Texto organizado e formal, mas repertorio limitado e explicacoes concentradas em um desenvolvimento breve. C2 e C3 medianas; coesao funcional e proposta com agente, acao e oficinas como meio, sem detalhamento excepcional.",
+      "texto": "Na sociedade conectada, a circulação acelerada de informações ampliou o acesso ao debate público. Entretanto, o mesmo ambiente favorece a desinformação, pois conteúdos enganosos alcançam milhares de pessoas antes de serem verificados. No Brasil, esse cenário fragiliza decisões individuais e coletivas.\n\nEm primeiro lugar, os algoritmos priorizam publicações capazes de gerar reação imediata. Assim, mensagens sensacionalistas recebem mais visibilidade do que explicações cuidadosas. Somado a isso, a ausência de educação midiática impede parte dos usuários de reconhecer fontes confiáveis e de comparar versões de um fato.\n\nLogo, o Ministério da Educação deve incluir práticas de leitura crítica de mídias em projetos escolares, por meio de oficinas conduzidas por professores capacitados. Paralelamente, as plataformas precisam sinalizar conteúdos verificados e reduzir o alcance de publicações comprovadamente falsas, a fim de tornar a navegação mais segura."
+    },
+    {
+      "referenciaDidatica": 1000,
+      "faixaTreinamento": [
+        960,
+        1000
+      ],
+      "alvo": 1000,
+      "competencias": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "motivos": "Tese explicita com dois eixos, referencia de Habermas integrada ao debate, mecanismo economico e consequencias educacionais explicados, articulacao precisa e intervencao operacional com periodicidade, atividades, docentes e parceria. A concisao nao elimina o aprofundamento. Pode receber 960 se houver uma limitacao real em uma competencia; nao inventar falhas para impedir 1000.",
+      "texto": "Ao discutir a esfera pública, o filósofo Jürgen Habermas destaca a importância de um debate sustentado por argumentos e informações acessíveis. Contudo, nas redes sociais brasileiras, a rápida difusão de conteúdos falsos compromete esse ideal: tanto a lógica econômica das plataformas quanto a formação insuficiente dos usuários favorecem a desinformação. Portanto, enfrentar o problema exige responsabilidade tecnológica e educação crítica.\n\nPrimeiramente, o modelo de engajamento digital transforma a atenção em mercadoria. Como publicações alarmistas tendem a provocar reações instantâneas, sistemas de recomendação podem ampliar seu alcance mesmo quando não há evidência confiável. Desse modo, a arquitetura das plataformas deixa de ser neutra e contribui para que boatos concorram, em condições desiguais, com o jornalismo responsável.\n\nAlém disso, a escola ainda prepara de forma limitada os estudantes para avaliar a origem, a finalidade e as evidências de uma mensagem. Essa lacuna favorece o compartilhamento irrefletido e dificulta a participação cidadã, pois opiniões passam a ser construídas sobre informações manipuladas. Assim, a alfabetização midiática deve ser entendida como requisito para a autonomia no espaço digital.\n\nConsequentemente, o Ministério da Educação deve instituir, nas escolas públicas e privadas, módulos semestrais de educação midiática, com análise comparativa de fontes, checagem de dados e produção orientada de conteúdos, ministrados por docentes capacitados em parceria com agências de verificação. Simultaneamente, as plataformas devem oferecer relatórios claros sobre recomendação e reduzir a distribuição de material falso identificado por verificadores independentes. Com essas medidas, será possível aproximar o debate digital brasileiro do ideal de uma esfera pública informada."
+    }
+  ]
+}

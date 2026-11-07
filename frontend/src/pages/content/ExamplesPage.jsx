@@ -13,7 +13,7 @@ export default function ExamplesPage() {
         {" "}
         <a
           className="brand"
-          href="/index.html"
+          href="/"
           aria-label="Página inicial do Português+"
         >
           {" "}
@@ -29,8 +29,8 @@ export default function ExamplesPage() {
         </a>{" "}
         <nav className="site-nav" aria-label="Navegação principal">
           {" "}
-          <a href="/nova.html">{"Escrever redação"}</a>{" "}
-          <a href="/index.html" className="nav-cta">
+          <a href="/nova">{"Escrever redação"}</a>{" "}
+          <a href="/" className="nav-cta">
             {"Entrar"}
           </a>{" "}
         </nav>{" "}
@@ -184,7 +184,7 @@ export default function ExamplesPage() {
           </article>{" "}
         </section>{" "}
         <div className="examples-action">
-          <a className="primary-action" href="/nova.html">
+          <a className="primary-action" href="/nova">
             {"Praticar uma redação "}
             <span>{"→"}</span>
           </a>

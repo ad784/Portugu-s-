@@ -1,6 +1,12 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const express = require("express");
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const cacheDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'portugues-photo-test-'));
+process.env.CORRECTION_CACHE_DIR = cacheDirectory;
+test.after(() => fs.rmSync(cacheDirectory, { recursive: true, force: true }));
 const { parsePhotoDataUrl, formatPhotoCorrection, analyzePhoto } = require("../backend/services/photo-correction");
 const { createPhotoRouter } = require("../backend/routes/photo");
 
@@ -55,8 +61,45 @@ test("sends the image to the configured vision model and returns its transcripti
     },
   });
   assert.equal(request.model, "qwen/qwen3.8-27b");
-  assert.equal(request.messages[0].content[1].image_url.url, image);
+  assert.equal(request.max_completion_tokens, 3000);
+  assert.equal(request.messages.find(message => message.role === 'user').content[1].image_url.url, image);
   assert.match(result.result, /^Nota: 760/m);
+});
+
+test('photo rate limit exposes provider wait time and preserves readable Portuguese', async () => {
+  let calls = 0;
+  await assert.rejects(analyzePhoto({ image, apiKey: 'test-key', fetchImpl: async () => {
+    calls++;
+    return { ok: false, status: 429, headers: { get: () => '95' }, json: async () => ({ error: { message: 'Rate limit: tokens per day (TPD)' } }) };
+  } }), error => {
+    assert.equal(error.status, 429);
+    assert.equal(error.retryAfterSeconds, 95);
+    assert.match(error.message, /cota diária/);
+    assert.match(error.message, /2 minutos/);
+    assert.ok(!error.message.includes('?'));
+    return true;
+  });
+  assert.equal(calls, 1);
+});
+
+test('photo retries strict schema failure once using JSON mode', async () => {
+  const formats = [];
+  const result = await analyzePhoto({ image, apiKey: 'test-key', fetchImpl: async (_url, options) => {
+    formats.push(JSON.parse(options.body).response_format.type);
+    if (formats.length === 1) return { ok: false, status: 400, json: async () => ({ error: { code: 'json_validate_failed' } }) };
+    return { ok: true, status: 200, json: async () => ({ choices: [{ message: { content: modelText } }] }) };
+  } });
+  assert.deepEqual(formats, ['json_schema', 'json_object']);
+  assert.match(result.result, /^Nota: 760/);
+});
+
+test('photo rejects provider image errors without retrying or claiming an outage', async () => {
+  let calls = 0;
+  await assert.rejects(analyzePhoto({ image, apiKey: 'test-key', fetchImpl: async () => {
+    calls++;
+    return { ok: false, status: 400, json: async () => ({ error: { message: 'invalid image data' } }) };
+  } }), error => error.status === 400 && /outra foto/.test(error.message));
+  assert.equal(calls, 1);
 });
 
 test("photo endpoint saves the image, transcript and correction before returning success", async (t) => {
@@ -111,7 +154,7 @@ test("keeps the photo correction available when Storage policy is not installed 
   const body = await response.json();
   assert.equal(response.status, 200);
   assert.equal(body.salvo, true);
-  assert.match(body.aviso, /administrador precisa aplicar/i);
+  assert.match(body.aviso, /imagem n.o p.de ser armazenada/i);
   assert.equal(savedRecord.imagemPath, null);
   assert.match(savedRecord.conteudo, /^A sociedade brasileira/);
 });

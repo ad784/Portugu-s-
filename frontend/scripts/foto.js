@@ -2,6 +2,34 @@ const video = document.getElementById('camera');
 const canvas = document.getElementById('snapshot');
 const ctx = canvas.getContext('2d');
 let cameraStream = null;
+let sendingPhoto = false;
+let retryTimer;
+const PHOTO_DRAFT_KEY = 'rascunho-foto-v1';
+let photoSelection = 0;
+function preparedPhoto() {
+  let image = canvas.toDataURL('image/jpeg', 0.88);
+  if (image.length > 4 * 1024 * 1024) image = canvas.toDataURL('image/jpeg', 0.65);
+  return image;
+}
+function preservePhoto() {
+  try { window.userStorage.setItem(PHOTO_DRAFT_KEY, preparedPhoto()); }
+  catch { setPhotoStatus('A foto continua nesta página, mas não foi possível guardar uma cópia. Não atualize antes de concluir.'); }
+}
+
+function updateRetryButton() {
+  const button = document.getElementById('salvar-foto');
+  const seconds = Math.max(0, Math.ceil((Number(button.dataset.retryUntil || 0) - Date.now()) / 1000));
+  button.disabled = sendingPhoto || seconds > 0;
+  button.setAttribute('aria-busy', String(sendingPhoto));
+  for (const id of ['reset-photo', 'take-photo', 'foto-arquivo', 'foto-tema']) {
+    const control = document.getElementById(id); if (control) control.disabled = sendingPhoto;
+  }
+  button.textContent = sendingPhoto ? 'Enviando para correção...' : seconds > 0
+    ? `Aguarde ${seconds >= 3600 ? `${Math.ceil(seconds / 3600)} h` : seconds >= 60 ? `${Math.ceil(seconds / 60)} min` : `${seconds} s`}`
+    : 'Enviar e corrigir';
+  clearTimeout(retryTimer);
+  if (seconds > 0) retryTimer = setTimeout(updateRetryButton, 1000);
+}
 
 // Mantem a orientacao natural da camera. A pre-visualizacao tambem nao e
 // espelhada, entao a captura corresponde ao que o estudante esta vendo.
@@ -18,20 +46,14 @@ function drawPortraitImage(source, sourceWidth, sourceHeight) {
 
 async function sair(event) {
   event?.preventDefault();
-  stopCamera();
-  try {
-    await window.supabaseClient?.auth.signOut({ scope: 'local' });
-  } finally {
-    localStorage.removeItem('resultado');
-    window.location.href = '/index.html';
-  }
+  return window.portuguesSession.signOut();
 }
 
 window.sair = sair;
 document.getElementById('reset-photo')?.addEventListener('click', resetPhoto);
 document.getElementById('take-photo')?.addEventListener('click', takePhoto);
 document.getElementById('salvar-foto')?.addEventListener('click', salvarFoto);
-document.getElementById('back-to-editor')?.addEventListener('click', () => { window.location.href = '/nova.html'; });
+document.getElementById('back-to-editor')?.addEventListener('click', () => { window.location.href = "/nova"; });
 
 function setCameraIndicator(text, active = false) {
   const indicator = document.getElementById('camera-status');
@@ -99,6 +121,7 @@ async function initCamera() {
 }
 
 function takePhoto() {
+  if (sendingPhoto) return;
   if (!cameraStream || !video.videoWidth || !video.videoHeight) {
     setPhotoStatus('Aguarde a camera carregar antes de tirar a foto.');
     return;
@@ -109,9 +132,13 @@ function takePhoto() {
   video.style.display = 'none';
   setPhotoStatus('Foto pronta para envio.');
   setCameraIndicator('Foto capturada');
+  preservePhoto();
 }
 
 function resetPhoto() {
+  if (sendingPhoto) return;
+  photoSelection++;
+  window.userStorage.removeItem(PHOTO_DRAFT_KEY);
   canvas.style.display = 'none';
   video.style.display = 'block';
   if (!cameraStream) initCamera();
@@ -119,21 +146,28 @@ function resetPhoto() {
 }
 
 function loadPhoto(file) {
+  if (sendingPhoto) return;
   if (!file) return;
+  if (file.size > 20 * 1024 * 1024) { setPhotoStatus('Selecione uma foto de até 20 MB.'); return; }
   if (!file.type.match(/^image\/(png|jpeg|webp)$/)) {
     setPhotoStatus('Escolha uma imagem PNG, JPG ou WEBP.');
     return;
   }
   const image = new Image();
   const reader = new FileReader();
+  const selected = ++photoSelection;
+  reader.onerror = () => setPhotoStatus('Não foi possível abrir o arquivo. Escolha outra foto. A foto anterior, se houver, continua disponível.');
+  image.onerror = () => setPhotoStatus('O arquivo não pôde ser lido como imagem. Escolha outra foto JPG, PNG ou WEBP.');
   reader.onload = () => {
     image.onload = () => {
+      if (selected !== photoSelection) return;
       drawPortraitImage(image, image.width, image.height);
       canvas.style.display = 'block';
       video.style.display = 'none';
       stopCamera();
       setPhotoStatus('Foto selecionada e pronta para envio.');
       setCameraIndicator('Foto selecionada');
+      preservePhoto();
     };
     image.src = reader.result;
   };
@@ -141,6 +175,7 @@ function loadPhoto(file) {
 }
 
 async function salvarFoto() {
+  if (sendingPhoto) return;
   if (canvas.style.display !== 'block') {
     setPhotoStatus('Tire uma foto antes de enviar.');
     return;
@@ -148,38 +183,19 @@ async function salvarFoto() {
 
   const button = document.getElementById('salvar-foto');
   // Preserva a nitidez da escrita manuscrita para a leitura pela IA.
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
-  button.disabled = true;
-  button.textContent = 'Enviando para correcao...';
-  setPhotoStatus('A foto esta sendo salva e corrigida. Aguarde...');
+  if (Number(button.dataset.retryUntil || 0) > Date.now()) { setPhotoStatus('Aguarde o prazo informado antes de enviar novamente.'); return; }
+  const dataUrl = preparedPhoto();
+  if (dataUrl.length > 4 * 1024 * 1024) { setPhotoStatus('A imagem ainda está muito grande. Selecione uma foto menor.'); return; }
+  const tema = document.getElementById('foto-tema')?.value.trim() || '';
+  preservePhoto();
+  sendingPhoto = true;
+  updateRetryButton();
+  setPhotoStatus('Lendo e avaliando a foto. Isso pode levar até um minuto. Sua foto permanece disponível durante a espera.');
 
   try {
-    if (!window.supabaseClient) throw new Error('O servico de autenticacao ainda esta carregando.');
-    let { data: { session } } = await window.supabaseClient.auth.getSession();
-    if (session?.expires_at && session.expires_at * 1000 < Date.now() + 60_000) {
-      const renewal = await window.supabaseClient.auth.refreshSession();
-      session = renewal.data.session;
-    }
-    if (!session) {
-      throw new Error('Sua sessão expirou. Entre novamente para corrigir a redação.');
-    }
-
-    const options = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`
-      },
-      body: JSON.stringify({ imagem: dataUrl })
-    };
-    let response = await requestPhotoCorrection('/api/corrigir-foto', options);
-    if (response.status === 401 || response.status >= 500) {
-      const renewal = await window.supabaseClient.auth.refreshSession();
-      if (renewal.data.session) {
-        options.headers.Authorization = `Bearer ${renewal.data.session.access_token}`;
-        response = await requestPhotoCorrection('/api/corrigir-foto', options);
-      }
-    }
+    const response = await window.portuguesSession.request('/api/corrigir-foto', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imagem: dataUrl, tema })
+    });
     const body = await response.text();
     let data;
     try {
@@ -187,48 +203,47 @@ async function salvarFoto() {
     } catch {
       throw new Error('O servidor esta indisponivel no momento. Tente novamente em instantes.');
     }
+    if (response.status === 429 && data.retryAfterSeconds) button.dataset.retryUntil = String(Date.now() + data.retryAfterSeconds * 1000);
     if (!response.ok || !data.resultado) throw new Error(data.erro || 'Nao foi possivel corrigir a foto.');
 
-    localStorage.setItem('resultado', data.resultado);
+    window.userStorage.setItem('resultado', data.resultado);
     if (data.aviso) {
       console.warn('A redação por foto não foi sincronizada com o histórico:', data.aviso);
-      if (!data.salvo) saveLocalPhotoHistory(data.resultado);
-      localStorage.setItem('resultado-aviso', data.aviso);
+      if (!data.salvo) window.portuguesSession.savePending({ resultado: data.resultado, hash: data.hash, tema, tipo: 'foto', nota: Number(data.resultado.match(/^Nota: (\d+)/m)?.[1]), conteudo: data.resultado.split(/\nRedacao:\n/i)[1]?.trim() || null });
+      window.userStorage.setItem('resultado-aviso', data.aviso);
     } else {
-      localStorage.removeItem('resultado-aviso');
+      window.userStorage.removeItem('resultado-aviso');
     }
     stopCamera();
-    window.location.href = '/resultado.html';
+    window.userStorage.removeItem(PHOTO_DRAFT_KEY);
+    if (window.portuguesSession.presentResult?.(data.resultado, data.aviso || '')) {
+      setPhotoStatus('Avaliação concluída. O resultado está disponível abaixo nesta página.'); return;
+    }
+    window.location.href = "/resultado";
   } catch (error) {
     console.error(error);
-    setPhotoStatus(error.message || 'Nao foi possivel enviar a foto. Tente novamente.');
-    button.disabled = false;
-    button.textContent = 'Enviar e corrigir';
+    setPhotoStatus((error.name === 'TimeoutError' || error.name === 'AbortError' ? 'A leitura demorou além do esperado. Tente novamente.' : error.name === 'TypeError' ? 'Não foi possível conectar ao serviço. Confira sua internet.' : error.message || 'Não foi possível enviar a foto.') + ' A foto foi mantida para uma nova tentativa.');
+  } finally {
+    sendingPhoto = false;
+    updateRetryButton();
   }
 }
 
-function saveLocalPhotoHistory(resultado) {
-  const key = 'historico-redacoes-local';
-  let history = [];
-  try { history = JSON.parse(localStorage.getItem(key) || '[]'); } catch { history = []; }
-  const match = resultado?.match(/^\s*Nota\s*:\s*(\d+)/im);
-  history.unshift({ id: `local-${Date.now()}`, tipo: 'foto', tema: '', nota: match ? Number(match[1]) : null, resultado, created_at: new Date().toISOString(), local: true });
-  localStorage.setItem(key, JSON.stringify(history.slice(0, 30)));
-}
-
-async function requestPhotoCorrection(url, options) {
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    try {
-      return await fetch(url, options);
-    } catch (error) {
-      if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-  }
-  throw new Error('Não foi possível conectar ao servidor local. Confirme que http://localhost:3000 está aberto e tente novamente.');
-}
-
-window.addEventListener('pagehide', stopCamera);
+window.addEventListener('pagehide', () => { stopCamera(); clearTimeout(retryTimer); });
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('foto-arquivo')?.addEventListener('change', (event) => loadPhoto(event.target.files?.[0]));
-  initCamera();
+  document.getElementById('foto-tema').value = window.userStorage.getItem('tema-foto') || '';
+  document.getElementById('foto-tema')?.addEventListener('input', event => window.userStorage.setItem('tema-foto', event.target.value));
+  const saved = window.userStorage.getItem(PHOTO_DRAFT_KEY);
+  if (saved) {
+    const image = new Image();
+    image.onload = () => {
+      drawPortraitImage(image, image.width, image.height);
+      canvas.style.display = 'block'; video.style.display = 'none';
+      setCameraIndicator('Foto recuperada');
+      setPhotoStatus('Recuperamos a foto pendente desta conta. Você pode enviá-la ou tirar outra.');
+    };
+    image.onerror = () => { window.userStorage.removeItem(PHOTO_DRAFT_KEY); initCamera(); };
+    image.src = saved;
+  } else initCamera();
 });

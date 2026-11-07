@@ -8,27 +8,7 @@ function profileMessage(message, type = 'error') {
 async function profileRequest(method = 'GET', body = null) {
   if (!window.supabaseClient) throw new Error('O serviço de autenticação ainda está carregando. Tente novamente.');
 
-  const makeRequest = (token) => fetch('/api/perfil', {
-    method,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      ...(body ? { 'Content-Type': 'application/json' } : {})
-    },
-    ...(body ? { body: JSON.stringify(body) } : {})
-  });
-
-  let { data: { session } } = await window.supabaseClient.auth.getSession();
-  if (!session) {
-    window.location.href = '/index.html';
-    return null;
-  }
-
-  let response = await makeRequest(session.access_token);
-  if (response.status === 401) {
-    const renewal = await window.supabaseClient.auth.refreshSession();
-    session = renewal.data.session;
-    if (session) response = await makeRequest(session.access_token);
-  }
+  const response = await window.portuguesSession.request('/api/perfil', { method, headers: body ? { 'Content-Type': 'application/json' } : {}, ...(body ? { body: JSON.stringify(body) } : {}) });
 
   const raw = await response.text();
   let data;
@@ -37,7 +17,7 @@ async function profileRequest(method = 'GET', body = null) {
 
   if (response.status === 401) {
     await window.supabaseClient.auth.signOut();
-    window.location.href = '/index.html';
+    window.location.href = "/";
     return null;
   }
   if (!response.ok) throw new Error(data.erro || 'Não foi possível concluir a operação.');
@@ -104,7 +84,7 @@ async function alterarSenha() {
   try {
     const { data: { session } } = await window.supabaseClient.auth.getSession();
     if (!session) {
-      window.location.href = '/index.html';
+      window.location.href = "/";
       return;
     }
     const { error } = await window.supabaseClient.auth.updateUser({ password });
@@ -122,11 +102,52 @@ async function alterarSenha() {
 
 async function sair(event) {
   event?.preventDefault();
-  try { await window.supabaseClient?.auth.signOut({ scope: 'local' }); }
-  finally { window.location.href = '/index.html'; }
+  return window.portuguesSession.signOut();
 }
 
 window.sair = sair;
 document.getElementById('profile-save')?.addEventListener('click', salvarPerfil);
 document.getElementById('password-save')?.addEventListener('click', alterarSenha);
 window.addEventListener('DOMContentLoaded', loadProfile);
+
+async function loadConsent() {
+  try {
+    const response = await window.portuguesSession.request('/api/termos');
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.erro);
+    document.getElementById('consent-summary').textContent = data.accepted
+      ? `Autorização de IA ativa. Aceite registrado em ${new Date(data.receipt.accepted_at).toLocaleString('pt-BR')}.`
+      : 'Autorização de IA inativa. Revise seu aceite para iniciar novas correções.';
+    document.getElementById('revoke-consent').disabled = !data.accepted;
+    document.getElementById('consent-review').hidden = data.accepted;
+  } catch (error) { document.getElementById('consent-summary').textContent = error.message; }
+}
+document.getElementById('revoke-consent')?.addEventListener('click', async () => {
+  const button = document.getElementById('revoke-consent');
+  button.disabled = true;
+  button.textContent = 'Revogando autorização...'; button.setAttribute('aria-busy', 'true');
+  try {
+    const response = await window.portuguesSession.request('/api/termos', { method: 'DELETE' });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.erro);
+    document.getElementById('privacy-message').textContent = 'Autorização revogada. Nenhuma nova correção será iniciada sem um novo aceite. Uma correção já enviada ao provedor pode terminar.';
+    await loadConsent();
+  } catch (error) { document.getElementById('privacy-message').textContent = error.message; button.disabled = false; }
+  finally { button.textContent = 'Revogar autorização de IA'; button.setAttribute('aria-busy', 'false'); }
+});
+document.getElementById('export-data')?.addEventListener('click', async () => {
+  const button = document.getElementById('export-data'); button.disabled = true;
+  button.setAttribute('aria-busy', 'true'); button.textContent = 'Preparando seus dados...';
+  try {
+    const response = await window.portuguesSession.request('/api/perfil/exportar');
+    if (!response.ok) { const data = await response.json(); throw new Error(data.erro); }
+    const data = await response.json();
+    data.dadosNesteDispositivo = { rascunho: window.userStorage.getItem('rascunho-redacao-v1'), fotoPendente: window.userStorage.getItem('rascunho-foto-v1'), resultado: window.userStorage.getItem('resultado'), pendentes: window.portuguesSession.pending() };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+    const link = document.createElement('a'); link.href = url; link.download = 'portugues-mais-meus-dados.json'; link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    document.getElementById('privacy-message').textContent = 'Download preparado. O arquivo contém seus dados pessoais; guarde-o em local seguro.';
+  } catch (error) { document.getElementById('privacy-message').textContent = error.message; }
+  finally { button.disabled = false; button.setAttribute('aria-busy', 'false'); button.textContent = 'Baixar meus dados'; }
+});
+window.addEventListener('DOMContentLoaded', loadConsent);

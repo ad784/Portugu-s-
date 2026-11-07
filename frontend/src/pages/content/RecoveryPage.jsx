@@ -9,7 +9,7 @@ export default function RecoveryPage() {
       bodyClass="auth-page"
     >
       <header className="site-header">
-        <a className="brand" href="/index.html">
+        <a className="brand" href="/">
           <img
             className="brand-icon"
             src="/assets/logo-portugues-mais.png"
@@ -21,8 +21,8 @@ export default function RecoveryPage() {
           </span>
         </a>
         <nav className="site-nav">
-          <a href="/index.html">{"Entrar"}</a>
-          <a href="/cadastro.html" className="nav-cta">
+          <a href="/">{"Entrar"}</a>
+          <a href="/cadastro" className="nav-cta">
             {"Criar conta"}
           </a>
         </nav>
@@ -37,34 +37,49 @@ export default function RecoveryPage() {
           </h1>
           <p>
             {
-              "Informe o e-mail cadastrado. Você receberá um link seguro para criar uma nova senha."
+              "Informe o e-mail da sua conta para receber um link seguro e definir uma nova senha. Se você ainda está conectado, também pode alterá-la pelo perfil."
             }
           </p>
         </section>
-        <section className="auth-card" aria-labelledby="recovery-title">
+        <form id="recovery-form" className="auth-card" aria-labelledby="recovery-title">
           <div className="form-heading">
             <span className="form-icon">{"✉"}</span>
             <div>
               <h2 id="recovery-title">{"Recuperar senha"}</h2>
-              <p>{"O link será enviado ao seu e-mail."}</p>
+              <p>{"Recupere o acesso com segurança."}</p>
             </div>
           </div>
+          <div id="recovery-request" hidden>
           <label htmlFor="email-recuperacao">{"E-mail"}</label>
           <input
             id="email-recuperacao"
             type="email"
             autoComplete="email"
             placeholder="voce@email.com"
+            required
           />
-          <p id="recovery-message" className="form-message" role="status"></p>
-          <button id="recovery-button" className="primary-action" type="button">
+          <button id="recovery-button" className="primary-action" type="submit">
             {"Enviar link de recuperação "}
             <span>{"→"}</span>
           </button>
+          </div>
+          <div id="recovery-support">
+            <p>A recuperação automática por e-mail está temporariamente pausada. Para solicitar ajuda com seu acesso, entre em contato. Não envie sua senha.</p>
+            <p><a href="mailto:portuguesmais02@gmail.com?subject=Ajuda%20com%20acesso%20ao%20Portugu%C3%AAs%2B">Falar com o suporte: portuguesmais02@gmail.com</a></p>
+            <p><a href="/perfil">Já estou conectado e quero alterar minha senha</a></p>
+          </div>
+          <div id="recovery-reset" hidden>
+            <label htmlFor="nova-senha">Nova senha</label>
+            <input id="nova-senha" type="password" autoComplete="new-password" minLength={8} required disabled />
+            <label htmlFor="confirmar-senha">Confirme a nova senha</label>
+            <input id="confirmar-senha" type="password" autoComplete="new-password" minLength={8} required disabled />
+            <button id="reset-password-button" className="primary-action" type="submit">Salvar nova senha</button>
+          </div>
+          <p id="recovery-message" className="form-message" role="status" aria-live="polite"></p>
           <p className="form-footer">
-            <a href="/index.html">{"Voltar para o login"}</a>
+            <a href="/">{"Voltar para o login"}</a>
           </p>
-        </section>
+        </form>
       </main>{" "}
       <footer className="site-footer">
         {"© 2026 Português+ · Sua prática, seu progresso."}

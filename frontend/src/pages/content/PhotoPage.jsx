@@ -13,7 +13,7 @@ export default function PhotoPage() {
         {" "}
         <a
           className="brand"
-          href="/nova.html"
+          href="/nova"
           aria-label="Página inicial do Português+"
         >
           {" "}
@@ -29,8 +29,8 @@ export default function PhotoPage() {
         </a>{" "}
         <nav className="site-nav" aria-label="Navegação principal">
           {" "}
-          <a href="/nova.html">{"Escrever redação"}</a>
-          <a href="/index.html" className="nav-cta">
+          <a href="/nova">{"Escrever redação"}</a>
+          <a href="/" data-action="signout" className="nav-cta">
             {"Sair"}
           </a>{" "}
         </nav>{" "}
@@ -50,6 +50,10 @@ export default function PhotoPage() {
           </div>{" "}
           <span className="editor-badge">{"📷 Leitura automática"}</span>{" "}
         </section>{" "}
+        <div className="theme-field">
+          <label htmlFor="foto-tema">Tema da redação</label>
+          <input id="foto-tema" type="text" maxLength={500} placeholder="Informe a proposta para avaliar a adequação ao tema" />
+        </div>
         <div className="photo-layout">
           {" "}
           <section className="camera-card" aria-labelledby="camera-title">
@@ -98,7 +102,7 @@ export default function PhotoPage() {
             <div className="send-photo-row">
               <div>
                 <strong>{"Foto pronta?"}</strong>
-                <p id="foto-status">
+                <p id="foto-status" role="status" aria-live="polite">
                   {"Depois de tirar a foto, envie para receber a correção."}
                 </p>
               </div>

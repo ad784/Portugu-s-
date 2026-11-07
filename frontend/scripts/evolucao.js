@@ -3,12 +3,11 @@ const COMPETENCY_NAMES = ['C1 · Norma-padrão', 'C2 · Tema e repertório', 'C3
 
 async function sair(event) {
   event?.preventDefault();
-  try { await window.supabaseClient?.auth.signOut({ scope: 'local' }); }
-  finally { window.location.href = '/index.html'; }
+  return window.portuguesSession.signOut();
 }
 
 function localHistory() {
-  try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
+  try { return JSON.parse(window.userStorage.getItem(HISTORY_KEY) || '[]'); }
   catch { return []; }
 }
 
@@ -35,7 +34,7 @@ function formatScores(records) {
       score: storedScore !== null && storedScore !== undefined && storedScore !== '' && Number.isFinite(Number(storedScore))
         ? Number(storedScore)
         : Number(parsedScore),
-      competencies: competencyScores(item.resultado)
+      competencies: item.competencias || competencyScores(item.resultado)
     };
   }).filter((item) => Number.isFinite(item.score) && item.score >= 0 && item.score <= 1000)
     .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
@@ -68,7 +67,7 @@ function renderScoreChart(records) {
   const target = document.getElementById('score-chart');
   const description = document.getElementById('score-chart-description');
   if (!records.length) {
-    target.innerHTML = '<div class="chart-empty"><h3>Ainda não há notas para mostrar</h3><p>Depois de corrigir e salvar sua primeira redação, seu gráfico aparecerá aqui.</p><a class="primary-action" href="/nova.html">Escrever primeira redação <span aria-hidden="true">→</span></a></div>';
+    target.innerHTML = '<div class="chart-empty"><h3>Ainda não há notas para mostrar</h3><p>Depois de corrigir e salvar sua primeira redação, seu gráfico aparecerá aqui.</p><a class="primary-action" href="/nova">Escrever primeira redação <span aria-hidden="true">→</span></a></div>';
     description.textContent = '';
     return;
   }
@@ -110,23 +109,34 @@ function renderCompetencies(records) {
 }
 
 async function loadProgress() {
-  const local = localHistory();
   try {
     if (!window.supabaseClient) throw new Error('Autenticação indisponível');
-    const { data: { session } } = await window.supabaseClient.auth.getSession();
-    if (!session) { window.location.href = '/index.html'; return; }
-    const response = await fetch('/api/redacoes', { headers: { Authorization: `Bearer ${session.access_token}` } });
+    await window.portuguesSession.syncPending();
+    const response = await window.portuguesSession.request('/api/evolucao');
     const data = await response.json();
     if (!response.ok) throw new Error(data.erro || 'Não foi possível carregar suas redações.');
     const remote = data.redacoes || [];
+    const local = localHistory();
     const ids = new Set(remote.map((item) => item.id));
-    renderProgress([...remote, ...local.filter((item) => !ids.has(item.id))]);
+    const hashes = new Set(remote.map(item => item.hash).filter(Boolean));
+    renderProgress([...remote, ...local.filter((item) => !ids.has(item.id) && (!item.hash || !hashes.has(item.hash)))]);
   } catch (error) {
-    if (local.length) renderProgress(local);
+    const local = localHistory();
+    if (local.length) {
+      renderProgress(local);
+      const notice = document.createElement('p'); notice.className = 'form-message error'; notice.setAttribute('role', 'status');
+      notice.textContent = 'Não foi possível atualizar a conta. Estes dados incluem somente avaliações pendentes neste dispositivo.';
+      document.getElementById('score-chart').prepend(notice);
+    }
     else {
-      document.getElementById('score-chart').innerHTML = `<div class="chart-empty"><h3>Não foi possível carregar seu histórico</h3><p>${error.message}</p></div>`;
+      const message = document.createElement('p');
+      message.textContent = error.message || 'Não foi possível carregar seu histórico.';
+      document.getElementById('score-chart').replaceChildren(message);
       document.getElementById('competency-progress').replaceChildren();
     }
+    const retry = document.createElement('button'); retry.type = 'button'; retry.className = 'secondary-action'; retry.textContent = 'Tentar carregar novamente';
+    retry.addEventListener('click', async () => { retry.disabled = true; retry.textContent = 'Carregando...'; await loadProgress(); });
+    document.getElementById('score-chart').append(retry);
   }
 }
 

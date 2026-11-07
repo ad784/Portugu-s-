@@ -15,6 +15,7 @@ export const scriptsByPage = {
     () => import("../scripts/navigation.js"),
   ],
   resultado: [
+    () => import("../scripts/supabase.js"),
     () => import("../scripts/script.js"),
     () => import("../scripts/navigation.js"),
   ],
