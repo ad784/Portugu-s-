@@ -13,6 +13,7 @@ export const ready = (async () => {
     if (response.ok) config = await response.json();
   } catch { /* Os valores públicos padrão permitem iniciar o cliente se a API estiver indisponível. */ }
   window.authErrorMessage = authErrorMessage;
+  window.legalVersions = config?.legal;
   window.emailRecoveryEnabled = config?.emailRecoveryEnabled === true;
   window.checkSignupConfiguration = async () => {
     const response = await fetch(`${config?.supabaseUrl || supabaseUrl}/auth/v1/settings`, {

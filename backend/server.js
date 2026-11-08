@@ -28,6 +28,7 @@ process.env.SUPABASE_JWKS_URL ||= `${process.env.SUPABASE_URL.replace(/\/+$/, ''
 
 function getGroqApiKey() { return process.env.GROQ_API_KEY?.trim() || ""; }
 const groqApiKey = getGroqApiKey();
+const { photoConfig, legalVersions } = require('./services/photo-config');
 const { requireSupabaseUser, requireAdmin } = require("./middleware/require-user");
 const { createLegalRouter, requireLegalAcceptance } = require('./routes/legal');
 const requireCorrectionUser = (req, res, next) => requireSupabaseUser(req, res, () => requireLegalAcceptance(req, res, next));
@@ -51,6 +52,7 @@ app.get('/api/config', (_req, res) => {
   supabaseUrl: process.env.SUPABASE_URL,
   supabasePublishableKey: process.env.SUPABASE_PUBLISHABLE_KEY,
   emailRecoveryEnabled: process.env.EMAIL_RECOVERY_ENABLED === 'true',
+  legal: legalVersions(),
   privacyContact: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(process.env.CONTACT_EMAIL || '') ? process.env.CONTACT_EMAIL : null
   });
 });
@@ -70,6 +72,7 @@ app.use(createTextCorrectionRouter({
   model: process.env.GROQ_MODEL
 }));
 app.use(createPhotoRouter({
+  ...photoConfig(),
   requireSupabaseUser: requireCorrectionUser,
   saveCorrection,
   apiKey: groqApiKey,

@@ -41,7 +41,7 @@ async function cadastrar(event) {
     const { data, error } = await window.supabaseClient.auth.signUp({
       email,
       password: senha,
-      options: { data: { nome, terms_version: '2026-10-30', privacy_version: '2026-10-30', ai_consent: true } }
+      options: { data: { nome, terms_version: window.legalVersions?.termsVersion || '2026-10-30', privacy_version: window.legalVersions?.privacyVersion || '2026-10-30', ai_consent: true } }
     });
     if (error) throw error;
 
