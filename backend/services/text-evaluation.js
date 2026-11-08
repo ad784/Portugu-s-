@@ -23,8 +23,8 @@ function retrySeconds(response, data) {
   return Math.max(1, Math.ceil(Number(response.headers?.get('retry-after')) || fromMessage || (!daily && fromReset) || 60));
 }
 
-function createTextHandler({ saveCorrection, apiKey, model = 'openai/gpt-oss-120b', parseJsonObject, isCompleteCorrection, normalizarCorrecao, correctionResponseFormat }) {
-  async function generate(texto, tema, linhas) {
+function createTextEvaluator({ apiKey, model = 'openai/gpt-oss-120b', parseJsonObject, isCompleteCorrection, normalizarCorrecao, correctionResponseFormat, budgetMs = 50000 }) {
+  return async function generate(texto, tema, linhas) {
     const payload = {
       model, ...(model.includes('gpt-oss') ? { reasoning_effort: 'low' } : {}),
       temperature: 0, seed: 42, max_tokens: 4000,
@@ -34,7 +34,7 @@ function createTextHandler({ saveCorrection, apiKey, model = 'openai/gpt-oss-120
         { role: 'user', content: `Tema da proposta: ${tema || 'Não informado. Não invente fuga ao tema.'}\nExtensão estimada em linhas de referência: ${linhas}.\n\nRedação para avaliar:\n---\n${texto}\n---` }
       ]
     };
-    const deadline = Date.now() + 50000;
+    const deadline = Date.now() + budgetMs;
     for (let attempt = 0; attempt < 2; attempt++) {
       const started = Date.now();
       let response;
@@ -70,8 +70,11 @@ function createTextHandler({ saveCorrection, apiKey, model = 'openai/gpt-oss-120
       payload.messages.push({ role: 'user', content: 'A resposta anterior veio incompleta. Retorne somente o JSON completo com cinco competencias, notas e comentarios. Seja conciso e conclua o objeto, mantendo os mesmos criterios.' });
     }
     throw serviceError('A resposta da correção veio incompleta. Seu rascunho foi mantido; tente novamente.');
-  }
-
+  };
+}
+function createTextHandler(options) {
+  const { saveCorrection, apiKey, model = 'openai/gpt-oss-120b' } = options;
+  const generate = createTextEvaluator(options);
   return async (req, res) => {
     const { texto, tema = '' } = req.body || {};
     if (typeof texto !== 'string' || !texto.trim()) return res.status(400).json({ erro: 'Texto não enviado.' });
@@ -114,4 +117,4 @@ function createTextHandler({ saveCorrection, apiKey, model = 'openai/gpt-oss-120
     }
   };
 }
-module.exports = { createTextHandler, retrySeconds };
+module.exports = { createTextHandler, createTextEvaluator, retrySeconds };

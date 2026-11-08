@@ -88,4 +88,4 @@ function normalizarCorrecao(correcao, texto) {
   return router;
 }
 
-module.exports = { createTextCorrectionRouter, normalizarCorrecao, correctionResponseFormat };
+module.exports = { createTextCorrectionRouter, normalizarCorrecao, correctionResponseFormat, parseJsonObject, isCompleteCorrection };

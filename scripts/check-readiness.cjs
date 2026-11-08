@@ -9,6 +9,10 @@ function check(label, valid, hint) {
 const env = process.env;
 check('Node 22.22 ou superior', Number(process.versions.node.split('.')[0]) > 22 || (Number(process.versions.node.split('.')[0]) === 22 && Number(process.versions.node.split('.')[1]) >= 22), 'Atualize o Node.js.');
 check('Chave de IA', !!env.GROQ_API_KEY && !/your-|example/i.test(env.GROQ_API_KEY), 'Configure GROQ_API_KEY somente no servidor.');
+const { photoConfig } = require('../backend/services/photo-config');
+const photo = photoConfig(env);
+check('Leitor de fotos válido', ['groq', 'google'].includes(photo.provider), 'Use PHOTO_READER=groq ou google.');
+if (photo.provider === 'google') check('Chave Google Vision', Boolean(photo.googleApiKey), 'Configure GOOGLE_VISION_API_KEY somente no servidor e aplique a migration de privacidade de 08/11.');
 check('URL do Supabase', /^https:\/\/[^/]+\/?$/.test(env.SUPABASE_URL || ''), 'Configure SUPABASE_URL.');
 let publicKey = /^sb_publishable_/.test(env.SUPABASE_PUBLISHABLE_KEY || '');
 try { publicKey ||= JSON.parse(Buffer.from(env.SUPABASE_PUBLISHABLE_KEY.split('.')[1], 'base64url')).role === 'anon'; } catch {}
