@@ -5,9 +5,9 @@ const { fingerprint, readCache, writeCache, findSavedCorrection, singleFlight } 
 const { acquireCorrection } = require('../middleware/correction-limits');
 const { recordEvent } = require('../services/groq-metrics');
 
-function createPhotoRouter({ requireSupabaseUser, saveCorrection, apiKey, model = 'qwen/qwen3.8-27b', provider = 'groq', googleApiKey, nvidiaApiKey, nvidiaModel, textModel = 'openai/gpt-oss-120b', analyze, upload = uploadPhoto }) {
-  const evaluatePhoto = analyze || (provider === 'nvidia' ? require('../services/nvidia-photo').analyzeNvidiaPhoto : provider === 'google' ? require('../services/google-photo').analyzeGooglePhoto : analyzePhoto);
-  const effectiveModel = ['google', 'nvidia'].includes(provider) ? textModel : model;
+function createPhotoRouter({ requireSupabaseUser, saveCorrection, apiKey, model = 'qwen/qwen3.8-27b', provider = 'groq', googleApiKey, textModel = 'openai/gpt-oss-120b', analyze, upload = uploadPhoto }) {
+  const evaluatePhoto = analyze || (provider === 'google' ? require('../services/google-photo').analyzeGooglePhoto : analyzePhoto);
+  const effectiveModel = provider === 'google' ? textModel : model;
   const router = express.Router();
   router.post(['/api/corrigir-foto', '/corrigir-foto'], requireSupabaseUser, async (req, res) => {
     if (req.authUnavailable || !req.supabaseUser) return res.status(503).json({ erro: 'Não foi possível validar sua sessão. Tente novamente.' });
@@ -15,9 +15,7 @@ function createPhotoRouter({ requireSupabaseUser, saveCorrection, apiKey, model 
     const tema = req.body?.tema || '';
     if (typeof tema !== 'string' || tema.length > 500) return res.status(400).json({ erro: 'Informe um tema válido de até 500 caracteres.' });
     try { parsePhotoDataUrl(image); } catch (error) { return res.status(400).json({ erro: error.message }); }
-    const parts = [provider === 'nvidia' ? 'foto-nvidia-v1' : provider === 'google' ? 'foto-google-v1' : 'foto-v2', req.supabaseUser.id, effectiveModel, PROMPT_CORRECAO_ENEM, image, tema.trim()];
-    if (provider === 'nvidia') parts.push(nvidiaModel || require('../services/nvidia-photo').DEFAULT_MODEL);
-    const hash = fingerprint(parts);
+    const hash = fingerprint([provider === 'google' ? 'foto-google-v1' : 'foto-v2', req.supabaseUser.id, effectiveModel, PROMPT_CORRECAO_ENEM, image, tema.trim()]);
     try {
       const body = await singleFlight(hash, async () => {
         const saved = await findSavedCorrection(req, hash);
@@ -29,12 +27,12 @@ function createPhotoRouter({ requireSupabaseUser, saveCorrection, apiKey, model 
         let result = cached?.resultado;
         if (result) recordEvent({ type: 'reuse', kind: 'foto', source: 'cache' });
         if (!result) {
-          if (!['groq', 'google', 'nvidia'].includes(provider) || (provider === 'google' && !googleApiKey) || (provider === 'nvidia' && !nvidiaApiKey)) {
+          if (!['groq', 'google'].includes(provider) || (provider === 'google' && !googleApiKey)) {
             const error = new Error('O serviço de leitura de fotos precisa ser configurado pelo responsável do site.'); error.status = 503; error.code = 'PHOTO_PROVIDER_AUTH'; throw error;
           }
           if (!apiKey) { const error = new Error('A correção por foto ainda está indisponível. Tente novamente mais tarde.'); error.status = 503; throw error; }
           const release = await acquireCorrection(req);
-          try { ({ result } = await evaluatePhoto({ image, apiKey, model: effectiveModel, tema: tema.trim(), googleApiKey, nvidiaApiKey, nvidiaModel, userId: req.supabaseUser.id })); }
+          try { ({ result } = await evaluatePhoto({ image, apiKey, model: effectiveModel, tema: tema.trim(), googleApiKey, userId: req.supabaseUser.id })); }
           finally { await release(); }
           writeCache(hash, { resultado: result, hash, salvo: false });
         }
