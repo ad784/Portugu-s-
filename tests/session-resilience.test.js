@@ -76,6 +76,105 @@ function environment({ storageFails = false, unauthorized = false } = {}) {
   };
 }
 
+test("shared corrections load all 96 records beyond the first page, merge pending hashes and normalize scores", async () => {
+  const env = environment();
+  await env.context.initializeSession(env.client);
+  const records = Array.from({ length: 96 }, (_, index) => ({
+    id: `remote-${index}`,
+    avaliacao_hash: `hash-${index}`,
+    nota: index === 95 ? null : "800",
+    resultado: "Nota: 760",
+    created_at: "2026-11-10T12:00:00Z",
+  }));
+  const session = env.context.window.portuguesSession;
+  session.savePending({ id: "local-copy", hash: "hash-95", nota: 760 });
+  session.savePending({ id: "pending-new", hash: "pending-hash", nota: 600 });
+  const pages = [];
+  env.context.fetch = async (url) => {
+    if (url.includes("sincronizar")) return { ok: false, status: 503 };
+    const page = Number(
+      new URL(url, "http://localhost").searchParams.get("page"),
+    );
+    pages.push(page);
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        redacoes: records.slice(page * 50, (page + 1) * 50),
+        hasMore: page === 0,
+      }),
+    };
+  };
+  const first = await session.loadCorrections();
+  const second = await session.loadCorrections();
+  assert.equal(first.length, 97);
+  assert.equal(second.length, 97);
+  assert.equal(first[95].nota, 760);
+  assert.equal(first[0].nota, 800);
+  assert.deepEqual(pages, [0, 1, 0, 1]);
+  assert.equal(session.pending().length, 2);
+});
+
+test("successful pending synchronization removes the local copy only after persistence and lists it once", async () => {
+  const env = environment();
+  await env.context.initializeSession(env.client);
+  const session = env.context.window.portuguesSession;
+  session.savePending({
+    id: "pending",
+    hash: "unique",
+    resultado: "Nota: 600",
+    nota: 600,
+  });
+  const saved = [];
+  env.context.fetch = async (url, options) => {
+    if (url.includes("sincronizar")) {
+      const record = JSON.parse(options.body);
+      saved.push({ ...record, id: "persisted", avaliacao_hash: record.hash });
+      return { ok: true, status: 200 };
+    }
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({ redacoes: saved, hasMore: false }),
+    };
+  };
+  const records = await session.loadCorrections();
+  assert.equal(records.length, 1);
+  assert.equal(records[0].id, "persisted");
+  assert.equal(session.pending().length, 0);
+});
+
+test("incomplete pagination fails instead of presenting the first 50 records as the total", async () => {
+  const env = environment();
+  await env.context.initializeSession(env.client);
+  env.context.fetch = async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({ redacoes: [], hasMore: true }),
+  });
+  await assert.rejects(
+    env.context.window.portuguesSession.loadCorrections(),
+    /concluir/,
+  );
+});
+
+test("shared history refuses to return another account's records after switching accounts mid-request", async () => {
+  const env = environment();
+  await env.context.initializeSession(env.client);
+  env.context.fetch = async () => ({
+    ok: true,
+    status: 200,
+    json: async () => {
+      env.switchUser("account-b");
+      return { redacoes: [{ id: "account-a-private" }], hasMore: false };
+    },
+  });
+  await assert.rejects(
+    env.context.window.portuguesSession.loadCorrections(),
+    /conta (?:foi alterada|mudou)/,
+  );
+});
+
 test("storage failure preserves the completed result in memory and warns without mixing accounts", async () => {
   const env = environment({ storageFails: true });
   await env.context.initializeSession(env.client);

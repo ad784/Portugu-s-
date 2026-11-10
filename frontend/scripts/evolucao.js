@@ -1,4 +1,3 @@
-const HISTORY_KEY = "historico-redacoes-local";
 const COMPETENCY_NAMES = [
   "C1 · Norma-padrão",
   "C2 · Tema e repertório",
@@ -14,7 +13,10 @@ async function sair(event) {
 
 function localHistory() {
   try {
-    return JSON.parse(window.userStorage.getItem(HISTORY_KEY) || "[]");
+    return window.portuguesSession.mergeCorrections(
+      [],
+      window.portuguesSession.pending(),
+    );
   } catch {
     return [];
   }
@@ -65,7 +67,7 @@ function formatScores(records) {
     .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 }
 
-function renderSummary(records) {
+function renderSummary(records, total = records.length) {
   const target = document.getElementById("progress-summary");
   target.replaceChildren();
   const scores = records.map((item) => item.score);
@@ -73,7 +75,7 @@ function renderSummary(records) {
   const last = scores.at(-1);
   const delta = scores.length > 1 ? last - first : null;
   const data = [
-    [String(records.length), "redações corrigidas"],
+    [String(total), "redações corrigidas"],
     [
       scores.length
         ? String(
@@ -193,22 +195,7 @@ function renderCompetencies(records) {
 
 async function loadProgress() {
   try {
-    if (!window.supabaseClient) throw new Error("Autenticação indisponível");
-    await window.portuguesSession.syncPending();
-    const response = await window.portuguesSession.request("/api/evolucao");
-    const data = await response.json();
-    if (!response.ok)
-      throw new Error(data.erro || "Não foi possível carregar suas redações.");
-    const remote = data.redacoes || [];
-    const local = localHistory();
-    const ids = new Set(remote.map((item) => item.id));
-    const hashes = new Set(remote.map((item) => item.hash).filter(Boolean));
-    renderProgress([
-      ...remote,
-      ...local.filter(
-        (item) => !ids.has(item.id) && (!item.hash || !hashes.has(item.hash)),
-      ),
-    ]);
+    renderProgress(await window.portuguesSession.loadCorrections());
   } catch (error) {
     const local = localHistory();
     if (local.length) {
@@ -241,7 +228,7 @@ async function loadProgress() {
 
 function renderProgress(items) {
   const records = formatScores(items);
-  renderSummary(records);
+  renderSummary(records, items.length);
   renderScoreChart(records);
   renderCompetencies(records);
 }

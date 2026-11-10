@@ -27,6 +27,15 @@ const session = {
   expires_in: 3600,
   user,
 };
+const historyFixture = Array.from({ length: 96 }, (_, index) => ({
+  id: `essay-${index}`,
+  avaliacao_hash: `hash-${index}`,
+  tipo: "texto",
+  nota: index % 2 ? 800 : 600,
+  tema: "Tema de teste",
+  created_at: new Date(Date.UTC(2026, 0, 1 + index)).toISOString(),
+  resultado: `Nota: ${index % 2 ? 800 : 600}\nCompetencias:\n1: 120 - Teste\n2: 120 - Teste\n3: 120 - Teste\n4: 120 - Teste\n5: 120 - Teste`,
+}));
 
 async function main() {
   if (!fs.existsSync(chrome))
@@ -120,8 +129,14 @@ async function main() {
           };
         else if (url.pathname === "/api/perfil")
           body = { perfil: { nome: "Estudante de teste", email: user.email } };
-        else if (["/api/redacoes", "/api/evolucao"].includes(url.pathname))
-          body = { redacoes: [], hasMore: false };
+        else if (url.pathname === "/api/redacoes") {
+          const page = Number(url.searchParams.get("page") || 0);
+          body = {
+            redacoes: historyFixture.slice(page * 50, (page + 1) * 50),
+            hasMore: page === 0,
+          };
+        } else if (url.pathname === "/api/evolucao")
+          body = { redacoes: historyFixture, hasMore: false };
         else if (url.pathname === "/auth/v1/user") body = user;
         else if (url.pathname === "/auth/v1/settings")
           body = {
@@ -202,6 +217,26 @@ async function main() {
           returnByValue: true,
         });
         state = JSON.parse(result.result.value);
+        if (["/historico", "/evolucao"].includes(route)) {
+          const summary = await call("Runtime.evaluate", {
+            expression: `JSON.stringify([...document.querySelectorAll('${route === "/historico" ? "#history-summary" : "#progress-summary"} strong')].map(el => el.textContent))`,
+            returnByValue: true,
+          });
+          const values = JSON.parse(summary.result.value);
+          if (values[0] !== "96" || values[1] !== "700")
+            throw new Error(
+              "History and progress must show the full 96 records and identical average",
+            );
+          if (route === "/historico") {
+            const pagination = await call("Runtime.evaluate", {
+              expression: `JSON.stringify((() => { const before = document.querySelectorAll('.history-item').length; [...document.querySelectorAll('#history-list > button')].find(el => el.textContent.includes('Carregar mais'))?.click(); return {before,after:document.querySelectorAll('.history-item').length,total:document.querySelector('#history-summary strong').textContent}; })())`,
+              returnByValue: true,
+            });
+            const page = JSON.parse(pagination.result.value);
+            if (page.before !== 50 || page.after !== 96 || page.total !== "96")
+              throw new Error("Loading more history must not alter the total");
+          }
+        }
         if (route === "/nova") {
           const supports = await call("Runtime.evaluate", {
             expression: `JSON.stringify([...document.querySelectorAll('.theme-option')].map(option => { option.click(); return {theme: option.dataset.theme, count: document.querySelectorAll('#theme-support-arguments li').length, damagedText: /[?\uFFFD]/.test(document.querySelector('.support-arguments').textContent), lengths: [...document.querySelectorAll('#theme-support-arguments li p')].map(p => p.textContent.length)}; }))`,
