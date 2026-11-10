@@ -1,8 +1,4 @@
 const { parsePhotoDataUrl } = require('./photo-correction');
-const { fingerprint, readCache, writeCache } = require('./evaluation-cache');
-const { createTextEvaluator } = require('./text-evaluation');
-const { formatarCorrecaoEnem } = require('./essay-storage');
-const rules = require('./writing-rules');
 const { recordEvent } = require('./groq-metrics');
 
 function failure(message, status = 503, code = 'PHOTO_PROVIDER_AUTH', seconds) {
@@ -48,28 +44,9 @@ async function readGooglePhoto({ image, googleApiKey, fetchImpl = fetch }) {
   return text.trim().replace(/\r\n?/g, '\n');
 }
 
-async function analyzeGooglePhoto({ image, apiKey, googleApiKey, model = 'openai/gpt-oss-120b', tema = '', userId, fetchImpl = fetch, evaluate }) {
-  const { mime } = parsePhotoDataUrl(image);
-  if (!apiKey) throw failure('A correção por IA ainda precisa ser configurada pelo responsável.');
-  const key = userId ? fingerprint(['google-ocr-v1', userId, image]) : null;
-  let transcript = key ? readCache(key)?.transcript : null;
-  if (!transcript) {
-    transcript = await readGooglePhoto({ image, googleApiKey, fetchImpl });
-    if (key) writeCache(key, { transcript });
-  } else recordEvent({ type: 'reuse', kind: 'foto', source: 'google-ocr-cache' });
-  if (transcript.length > rules.maximumCharacters) throw failure('A leitura encontrou texto demais. Fotografe apenas uma redação por vez.', 400, 'PHOTO_IMAGE_UNREADABLE');
-  const lines = rules.estimateLines(transcript);
-  if (lines < rules.minimumLines) throw failure('A leitura encontrou menos de 8 linhas de referência. Confira se a folha inteira está nítida.', 400, 'PHOTO_IMAGE_UNREADABLE');
-  const { parseJsonObject, isCompleteCorrection, normalizarCorrecao, correctionResponseFormat } = require('../routes/text-correction');
-  const evaluator = evaluate || createTextEvaluator({ apiKey, model, parseJsonObject, isCompleteCorrection, normalizarCorrecao, correctionResponseFormat, budgetMs: 40000 });
-  try {
-    const correction = await evaluator(transcript, tema, lines);
-    return { result: formatarCorrecaoEnem(correction, transcript), mime };
-  } catch (error) {
-    if (error.status === 429) {
-      error.code = /cota diaria/i.test(error.message) ? 'PHOTO_DAILY_LIMIT' : 'PHOTO_PROVIDER_BUSY';
-    }
-    throw error;
-  }
+function analyzeGooglePhoto(options) {
+  const { analyzeTranscribedPhoto } = require('./transcribed-photo');
+  return analyzeTranscribedPhoto({ ...options, read: readGooglePhoto, provider: 'google',
+    readerOptions: { googleApiKey: options.googleApiKey, fetchImpl: options.fetchImpl || fetch } });
 }
 module.exports = { readGooglePhoto, analyzeGooglePhoto };

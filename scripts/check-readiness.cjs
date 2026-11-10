@@ -11,8 +11,9 @@ check('Node 22.22 ou superior', Number(process.versions.node.split('.')[0]) > 22
 check('Chave de IA', !!env.GROQ_API_KEY && !/your-|example/i.test(env.GROQ_API_KEY), 'Configure GROQ_API_KEY somente no servidor.');
 const { photoConfig } = require('../backend/services/photo-config');
 const photo = photoConfig(env);
-check('Leitor de fotos válido', ['groq', 'google'].includes(photo.provider), 'Use PHOTO_READER=groq ou google.');
+check('Leitor de fotos válido', ['groq', 'google', 'nvidia'].includes(photo.provider), 'Use PHOTO_READER=groq, google ou nvidia.');
 if (photo.provider === 'google') check('Chave Google Vision', Boolean(photo.googleApiKey), 'Configure GOOGLE_VISION_API_KEY somente no servidor e aplique a migration de privacidade de 08/11.');
+if (photo.provider === 'nvidia') check('Chave NVIDIA', Boolean(photo.nvidiaApiKey), 'Configure NVIDIA_API_KEY somente no servidor e aplique a migration de privacidade de 10/11.');
 check('URL do Supabase', /^https:\/\/[^/]+\/?$/.test(env.SUPABASE_URL || ''), 'Configure SUPABASE_URL.');
 let publicKey = /^sb_publishable_/.test(env.SUPABASE_PUBLISHABLE_KEY || '');
 try { publicKey ||= JSON.parse(Buffer.from(env.SUPABASE_PUBLISHABLE_KEY.split('.')[1], 'base64url')).role === 'anon'; } catch {}
