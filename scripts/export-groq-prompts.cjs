@@ -99,6 +99,7 @@ async function main() {
     quantidadeExemplos: prompt.includes(JSON.stringify(calibration.exemplos))
       ? calibration.exemplos.length
       : 0,
+    quantidadeAncorasResumidas: prompt.includes("ANCORAS DE TREINAMENTO") ? 2 : 0,
     caracteresSchemaTexto: JSON.stringify(captures.texto.response_format)
       .length,
     limiteSaidaTexto: captures.texto.max_tokens,
