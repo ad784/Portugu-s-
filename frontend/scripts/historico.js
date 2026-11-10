@@ -10,18 +10,6 @@ function formatDate(value) {
     timeStyle: "short",
   }).format(new Date(value));
 }
-function mergeHistory(remote, local) {
-  const ids = new Set(remote.map((item) => item.id));
-  const hashes = new Set(
-    remote.map((item) => item.avaliacao_hash || item.hash).filter(Boolean),
-  );
-  return [
-    ...remote,
-    ...local.filter(
-      (item) => !ids.has(item.id) && (!item.hash || !hashes.has(item.hash)),
-    ),
-  ];
-}
 
 function extractPreview(resultado) {
   const text = (resultado || "").replace(/^.*?Redacao:\s*/is, "").trim();
@@ -32,30 +20,31 @@ function extractPreview(resultado) {
 
 function getLocalHistory() {
   try {
-    return JSON.parse(
-      window.userStorage.getItem("historico-redacoes-local") || "[]",
+    return window.portuguesSession.mergeCorrections(
+      [],
+      window.portuguesSession.pending(),
     );
   } catch {
     return [];
   }
 }
 
-function renderHistory(redacoes) {
+function renderHistory(redacoes, visible = 50) {
   const list = document.getElementById("history-list");
   const summary = document.getElementById("history-summary");
   list.replaceChildren();
   summary.replaceChildren();
+  const notas = redacoes.map((item) => item.nota).filter(Number.isFinite);
+  const average = notas.length
+    ? Math.round(notas.reduce((sum, nota) => sum + nota, 0) / notas.length)
+    : "—";
+  summary.innerHTML = `<div><strong>${redacoes.length}</strong><span>redações corrigidas</span></div><div><strong>${average}</strong><span>média de pontos</span></div><div><strong>${notas.length ? Math.max(...notas) : "—"}</strong><span>melhor nota</span></div>`;
   if (!redacoes.length) {
     list.innerHTML =
       '<div class="history-empty"><h2>Você ainda não possui redações salvas.</h2><p>Quando uma redação for corrigida com sua conta, ela aparecerá aqui.</p><a href="/nova" class="primary-action">Escrever minha primeira redação <span>→</span></a></div>';
     return;
   }
-  const notas = redacoes.map((item) => item.nota).filter(Number.isFinite);
-  const average = notas.length
-    ? Math.round(notas.reduce((sum, nota) => sum + nota, 0) / notas.length)
-    : 0;
-  summary.innerHTML = `<div><strong>${redacoes.length}</strong><span>redações corrigidas</span></div><div><strong>${average}</strong><span>média de pontos</span></div><div><strong>${notas.length ? Math.max(...notas) : "—"}</strong><span>melhor nota</span></div>`;
-  redacoes.forEach((item) => {
+  redacoes.slice(0, visible).forEach((item) => {
     const article = document.createElement("article");
     article.className = "history-item";
     const score = document.createElement("div");
@@ -93,45 +82,19 @@ function renderHistory(redacoes) {
     });
     list.append(article);
   });
+  if (redacoes.length > visible) {
+    const more = document.createElement("button");
+    more.type = "button";
+    more.className = "primary-action";
+    more.textContent = "Carregar mais redações";
+    more.addEventListener("click", () => renderHistory(redacoes, visible + 50));
+    list.append(more);
+  }
 }
 
 async function loadHistory() {
   try {
-    await window.portuguesSession.syncPending();
-    const response = await window.portuguesSession.request("/api/redacoes");
-    const data = await response.json();
-    if (!response.ok)
-      throw new Error(data.erro || "Não foi possível carregar o histórico.");
-    const remoteHistory = data.redacoes || [];
-    const localHistory = getLocalHistory();
-    renderHistory(mergeHistory(remoteHistory, localHistory));
-    if (data.hasMore) {
-      let page = 0;
-      const records = [...remoteHistory];
-      const more = document.createElement("button");
-      more.className = "primary-action";
-      more.textContent = "Carregar mais redações";
-      more.addEventListener("click", async () => {
-        more.disabled = true;
-        try {
-          const response = await window.portuguesSession.request(
-            "/api/redacoes?page=" + (page + 1),
-          );
-          const next = await response.json();
-          if (!response.ok) throw Error(next.erro);
-          records.push(...next.redacoes);
-          page++;
-          renderHistory(mergeHistory(records, getLocalHistory()));
-          if (next.hasMore)
-            document.getElementById("history-list").append(more);
-        } catch {
-          more.textContent = "Não foi possível carregar. Tentar novamente";
-        } finally {
-          more.disabled = false;
-        }
-      });
-      document.getElementById("history-list").append(more);
-    }
+    renderHistory(await window.portuguesSession.loadCorrections());
   } catch (error) {
     const localHistory = getLocalHistory();
     if (localHistory.length) {

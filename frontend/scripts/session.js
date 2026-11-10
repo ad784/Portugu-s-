@@ -238,6 +238,59 @@ function savePending(record) {
   userStorage.setItem("historico-redacoes-local", JSON.stringify(items));
 }
 
+function mergeCorrections(remote, local) {
+  const ids = new Set();
+  const hashes = new Set();
+  return [...remote, ...local]
+    .filter((item) => {
+      const hash = item.avaliacao_hash || item.hash;
+      if ((item.id && ids.has(item.id)) || (hash && hashes.has(hash)))
+        return false;
+      if (item.id) ids.add(item.id);
+      if (hash) hashes.add(hash);
+      return true;
+    })
+    .map((item) => {
+      const stored = item.nota;
+      const value =
+        stored !== null && stored !== undefined && stored !== ""
+          ? Number(stored)
+          : Number(item.resultado?.match(/^\s*Nota\s*:\s*(\d+)/im)?.[1]);
+      return {
+        ...item,
+        nota:
+          Number.isFinite(value) && value >= 0 && value <= 1000 ? value : null,
+      };
+    });
+}
+
+async function loadCorrections() {
+  const owner = currentUser?.id;
+  if (!owner)
+    throw new Error("Entre na sua conta para carregar suas redações.");
+  await syncPending();
+  const records = [];
+  for (let page = 0; ; page++) {
+    if (currentUser?.id !== owner)
+      throw new Error("A conta foi alterada. Atualize a página.");
+    const response = await request("/api/redacoes?page=" + page, {
+      expectedUserId: owner,
+    });
+    const data = await response.json();
+    if (!response.ok)
+      throw new Error(data.erro || "Não foi possível carregar suas redações.");
+    if (!Array.isArray(data.redacoes))
+      throw new Error("O histórico recebido está incompleto. Tente novamente.");
+    records.push(...data.redacoes);
+    if (!data.hasMore) break;
+    if (!data.redacoes.length || page >= 10000)
+      throw new Error("Não foi possível concluir o carregamento do histórico.");
+  }
+  if (currentUser?.id !== owner)
+    throw new Error("A conta foi alterada. Atualize a página.");
+  return mergeCorrections(records, pending());
+}
+
 let syncing;
 async function syncPending() {
   if (syncing) return syncing;
@@ -293,6 +346,8 @@ export async function initializeSession(supabaseClient, recovering = false) {
     pending,
     savePending,
     syncPending,
+    loadCorrections,
+    mergeCorrections,
     estimateLines,
     presentResult,
   };

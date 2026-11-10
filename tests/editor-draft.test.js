@@ -49,10 +49,17 @@ test("leaving a completed essay does not recreate its draft, while later edits a
 test("history merges records by the correction hash and tolerates invalid dates", () => {
   const context = { window: { addEventListener() {} } };
   vm.runInNewContext(
+    fs
+      .readFileSync("frontend/scripts/session.js", "utf8")
+      .replace(/^import writingRules.*$/m, "const writingRules = {};")
+      .replace(/export /g, ""),
+    context,
+  );
+  vm.runInNewContext(
     fs.readFileSync("frontend/scripts/historico.js", "utf8"),
     context,
   );
-  const result = context.mergeHistory(
+  const result = context.mergeCorrections(
     [{ id: "db-1", avaliacao_hash: "same" }],
     [
       { id: "local-1", hash: "same" },
