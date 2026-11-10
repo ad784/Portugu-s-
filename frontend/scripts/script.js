@@ -1,3 +1,106 @@
+const argumentosDeApoio = {
+  2016: [
+    [
+      "Desinforma??o e preconceito",
+      "Estere?tipos sobre cren?as diferentes podem transformar desconhecimento em hostilidade. Explique como estudar a diversidade religiosa com respeito ? liberdade de consci?ncia favorece a conviv?ncia sem impor uma cren?a.",
+    ],
+    [
+      "Prote??o e resposta ? viol?ncia",
+      "Quando a v?tima n?o encontra acolhimento ou canais de den?ncia acess?veis, a agress?o pode permanecer invis?vel. Discuta como orienta??o, registro e acompanhamento das den?ncias ajudam a proteger pessoas e espa?os de culto.",
+    ],
+  ],
+  2017: [
+    [
+      "Acesso ? l?ngua e aprendizagem",
+      "Uma aula organizada apenas em portugu?s oral pode impedir o estudante surdo de acessar a explica??o. Relacione materiais em Libras e profissionais preparados ? compreens?o do conte?do e ? participa??o em sala.",
+    ],
+    [
+      "Perman?ncia e inclus?o cotidiana",
+      "Garantir matr?cula n?o assegura participa??o em trabalhos, avalia??es e atividades coletivas. Discuta como forma??o docente e planejamento acess?vel podem reduzir barreiras ao longo de todo o percurso escolar.",
+    ],
+  ],
+  2018: [
+    [
+      "Personaliza??o e autonomia",
+      "Quando uma plataforma seleciona conte?dos a partir do hist?rico do usu?rio, parte dos crit?rios dessa sele??o permanece pouco vis?vel. Analise como a falta de transpar?ncia pode limitar a compreens?o das op??es oferecidas e influenciar escolhas.",
+    ],
+    [
+      "Informa??o e capacidade de escolha",
+      "Avisos extensos e linguagem t?cnica dificultam entender quais dados s?o coletados e para qu?. Explique como comunica??o clara e controles acess?veis ajudam o usu?rio a tomar decis?es conscientes sobre suas informa??es.",
+    ],
+  ],
+  2019: [
+    [
+      "Desigualdade territorial",
+      "A aus?ncia de salas em muitos munic?pios faz com que assistir a um filme dependa de deslocamento e custos adicionais. Relacione a concentra??o da oferta ? exclus?o cultural e examine alternativas como cineclubes e sess?es itinerantes.",
+    ],
+    [
+      "Pre?o e diversidade cultural",
+      "Mesmo onde h? salas, ingresso, transporte e programa??o podem restringir o acesso. Discuta como pre?os acess?veis e circula??o de diferentes produ??es ampliam tanto o p?blico quanto o contato com outras realidades.",
+    ],
+  ],
+  2020: [
+    [
+      "Estigma e busca por ajuda",
+      "Associar sofrimento ps?quico a fraqueza pode provocar vergonha e sil?ncio. Explique como esse julgamento dificulta a busca por acolhimento e como informa??o respons?vel pode favorecer o reconhecimento da necessidade de cuidado.",
+    ],
+    [
+      "Continuidade do atendimento",
+      "Informar sobre sa?de mental tem alcance limitado se a pessoa n?o encontra acolhimento e acompanhamento. Discuta a articula??o entre escola, aten??o b?sica e servi?os especializados para transformar a procura por ajuda em cuidado cont?nuo.",
+    ],
+  ],
+  2021: [
+    [
+      "Dist?ncia e informa??o",
+      "O deslocamento at? os servi?os, os custos indiretos da viagem e o desconhecimento dos procedimentos podem dificultar o registro. Explique por que informar sobre o direito precisa vir acompanhado de atendimento pr?ximo de quem est? exclu?do.",
+    ],
+    [
+      "Documenta??o e acesso a direitos",
+      "Sem identifica??o civil, comprovar a pr?pria identidade e obter outros documentos torna-se mais dif?cil. Analise como a busca ativa e a integra??o entre cart?rios, sa?de e assist?ncia social podem localizar pessoas n?o registradas e orientar sua regulariza??o.",
+    ],
+  ],
+  2022: [
+    [
+      "Territ?rio e continuidade cultural",
+      "A perda de acesso ao territ?rio pode interromper pr?ticas de cultivo, pesca, celebra??o e transmiss?o de saberes. Mostre por que proteger esse espa?o significa tamb?m preservar a identidade e as condi??es de subsist?ncia das comunidades.",
+    ],
+    [
+      "Participa??o nas decis?es",
+      "Decis?es sobre recursos naturais tomadas sem ouvir as comunidades podem ignorar formas locais de manejo e suas necessidades. Discuta como sua participa??o pode tornar as pol?ticas mais adequadas e reconhecer os conhecimentos tradicionais.",
+    ],
+  ],
+  2023: [
+    [
+      "Divis?o desigual do tempo",
+      "A diferen?a de horas dedicadas ao cuidado reduz o tempo dispon?vel das mulheres para estudar, descansar ou exercer trabalho remunerado. Desenvolva a rela??o entre divis?o dom?stica desigual, depend?ncia econ?mica e reprodu??o da desigualdade.",
+    ],
+    [
+      "Oferta de servi?os de cuidado",
+      "Sem creches e servi?os de apoio a dependentes, o cuidado tende a permanecer dentro das fam?lias. Explique como ampliar esses servi?os e envolver os homens nas tarefas pode distribuir responsabilidades e favorecer a continuidade dos estudos e do trabalho.",
+    ],
+  ],
+  2024: [
+    [
+      "Educa??o e mem?ria",
+      "Quando a hist?ria africana aparece apenas vinculada ? escravid?o, suas contribui??es intelectuais, pol?ticas e culturais ficam apagadas. Explique como um curr?culo cont?nuo e materiais diversos podem ampliar o reconhecimento para al?m de datas comemorativas.",
+    ],
+    [
+      "Representa??o e valoriza??o",
+      "A divulga??o de artistas, pesquisadores e manifesta??es afro-brasileiras amplia as refer?ncias dispon?veis ao p?blico. Analise como o acesso a espa?os culturais e a circula??o dessas produ??es podem combater estere?tipos e reconhecer seus protagonistas.",
+    ],
+  ],
+  2025: [
+    [
+      "Autonomia e acessibilidade",
+      "Cal?adas irregulares, transporte de dif?cil acesso e atendimento exclusivamente digital podem impedir a pessoa idosa de circular e resolver tarefas sozinha. Relacione essas barreiras ? perda de autonomia e explique como servi?os acess?veis favorecem a participa??o social.",
+    ],
+    [
+      "Redes de cuidado",
+      "Quando o cuidado fica concentrado em um familiar, a falta de apoio pode sobrecarregar essa pessoa e isolar quem precisa de assist?ncia. Discuta como centros de conviv?ncia e atendimento pr?ximo da resid?ncia podem distribuir o cuidado e fortalecer v?nculos.",
+    ],
+  ],
+};
+
 // LOGIN
 function showMessage(id, message, type = "error") {
   const element = document.getElementById(id);
@@ -128,6 +231,30 @@ function atualizarTextoApoio(opcao) {
 
   const ano = opcao?.querySelector(".theme-year")?.textContent.trim();
   const apoio = textosDeApoio[ano];
+  const listaArgumentos = document.getElementById("theme-support-arguments");
+  if (listaArgumentos) {
+    const argumentos = argumentosDeApoio[ano] || [
+      [
+        "Causas do problema",
+        "Identifique uma causa concreta, explique como ela mant?m o problema e procure um exemplo verific?vel para sustentar sua an?lise.",
+      ],
+      [
+        "Impactos e resposta",
+        "Mostre quem ? afetado, explique uma consequ?ncia e discuta uma a??o capaz de enfrentar a causa apresentada.",
+      ],
+    ];
+    listaArgumentos.replaceChildren(
+      ...argumentos.map(([titulo, explicacao]) => {
+        const item = document.createElement("li");
+        const destaque = document.createElement("strong");
+        destaque.textContent = titulo;
+        const paragrafo = document.createElement("p");
+        paragrafo.textContent = explicacao;
+        item.append(destaque, paragrafo);
+        return item;
+      }),
+    );
+  }
   if (!apoio) {
     titulo.textContent = "Escreva sobre um tema de sua escolha";
     texto.textContent =

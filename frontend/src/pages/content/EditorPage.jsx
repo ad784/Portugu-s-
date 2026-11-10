@@ -346,6 +346,19 @@ export default function EditorPage() {
                   "Selecione uma proposta no campo acima. Você verá informações iniciais e uma fonte confiável para continuar sua pesquisa."
                 }
               </p>{" "}
+              <section
+                className="support-arguments"
+                aria-labelledby="support-arguments-title"
+              >
+                <h4 id="support-arguments-title">
+                  Dois caminhos para argumentar
+                </h4>
+                <ol id="theme-support-arguments"></ol>
+                <p className="support-guidance">
+                  Use estas an?lises como ponto de partida. Desenvolva sua
+                  pr?pria tese, confira a fonte e evite copiar o texto de apoio.
+                </p>
+              </section>
               <div className="support-question">
                 <strong>{"Para desenvolver"}</strong>
                 <p id="theme-support-question">

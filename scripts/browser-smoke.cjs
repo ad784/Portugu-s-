@@ -191,7 +191,8 @@ async function main() {
           if (
             state.ready === "complete" &&
             state.heading &&
-            (["/termos", "/privacidade", "/contato"].includes(route) || state.session)
+            (["/termos", "/privacidade", "/contato"].includes(route) ||
+              state.session)
           )
             break;
         }
@@ -201,9 +202,27 @@ async function main() {
           returnByValue: true,
         });
         state = JSON.parse(result.result.value);
+        if (route === "/nova") {
+          const supports = await call("Runtime.evaluate", {
+            expression: `JSON.stringify([...document.querySelectorAll('.theme-option')].map(option => { option.click(); return {theme: option.dataset.theme, count: document.querySelectorAll('#theme-support-arguments li').length, lengths: [...document.querySelectorAll('#theme-support-arguments li p')].map(p => p.textContent.length)}; }))`,
+            returnByValue: true,
+          });
+          const items = JSON.parse(supports.result.value);
+          if (
+            items.length < 10 ||
+            items.some(
+              (item) =>
+                item.count < 2 || item.lengths.some((length) => length < 100),
+            )
+          )
+            throw new Error(
+              "Theme support must offer two developed arguments for every theme",
+            );
+        }
         if (route === "/contato") {
           const destination = await call("Runtime.evaluate", {
-            expression: "document.querySelector('.contact-whatsapp-action')?.href",
+            expression:
+              "document.querySelector('.contact-whatsapp-action')?.href",
             returnByValue: true,
           });
           if (destination.result.value !== "https://wa.me/5551997410999")
@@ -212,7 +231,9 @@ async function main() {
         const report = { route, width, ...state, exceptions: [...exceptions] };
         reports.push(report);
         console.log(JSON.stringify(report));
-        if (["/cadastro", "/nova", "/aceite", "/foto", "/contato"].includes(route)) {
+        if (
+          ["/cadastro", "/nova", "/aceite", "/foto", "/contato"].includes(route)
+        ) {
           const shot = await call("Page.captureScreenshot", {
             format: "png",
             captureBeyondViewport: false,
