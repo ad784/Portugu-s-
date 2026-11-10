@@ -355,8 +355,8 @@ export default function EditorPage() {
                 </h4>
                 <ol id="theme-support-arguments"></ol>
                 <p className="support-guidance">
-                  Use estas an?lises como ponto de partida. Desenvolva sua
-                  pr?pria tese, confira a fonte e evite copiar o texto de apoio.
+                  Desenvolva sua própria tese e confira a fonte. Evite copiar o
+                  apoio.
                 </p>
               </section>
               <div className="support-question">
