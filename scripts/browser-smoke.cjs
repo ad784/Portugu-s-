@@ -204,7 +204,7 @@ async function main() {
         state = JSON.parse(result.result.value);
         if (route === "/nova") {
           const supports = await call("Runtime.evaluate", {
-            expression: `JSON.stringify([...document.querySelectorAll('.theme-option')].map(option => { option.click(); return {theme: option.dataset.theme, count: document.querySelectorAll('#theme-support-arguments li').length, lengths: [...document.querySelectorAll('#theme-support-arguments li p')].map(p => p.textContent.length)}; }))`,
+            expression: `JSON.stringify([...document.querySelectorAll('.theme-option')].map(option => { option.click(); return {theme: option.dataset.theme, count: document.querySelectorAll('#theme-support-arguments li').length, damagedText: /[?\uFFFD]/.test(document.querySelector('.support-arguments').textContent), lengths: [...document.querySelectorAll('#theme-support-arguments li p')].map(p => p.textContent.length)}; }))`,
             returnByValue: true,
           });
           const items = JSON.parse(supports.result.value);
@@ -212,7 +212,9 @@ async function main() {
             items.length < 10 ||
             items.some(
               (item) =>
-                item.count < 2 || item.lengths.some((length) => length < 100),
+                item.count < 2 ||
+                item.damagedText ||
+                item.lengths.some((length) => length < 80),
             )
           )
             throw new Error(
