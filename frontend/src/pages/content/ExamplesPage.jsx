@@ -11,11 +11,7 @@ export default function ExamplesPage() {
       {" "}
       <header className="site-header">
         {" "}
-        <a
-          className="brand"
-          href="/"
-          aria-label="Página inicial do Português+"
-        >
+        <a className="brand" href="/" aria-label="Página inicial do Português+">
           {" "}
           <img
             className="brand-icon"

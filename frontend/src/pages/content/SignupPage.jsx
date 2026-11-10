@@ -11,11 +11,7 @@ export default function SignupPage() {
       {" "}
       <header className="site-header">
         {" "}
-        <a
-          className="brand"
-          href="/"
-          aria-label="Página inicial do Português+"
-        >
+        <a className="brand" href="/" aria-label="Página inicial do Português+">
           {" "}
           <img
             className="brand-icon"
@@ -67,7 +63,9 @@ export default function SignupPage() {
             </div>{" "}
           </div>{" "}
         </section>{" "}
-        <form data-auth-form="signup-form" className="auth-card"
+        <form
+          data-auth-form="signup-form"
+          className="auth-card"
           id="signup-form"
           aria-labelledby="cadastro-title"
         >
@@ -104,7 +102,17 @@ export default function SignupPage() {
           />{" "}
           <label className="consent-field">
             <input type="checkbox" id="termos" required />
-            <span>Li e aceito os <a href="/termos" target="_blank" rel="noopener noreferrer">Termos de uso</a> e li a <a href="/privacidade" target="_blank" rel="noopener noreferrer">Política de privacidade</a>.</span>
+            <span>
+              Li e aceito os{" "}
+              <a href="/termos" target="_blank" rel="noopener noreferrer">
+                Termos de uso
+              </a>{" "}
+              e li a{" "}
+              <a href="/privacidade" target="_blank" rel="noopener noreferrer">
+                Política de privacidade
+              </a>
+              .
+            </span>
           </label>
           <label className="consent-field">
             <input type="checkbox" id="consentimento" required />

@@ -65,11 +65,72 @@ export default function PrivacyPage() {
             }
           </p>
         </section>
-        <section><h2>Finalidades e autorização</h2><p>Nome e e-mail são usados para fornecer sua conta e atender suas solicitações. A correção depende da sua autorização para enviar textos à Groq e fotos ao serviço de leitura configurado. Quando o Google Cloud Vision estiver ativado, ele recebe a foto para extrair a escrita, e o texto lido segue para a Groq. Caso contrário, a Groq também realiza a leitura da imagem. Você pode revogar essa autorização no perfil, mantendo acesso ao histórico e aos seus dados. Sem autorização, novas correções ficam bloqueadas. A revogação não desfaz processamentos já concluídos; uma correção já enviada pode terminar.</p></section>
-        <section><h2>Provedores e dados no dispositivo</h2><p>Usamos Supabase para autenticação e armazenamento, Groq para gerar o feedback e, quando configurado, Google Cloud Vision para ler a escrita das fotos. Não trocamos automaticamente de leitor após uma falha. O processamento pode envolver infraestrutura fora do Brasil. A hospedagem recebe os dados necessários para atender às requisições. O navegador guarda a sessão, rascunhos e resultados da conta. Não usamos cookies de publicidade. Evite inserir dados sensíveis ou informações de terceiros nas redações e fotos.</p></section>
-        <section><h2>Retenção e registro do aceite</h2><p>O histórico é mantido enquanto a conta estiver ativa, até uma solicitação de exclusão. O servidor usa cache temporário das avaliações por até 24 horas de reutilização; arquivos expirados são removidos nas próximas operações de cache. Os ciclos de retenção de cópias de segurança e registros operacionais dependem dos provedores. Registramos a versão dos termos e da política, a autorização para processamento por IA, revogações e suas datas no servidor.</p></section>
-        <p><a href="mailto:portuguesmais02@gmail.com">Contato: portuguesmais02@gmail.com</a> · <a href="/termos">Termos de uso</a></p>
-        <section aria-labelledby="students-privacy"><h2 id="students-privacy">Orientações para estudantes e responsáveis</h2><p>Antes de enviar, retire da foto nomes completos, documentos, rostos e informações de outras pessoas. A IA pode errar: confira a leitura da foto e converse com um professor sobre o feedback. Se estiver usando computador compartilhado, guarde uma cópia do seu trabalho e saia da conta ao terminar.</p><p>Estudantes menores de idade e seus responsáveis podem usar o contato acima para esclarecer o uso dos dados, pedir acesso ou solicitar exclusão. Não envie senhas ou documentos pessoais por iniciativa própria. O responsável pelo site informará como verificar a solicitação com segurança.</p></section>
+        <section>
+          <h2>Finalidades e autorização</h2>
+          <p>
+            Nome e e-mail são usados para fornecer sua conta e atender suas
+            solicitações. A correção depende da sua autorização para enviar
+            textos à Groq e fotos ao serviço de leitura configurado. Quando o
+            Google Cloud Vision estiver ativado, ele recebe a foto para extrair
+            a escrita, e o texto lido segue para a Groq. Caso contrário, a Groq
+            também realiza a leitura da imagem. Você pode revogar essa
+            autorização no perfil, mantendo acesso ao histórico e aos seus
+            dados. Sem autorização, novas correções ficam bloqueadas. A
+            revogação não desfaz processamentos já concluídos; uma correção já
+            enviada pode terminar.
+          </p>
+        </section>
+        <section>
+          <h2>Provedores e dados no dispositivo</h2>
+          <p>
+            Usamos Supabase para autenticação e armazenamento, Groq para gerar o
+            feedback e, quando configurado, Google Cloud Vision para ler a
+            escrita das fotos. Não trocamos automaticamente de leitor após uma
+            falha. O processamento pode envolver infraestrutura fora do Brasil.
+            A hospedagem recebe os dados necessários para atender às
+            requisições. O navegador guarda a sessão, rascunhos e resultados da
+            conta. Não usamos cookies de publicidade. Evite inserir dados
+            sensíveis ou informações de terceiros nas redações e fotos.
+          </p>
+        </section>
+        <section>
+          <h2>Retenção e registro do aceite</h2>
+          <p>
+            O histórico é mantido enquanto a conta estiver ativa, até uma
+            solicitação de exclusão. O servidor usa cache temporário das
+            avaliações por até 24 horas de reutilização; arquivos expirados são
+            removidos nas próximas operações de cache. Os ciclos de retenção de
+            cópias de segurança e registros operacionais dependem dos
+            provedores. Registramos a versão dos termos e da política, a
+            autorização para processamento por IA, revogações e suas datas no
+            servidor.
+          </p>
+        </section>
+        <p>
+          <a href="mailto:portuguesmais02@gmail.com">
+            Contato: portuguesmais02@gmail.com
+          </a>{" "}
+          · <a href="/termos">Termos de uso</a>
+        </p>
+        <section aria-labelledby="students-privacy">
+          <h2 id="students-privacy">
+            Orientações para estudantes e responsáveis
+          </h2>
+          <p>
+            Antes de enviar, retire da foto nomes completos, documentos, rostos
+            e informações de outras pessoas. A IA pode errar: confira a leitura
+            da foto e converse com um professor sobre o feedback. Se estiver
+            usando computador compartilhado, guarde uma cópia do seu trabalho e
+            saia da conta ao terminar.
+          </p>
+          <p>
+            Estudantes menores de idade e seus responsáveis podem usar o contato
+            acima para esclarecer o uso dos dados, pedir acesso ou solicitar
+            exclusão. Não envie senhas ou documentos pessoais por iniciativa
+            própria. O responsável pelo site informará como verificar a
+            solicitação com segurança.
+          </p>
+        </section>
       </main>
       <footer className="site-footer">
         {"© 2026 Português+ · Sua prática, seu progresso."}

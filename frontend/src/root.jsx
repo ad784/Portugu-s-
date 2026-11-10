@@ -10,7 +10,14 @@ import {
 } from "react-router";
 
 export const links = () => [{ rel: "stylesheet", href: stylesheetUrl }];
-export const meta = () => [{ title: "Português+" }, { name: "description", content: "Pratique redação no modelo ENEM com feedback por inteligência artificial, histórico e acompanhamento da sua evolução." }];
+export const meta = () => [
+  { title: "Português+" },
+  {
+    name: "description",
+    content:
+      "Pratique redação no modelo ENEM com feedback por inteligência artificial, histórico e acompanhamento da sua evolução.",
+  },
+];
 
 export function Layout({ children }) {
   return (

@@ -41,7 +41,11 @@ export default function RecoveryPage() {
             }
           </p>
         </section>
-        <form id="recovery-form" className="auth-card" aria-labelledby="recovery-title">
+        <form
+          id="recovery-form"
+          className="auth-card"
+          aria-labelledby="recovery-title"
+        >
           <div className="form-heading">
             <span className="form-icon">{"✉"}</span>
             <div>
@@ -50,32 +54,73 @@ export default function RecoveryPage() {
             </div>
           </div>
           <div id="recovery-request" hidden>
-          <label htmlFor="email-recuperacao">{"E-mail"}</label>
-          <input
-            id="email-recuperacao"
-            type="email"
-            autoComplete="email"
-            placeholder="voce@email.com"
-            required
-          />
-          <button id="recovery-button" className="primary-action" type="submit">
-            {"Enviar link de recuperação "}
-            <span>{"→"}</span>
-          </button>
+            <label htmlFor="email-recuperacao">{"E-mail"}</label>
+            <input
+              id="email-recuperacao"
+              type="email"
+              autoComplete="email"
+              placeholder="voce@email.com"
+              required
+            />
+            <button
+              id="recovery-button"
+              className="primary-action"
+              type="submit"
+            >
+              {"Enviar link de recuperação "}
+              <span>{"→"}</span>
+            </button>
           </div>
           <div id="recovery-support">
-            <p>A recuperação automática por e-mail está temporariamente pausada. Para solicitar ajuda com seu acesso, entre em contato. Não envie sua senha.</p>
-            <p><a href="mailto:portuguesmais02@gmail.com?subject=Ajuda%20com%20acesso%20ao%20Portugu%C3%AAs%2B">Falar com o suporte: portuguesmais02@gmail.com</a></p>
-            <p><a href="/perfil">Já estou conectado e quero alterar minha senha</a></p>
+            <p>
+              A recuperação automática por e-mail está temporariamente pausada.
+              Para solicitar ajuda com seu acesso, entre em contato. Não envie
+              sua senha.
+            </p>
+            <p>
+              <a href="mailto:portuguesmais02@gmail.com?subject=Ajuda%20com%20acesso%20ao%20Portugu%C3%AAs%2B">
+                Falar com o suporte: portuguesmais02@gmail.com
+              </a>
+            </p>
+            <p>
+              <a href="/perfil">
+                Já estou conectado e quero alterar minha senha
+              </a>
+            </p>
           </div>
           <div id="recovery-reset" hidden>
             <label htmlFor="nova-senha">Nova senha</label>
-            <input id="nova-senha" type="password" autoComplete="new-password" minLength={8} required disabled />
+            <input
+              id="nova-senha"
+              type="password"
+              autoComplete="new-password"
+              minLength={8}
+              required
+              disabled
+            />
             <label htmlFor="confirmar-senha">Confirme a nova senha</label>
-            <input id="confirmar-senha" type="password" autoComplete="new-password" minLength={8} required disabled />
-            <button id="reset-password-button" className="primary-action" type="submit">Salvar nova senha</button>
+            <input
+              id="confirmar-senha"
+              type="password"
+              autoComplete="new-password"
+              minLength={8}
+              required
+              disabled
+            />
+            <button
+              id="reset-password-button"
+              className="primary-action"
+              type="submit"
+            >
+              Salvar nova senha
+            </button>
           </div>
-          <p id="recovery-message" className="form-message" role="status" aria-live="polite"></p>
+          <p
+            id="recovery-message"
+            className="form-message"
+            role="status"
+            aria-live="polite"
+          ></p>
           <p className="form-footer">
             <a href="/">{"Voltar para o login"}</a>
           </p>
