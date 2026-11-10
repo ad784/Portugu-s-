@@ -1126,3 +1126,17 @@ button:disabled { cursor: not-allowed; opacity: .65; }
 .consent-card .consent-field { padding: 14px; border: 1px solid #d9e8e2; border-radius: 10px; background: #f7fbf9; font-size: 15px !important; line-height: 1.6; }
 .consent-card .primary-action { width: 100%; margin-top: 16px; }
 .consent-alternative { text-align: center; font-size: 14px; }
+
+.contact-page { min-height: 100svh; display: flex; flex-direction: column; }
+.contact-main { width: min(100% - 36px, 900px); margin: clamp(32px, 6vw, 72px) auto; flex: 1; }
+.contact-main h1 { margin: 12px 0 16px; font-size: clamp(30px, 5vw, 48px); line-height: 1.15; color: var(--ink); }
+.contact-intro { max-width: 620px; color: #526f69; font-size: 17px; line-height: 1.7; }
+.contact-card { margin-top: 28px; padding: clamp(24px, 5vw, 44px); border: 1px solid #d3e6df; border-radius: 20px; background: linear-gradient(140deg, #fff, #eff8f4); box-shadow: 0 12px 36px #173e330c; }
+.contact-icon { display: grid; place-items: center; width: 60px; height: 60px; border-radius: 18px; color: #087d68; background: #dff2e9; margin-bottom: 20px; }
+.contact-icon svg { width: 32px; height: 32px; }
+.contact-card h2 { margin: 0 0 12px; color: var(--ink); font-size: clamp(22px, 4vw, 28px); }
+.contact-card > p { color: #526f69; line-height: 1.6; }
+.contact-card .contact-number { margin: 18px 0 24px; color: #125c4c; font-size: clamp(23px, 5vw, 32px); font-weight: 750; }
+.contact-whatsapp-action { display: inline-flex; justify-content: center; align-items: center; gap: 16px; max-width: 100%; padding: 16px 24px; text-decoration: none; }
+.contact-card .contact-email { margin-top: 24px; font-size: 14px; overflow-wrap: anywhere; }
+@media (max-width: 560px) { .contact-whatsapp-action { width: 100%; padding-inline: 16px; } }

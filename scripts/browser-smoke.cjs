@@ -174,6 +174,7 @@ async function main() {
         "/aceite",
         "/termos",
         "/privacidade",
+        "/contato",
       ]) {
         currentRoute = route;
         exceptions = [];
@@ -190,7 +191,7 @@ async function main() {
           if (
             state.ready === "complete" &&
             state.heading &&
-            (["/termos", "/privacidade"].includes(route) || state.session)
+            (["/termos", "/privacidade", "/contato"].includes(route) || state.session)
           )
             break;
         }
@@ -200,10 +201,18 @@ async function main() {
           returnByValue: true,
         });
         state = JSON.parse(result.result.value);
+        if (route === "/contato") {
+          const destination = await call("Runtime.evaluate", {
+            expression: "document.querySelector('.contact-whatsapp-action')?.href",
+            returnByValue: true,
+          });
+          if (destination.result.value !== "https://wa.me/5551997410999")
+            throw new Error("WhatsApp contact destination is incorrect");
+        }
         const report = { route, width, ...state, exceptions: [...exceptions] };
         reports.push(report);
         console.log(JSON.stringify(report));
-        if (["/cadastro", "/nova", "/aceite", "/foto"].includes(route)) {
+        if (["/cadastro", "/nova", "/aceite", "/foto", "/contato"].includes(route)) {
           const shot = await call("Page.captureScreenshot", {
             format: "png",
             captureBeyondViewport: false,

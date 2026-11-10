@@ -129,7 +129,7 @@ export default function PageFrame({
       <div className="legal-links">
         <a href="/termos">Termos de uso</a>
         <a href="/privacidade">Privacidade</a>
-        <a href="mailto:portuguesmais02@gmail.com">Contato</a>
+        <a href="/contato">Contato</a>
       </div>
     </>
   );
