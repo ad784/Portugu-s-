@@ -16,11 +16,18 @@ export default function PageFrame({
     const connection = () => setOffline(navigator.onLine === false);
     const storage = () => setStorageUnavailable(true);
     const expired = () => setSessionExpired(true);
-    connection(); setStorageUnavailable(Boolean(window.portuguesStorageUnavailable));
-    window.addEventListener('online', connection); window.addEventListener('offline', connection);
-    window.addEventListener('portugues:storage-unavailable', storage);
-    window.addEventListener('portugues:session-expired', expired);
-    return () => { window.removeEventListener('online', connection); window.removeEventListener('offline', connection); window.removeEventListener('portugues:storage-unavailable', storage); window.removeEventListener('portugues:session-expired', expired); };
+    connection();
+    setStorageUnavailable(Boolean(window.portuguesStorageUnavailable));
+    window.addEventListener("online", connection);
+    window.addEventListener("offline", connection);
+    window.addEventListener("portugues:storage-unavailable", storage);
+    window.addEventListener("portugues:session-expired", expired);
+    return () => {
+      window.removeEventListener("online", connection);
+      window.removeEventListener("offline", connection);
+      window.removeEventListener("portugues:storage-unavailable", storage);
+      window.removeEventListener("portugues:session-expired", expired);
+    };
   }, []);
   useEffect(() => {
     setLoadError(false);
@@ -35,23 +42,34 @@ export default function PageFrame({
         const resource = await loadScript();
         if (resource.ready) await resource.ready;
       }
-      const protectedPages = ["nova", "resultado", "foto", "historico", "evolucao", "perfil"];
+      const protectedPages = [
+        "nova",
+        "resultado",
+        "foto",
+        "historico",
+        "evolucao",
+        "perfil",
+      ];
       if (protectedPages.includes(name) && !window.portuguesSession?.userId()) {
         active = false;
         window.location.replace("/");
         return;
       }
       if (["nova", "foto"].includes(name)) {
-        const response = await window.portuguesSession.request('/api/termos');
+        const response = await window.portuguesSession.request("/api/termos");
         const receipt = await response.json();
-        if (!response.ok) throw new Error(receipt.erro || 'Não foi possível consultar seu aceite.');
+        if (!response.ok)
+          throw new Error(
+            receipt.erro || "Não foi possível consultar seu aceite.",
+          );
         if (!receipt.accepted) {
           active = false;
           window.location.replace(`/aceite?retorno=${name}`);
           return;
         }
       }
-    })().then(() => {
+    })()
+      .then(() => {
         if (!active) return;
         // These legacy page modules are loaded after React has mounted, so the
         // browser's original ready events have already fired. Notify listeners
@@ -74,5 +92,45 @@ export default function PageFrame({
     };
   }, [bodyClass, lang, name, title]);
 
-  return <>{sessionExpired && <div className="resource-error" role="alert">Sua sessão expirou. <a href="/" target="_blank" rel="noopener noreferrer">Entre novamente em outra aba</a> na mesma conta para continuar, mantendo seu trabalho nesta página.</div>}{offline && <div className="resource-error" role="status">Você está sem conexão. Mantenha esta página aberta e tente novamente quando a internet voltar.</div>}{storageUnavailable && <div className="resource-error" role="alert">O navegador não conseguiu salvar os dados neste dispositivo. Copie seu texto e guarde a foto antes de atualizar ou sair: o conteúdo pode existir apenas nesta aba.</div>}{loadError && <div className="resource-error" role="alert">Não foi possível carregar todos os recursos desta página. Verifique sua conexão. <button type="button" onClick={() => window.location.reload()}>Tentar novamente</button></div>}{children}<div className="legal-links"><a href="/termos">Termos de uso</a><a href="/privacidade">Privacidade</a><a href="mailto:portuguesmais02@gmail.com">Contato</a></div></>;
+  return (
+    <>
+      {sessionExpired && (
+        <div className="resource-error" role="alert">
+          Sua sessão expirou.{" "}
+          <a href="/" target="_blank" rel="noopener noreferrer">
+            Entre novamente em outra aba
+          </a>{" "}
+          na mesma conta para continuar, mantendo seu trabalho nesta página.
+        </div>
+      )}
+      {offline && (
+        <div className="resource-error" role="status">
+          Você está sem conexão. Mantenha esta página aberta e tente novamente
+          quando a internet voltar.
+        </div>
+      )}
+      {storageUnavailable && (
+        <div className="resource-error" role="alert">
+          O navegador não conseguiu salvar os dados neste dispositivo. Copie seu
+          texto e guarde a foto antes de atualizar ou sair: o conteúdo pode
+          existir apenas nesta aba.
+        </div>
+      )}
+      {loadError && (
+        <div className="resource-error" role="alert">
+          Não foi possível carregar todos os recursos desta página. Verifique
+          sua conexão.{" "}
+          <button type="button" onClick={() => window.location.reload()}>
+            Tentar novamente
+          </button>
+        </div>
+      )}
+      {children}
+      <div className="legal-links">
+        <a href="/termos">Termos de uso</a>
+        <a href="/privacidade">Privacidade</a>
+        <a href="mailto:portuguesmais02@gmail.com">Contato</a>
+      </div>
+    </>
+  );
 }

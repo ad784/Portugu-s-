@@ -110,7 +110,12 @@ export default function PhotoPage() {
                 <span>{"→"}</span>
               </button>
             </div>{" "}
-            <button id="cancel-photo-wait" className="photo-action" type="button" hidden>
+            <button
+              id="cancel-photo-wait"
+              className="photo-action"
+              type="button"
+              hidden
+            >
               Cancelar espera
             </button>
           </section>{" "}

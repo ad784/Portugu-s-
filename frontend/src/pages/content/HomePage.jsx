@@ -11,11 +11,7 @@ export default function HomePage() {
       {" "}
       <header className="site-header">
         {" "}
-        <a
-          className="brand"
-          href="/"
-          aria-label="Página inicial do Português+"
-        >
+        <a className="brand" href="/" aria-label="Página inicial do Português+">
           {" "}
           <img
             className="brand-icon"
@@ -67,7 +63,11 @@ export default function HomePage() {
             </div>{" "}
           </div>{" "}
         </section>{" "}
-        <form id="login-form" className="auth-card" aria-labelledby="login-title">
+        <form
+          id="login-form"
+          className="auth-card"
+          aria-labelledby="login-title"
+        >
           {" "}
           <div className="form-heading">
             {" "}
