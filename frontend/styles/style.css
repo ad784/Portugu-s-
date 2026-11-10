@@ -1155,3 +1155,32 @@ button:disabled { cursor: not-allowed; opacity: .65; }
   .editor-layout .tips-panel { padding: 24px; }
 }
 .support-arguments li p { line-height: 1.55; }
+.profile-privacy { margin-top: 32px; padding-top: 28px; border-top: 1px solid #dce8e3; }
+.privacy-heading h2 { margin: 0 0 8px; font-size: clamp(23px, 2vw, 30px); line-height: 1.25; color: #173e33; }
+.privacy-heading p { margin: 0; color: #52665f; line-height: 1.6; }
+.privacy-consent-status { margin-top: 20px; padding: 14px 18px; border: 1px solid #d2e7dc; border-radius: 12px; background: #eff8f3; color: #23523f; }
+.privacy-consent-status p { margin: 0; line-height: 1.6; }
+.privacy-consent-status p + p { margin-top: 10px; }
+.privacy-policy-links { display: flex; flex-wrap: wrap; gap: 12px 24px; margin: 18px 0 24px; }
+.profile-privacy a:not(.privacy-action) { color: #096653; text-underline-offset: 3px; overflow-wrap: anywhere; }
+.privacy-actions-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.privacy-action-card { display: flex; flex-direction: column; min-width: 0; padding: clamp(18px, 2vw, 26px); border: 1px solid #dce8e3; border-radius: 14px; background: #fbfdfc; }
+.privacy-action-card h3 { margin: 0 0 12px; font-size: 18px; line-height: 1.4; color: #173e33; }
+.privacy-action-card p { margin: 0 0 12px; font-size: 15px; line-height: 1.65; color: #445c53; }
+.privacy-action-card p.privacy-detail { font-size: 13px; color: #586b64; }
+.privacy-account-card { grid-column: 1 / -1; }
+.profile-privacy .privacy-action { display: inline-flex; align-items: center; justify-content: center; align-self: flex-start; width: auto; min-width: 0; max-width: 100%; height: auto; min-height: 48px !important; padding: 13px 18px !important; margin: auto 0 0; border: 1px solid transparent; border-radius: 10px; font: inherit; font-size: 15px !important; font-weight: 700; line-height: 1.4; text-align: center; text-decoration: none; white-space: normal; overflow-wrap: anywhere; }
+.profile-privacy .primary-action { background: #087562; color: #fff; }
+.profile-privacy .primary-action:hover { background: #075a4c; }
+.profile-privacy .privacy-revoke { background: #fff; color: #854020; border-color: #bc7554; box-shadow: none; }
+.profile-privacy .privacy-revoke:hover { background: #fff1e8; color: #713316; }
+.profile-privacy .privacy-delete { background: #fff; color: #953a3a; border-color: #c58a8a; }
+.profile-privacy .privacy-delete:hover { background: #fff0f0; color: #7f2525; }
+.profile-privacy button:disabled { background: #edf0ee; color: #53605a; border-color: #c8d0cb; opacity: 1; }
+.profile-privacy .privacy-action:focus-visible { outline: 3px solid #173e33; outline-offset: 3px; }
+.profile-privacy .form-message:empty { display: none; }
+@media (max-width: 700px) {
+  .privacy-actions-grid { grid-template-columns: 1fr; }
+  .profile-privacy .privacy-action { width: 100%; }
+  .privacy-policy-links { flex-direction: column; gap: 12px; }
+}

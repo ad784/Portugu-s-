@@ -221,6 +221,20 @@ async function main() {
               "Theme support must offer two developed arguments for every theme",
             );
         }
+        if (route === "/perfil") {
+          await call("Runtime.evaluate", {
+            expression:
+              "document.querySelector('.profile-privacy').scrollIntoView({block:'start'})",
+          });
+          const privacy = await call("Page.captureScreenshot", {
+            format: "png",
+            captureBeyondViewport: false,
+          });
+          fs.writeFileSync(
+            path.join(reportDir, `privacy-${width}.png`),
+            Buffer.from(privacy.data, "base64"),
+          );
+        }
         if (route === "/contato") {
           const destination = await call("Runtime.evaluate", {
             expression:
