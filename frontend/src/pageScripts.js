@@ -1,4 +1,5 @@
 export const scriptsByPage = {
+  contato: [() => import("../scripts/navigation.js")],
   index: [
     () => import("../scripts/supabase.js"),
     () => import("../scripts/script.js"),

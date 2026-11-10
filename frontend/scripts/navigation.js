@@ -3,6 +3,13 @@
   const nav = header?.querySelector(".site-nav");
   if (!header || !nav) return;
 
+  if (!nav.querySelector('a[href="/contato"]')) {
+    const contact = document.createElement("a");
+    contact.href = "/contato";
+    contact.textContent = "Contato";
+    nav.insertBefore(contact, nav.querySelector(".nav-cta"));
+  }
+
   const button = document.createElement("button");
   button.className = "nav-menu-toggle";
   button.type = "button";

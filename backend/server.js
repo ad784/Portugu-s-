@@ -115,6 +115,8 @@ app.use("/api", (_req, res) =>
 // O frontend React compilado é servido como arquivos estáticos.
 const frontendBuild = path.join(__dirname, "../frontend/build/client");
 const publicPages = [
+  "/contato",
+  "/contato.html",
   "/",
   "/index",
   "/index.html",

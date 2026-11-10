@@ -26,6 +26,7 @@ export default function HomePage() {
         <nav className="site-nav" aria-label="Navegação principal">
           {" "}
           <a href="/exemplos">{"Exemplos"}</a>{" "}
+          <a href="/contato">Contato</a>{" "}
           <a href="#como-funciona">{"Como funciona"}</a>{" "}
           <a href="/cadastro" className="nav-cta">
             {"Criar conta"}

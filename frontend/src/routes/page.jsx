@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Navigate, useLocation } from "react-router";
 
 const pages = {
+  contato: lazy(() => import("../pages/content/ContactPage.jsx")),
   aceite: lazy(() => import("../pages/content/ConsentPage.jsx")),
   termos: lazy(() => import("../pages/content/TermsPage.jsx")),
   index: lazy(() => import("../pages/content/HomePage.jsx")),
