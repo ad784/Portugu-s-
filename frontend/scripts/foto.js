@@ -329,7 +329,7 @@ async function salvarFoto() {
         Date.now() + data.retryAfterSeconds * 1000,
       );
     if (!response.ok || !data.resultado)
-      throw new Error(data.erro || "Nao foi possivel corrigir a foto.");
+      throw new Error(data.erro || "Não foi possível corrigir a foto.");
 
     window.userStorage.setItem("resultado", data.resultado);
     if (data.aviso) {
@@ -344,7 +344,7 @@ async function salvarFoto() {
           tema,
           tipo: "foto",
           nota: Number(data.resultado.match(/^Nota: (\d+)/m)?.[1]),
-          conteudo: data.resultado.split(/\nRedacao:\n/i)[1]?.trim() || null,
+          conteudo: data.resultado.split(/\nReda[çc][ãa]o:\n/i)[1]?.trim() || null,
         });
       window.userStorage.setItem("resultado-aviso", data.aviso);
     } else {

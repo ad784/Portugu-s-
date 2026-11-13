@@ -504,13 +504,13 @@ async function corrigir() {
       dados = corpo ? JSON.parse(corpo) : {};
     } catch {
       throw new Error(
-        "O servidor esta indisponivel no momento. Tente novamente em instantes.",
+        "O servidor está indisponível no momento. Tente novamente em instantes.",
       );
     }
 
     if (resposta.status === 401) {
       await window.supabaseClient.auth.signOut();
-      alert("Sua sessao expirou. Entre novamente para corrigir a redacao.");
+      alert("Sua sessão expirou. Entre novamente para corrigir a redação.");
       window.location.href = "/";
       return;
     }
@@ -521,7 +521,7 @@ async function corrigir() {
       );
     }
     if (!resposta.ok || !dados.resultado)
-      throw new Error(dados.erro || "Nao foi possivel corrigir a redacao.");
+      throw new Error(dados.erro || "Não foi possível corrigir a redação.");
 
     window.userStorage.setItem("resultado", dados.resultado);
     completedDraft = { texto, tema };
@@ -627,7 +627,7 @@ window.addEventListener("load", () => {
       "Envie uma redação ou abra uma correção pelo seu histórico.";
   }
   if (resultado && elResultado) {
-    elResultado.innerText = resultado;
+    elResultado.innerText = window.portuguesSession.formatReportHeadings(resultado);
 
     // Copia exatamente a nota exibida no início do relatório.
     // Procurar apenas números no texto inteiro podia selecionar uma competência

@@ -41,7 +41,7 @@ test("accepts a supported image and rejects MIME spoofing", () => {
   assert.equal(parsePhotoDataUrl(image).mime, "image/jpeg");
   assert.throws(
     () => parsePhotoDataUrl(image.replace("image/jpeg", "image/png")),
-    /nao corresponde/i,
+    /n[ãa]o corresponde/i,
   );
 });
 
@@ -49,7 +49,10 @@ test("reads accented headings and recalculates the total from five competencies"
   const result = formatPhotoCorrection(modelText);
   assert.ok(result);
   assert.match(result, /^Nota: 760/m);
-  assert.match(result, /Redacao:\nA sociedade brasileira/);
+  assert.match(result, /1: 200 - domínio da norma padrão\./);
+  assert.match(result, /Competências:/);
+  assert.match(result, /Sugestões:/);
+  assert.match(result, /Redação:\nA sociedade brasileira/);
   assert.match(result, /5: 120 - proposta sem detalhamento suficiente/i);
 });
 
@@ -60,7 +63,7 @@ test("removes consecutive repeated phrases from the photo transcript", () => {
     `A sociedade brasileira enfrenta desafios importantes. ${loop}O texto continua aqui.`,
   );
   const result = formatPhotoCorrection(response);
-  const transcript = result.split(/\nRedacao:\n/i)[1];
+  const transcript = result.split(/\nRedação:\n/i)[1];
   assert.equal(
     (transcript.match(/priorizando o gasto público em cada setor/gi) || [])
       .length,

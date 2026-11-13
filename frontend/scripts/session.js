@@ -62,7 +62,20 @@ async function expiredSession() {
   }
 }
 
+function formatReportHeadings(result) {
+  let essay = false;
+  return result.replace(/^[^\S\r\n]*(Competencias|Sugestoes|Reda[çc][ãa]o):[^\S\r\n]*$/gim, (line, heading) => {
+    if (essay) return line;
+    if (/^Reda/i.test(heading)) {
+      essay = true;
+      return "Redação:";
+    }
+    return /^Comp/i.test(heading) ? "Competências:" : "Sugestões:";
+  });
+}
+
 function presentResult(result, warning = "") {
+  result = formatReportHeadings(result);
   if (!window.portuguesStorageUnavailable) return false;
   let section = document.getElementById("inline-correction-result");
   if (!section) {
@@ -350,6 +363,7 @@ export async function initializeSession(supabaseClient, recovering = false) {
     mergeCorrections,
     estimateLines,
     presentResult,
+    formatReportHeadings,
   };
   client.auth.onAuthStateChange((event, session) => {
     currentUser = session?.user || null;

@@ -101,6 +101,8 @@ export default function HomePage() {
           <p className="form-footer">
             <a href="/recuperar">{"Esqueci minha senha"}</a>
             <br />
+            <a href="/confirmar-email">Confirmar meu e-mail</a>
+            <br />
             {"Ainda não possui conta? "}
             <a href="/cadastro">{"Criar minha conta"}</a>
           </p>{" "}

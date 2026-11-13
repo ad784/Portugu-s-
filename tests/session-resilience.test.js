@@ -270,7 +270,7 @@ test("completed correction stays visible without page navigation when storage is
   const result = "Nota: 600\nRedacao:\n<script>untrusted essay</script>";
   assert.equal(env.context.window.portuguesSession.presentResult(result), true);
   assert.equal(nodes[0].children[2].tag, "pre");
-  assert.equal(nodes[0].children[2].textContent, result);
+  assert.equal(nodes[0].children[2].textContent, result.replace("Redacao:", "Redação:"));
   assert.equal(env.redirects.length, 0);
 });
 

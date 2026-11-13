@@ -10,7 +10,11 @@ Implementados avisos de offline e armazenamento bloqueado; preservação de text
 
 Exportação paginada de eventos e redações, teste de escopo por usuário e testes do ciclo aceite → revogação → bloqueio → novo aceite. O perfil oferece solicitação de exclusão por e-mail, sob responsabilidade do dono do projeto, sem executar exclusão automática. Instruções de atendimento e pendência específica para abertura a crianças em [PRIVACIDADE-ATENDIMENTO.md](PRIVACIDADE-ATENDIMENTO.md). Não há nova migration para essas melhorias.
 
-## Decisão atual: cadastro sem confirmação de e-mail
+## Decisão atual: confirmação por código de e-mail
+
+**Atualização em 12/11/2026:** fluxo de SMS removido a pedido do responsável. O cadastro voltou à confirmação por código enviado por e-mail, em `/confirmar-email`, com login por e-mail/senha. Veja [CONFIRMACAO-EMAIL.md](CONFIRMACAO-EMAIL.md) para a configuração do Supabase e o diagnóstico pendente do SMTP/Gmail. Não houve alteração remota do provedor nem validação de entrega real.
+
+**Atualização em 10/11/2026:** fluxo de código reativado no projeto local. Veja [CONFIRMACAO-EMAIL.md](CONFIRMACAO-EMAIL.md). Ativação remota, template, SMTP e entrega real ainda precisam de validação. As decisões abaixo são históricas e foram substituídas para o cadastro.
 
 **Atualização em 03/11/2026:** a recuperação por link foi reativada no código e no `.env` local. Veja [RECUPERACAO-SENHA.md](RECUPERACAO-SENHA.md). Ela depende de SMTP e redirects válidos; a configuração e a entrega real ainda precisam ser testadas. O cadastro continua sem confirmação. O parágrafo sobre pausa abaixo registra a decisão anterior.
 

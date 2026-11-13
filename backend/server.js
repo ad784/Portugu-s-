@@ -121,6 +121,8 @@ const publicPages = [
   "/index",
   "/index.html",
   "/cadastro",
+  "/confirmar-email",
+  "/confirmar-email.html",
   "/cadastro.html",
   "/nova",
   "/nova.html",

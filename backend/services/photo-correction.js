@@ -4,15 +4,15 @@ const { providerLimit } = require("./provider-limits");
 const PHOTO_DATA_URL = /^data:image\/(png|jpe?g|webp);base64,([a-z\d+/]+=*)$/i;
 
 function parsePhotoDataUrl(value) {
-  if (typeof value !== "string") throw new Error("Selecione uma foto valida.");
+  if (typeof value !== "string") throw new Error("Selecione uma foto válida.");
   const match = value.match(PHOTO_DATA_URL);
-  if (!match) throw new Error("Envie uma foto PNG, JPG ou WEBP valida.");
+  if (!match) throw new Error("Envie uma foto PNG, JPG ou WEBP válida.");
 
   const mime = `image/${match[1].toLowerCase() === "jpg" ? "jpeg" : match[1].toLowerCase()}`;
   const buffer = Buffer.from(match[2], "base64");
   if (!buffer.length || buffer.length > PHOTO_MAX_BYTES) {
     throw new Error(
-      "A foto deve ter no maximo 3 MB após a preparação. Selecione uma imagem menor.",
+      "A foto deve ter no máximo 3 MB após a preparação. Selecione uma imagem menor.",
     );
   }
   const signatures = {
@@ -29,7 +29,7 @@ function parsePhotoDataUrl(value) {
       buffer.toString("ascii", 8, 12) === "WEBP",
   };
   if (!signatures[mime])
-    throw new Error("O formato da foto nao corresponde ao arquivo enviado.");
+    throw new Error("O formato da foto não corresponde ao arquivo enviado.");
   return {
     mime,
     buffer,
@@ -128,7 +128,7 @@ function formatPhotoCorrection(response) {
       continue;
     }
     if (section === "competencies") {
-      const match = normalized
+      const match = line.trim()
         .replace(/[‐‑‒–—]/g, "-")
         .match(/^c([1-5])\s*:\s*(\d{1,3})(?:\s*-\s*(.*))?$/i);
       if (match)
@@ -154,22 +154,22 @@ function formatPhotoCorrection(response) {
   return [
     "Nota: " + total,
     "",
-    "Competencias:",
+    "Competências:",
     ...competencyLines,
     "",
     "Erros:",
     ...(errors.length
       ? errors
-      : ["Nenhum erro especifico foi identificado."]
+      : ["Nenhum erro específico foi identificado."]
     ).map((item) => "- " + item),
     "",
-    "Sugestoes:",
+    "Sugestões:",
     ...(suggestions.length
       ? suggestions
       : ["Revise o texto e continue praticando."]
     ).map((item) => "- " + item),
     "",
-    "Redacao:",
+    "Redação:",
     essay,
   ].join("\n");
 }
@@ -350,7 +350,7 @@ async function analyzePhoto({
   try {
     parsed = JSON.parse(clean);
   } catch {
-    /* Compatibilidade com provedores que ainda retornam relat?rio textual. */
+    /* Compatibilidade com provedores que ainda retornam relatório textual. */
   }
   if (parsed) {
     const essay =
@@ -396,7 +396,7 @@ async function uploadPhoto(userId, image, getSupabaseClient) {
       upsert: false,
     });
   if (error)
-    throw new Error(`Nao foi possivel salvar a foto: ${error.message}`);
+    throw new Error(`Não foi possível salvar a foto: ${error.message}`);
   return imagePath;
 }
 

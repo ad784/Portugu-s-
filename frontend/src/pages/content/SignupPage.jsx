@@ -93,7 +93,7 @@ export default function SignupPage() {
             placeholder="voce@email.com"
             autoComplete="email"
           />{" "}
-          <label htmlFor="senha">{"Senha"}</label>{" "}
+          <label htmlFor="senha">Senha</label>
           <input
             type="password"
             id="senha"
@@ -141,6 +141,7 @@ export default function SignupPage() {
             <a href="/">{"Fazer login"}</a>
           </p>{" "}
         </form>{" "}
+
       </main>{" "}
       <footer className="site-footer">
         {"© 2026 Português+ · Sua prática, seu progresso."}

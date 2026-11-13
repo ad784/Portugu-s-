@@ -128,7 +128,7 @@ function createPhotoRouter({
           let persistence;
           try {
             persistence = await saveCorrection(req, {
-              conteudo: result.split(/\nRedacao:\n/i)[1]?.trim() || null,
+              conteudo: result.split(/\nReda[çc][ãa]o:\n/i)[1]?.trim() || null,
               resultado: result,
               tipo: "foto",
               imagemPath: imagePath,

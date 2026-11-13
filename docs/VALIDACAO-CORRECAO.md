@@ -1,20 +1,22 @@
-# Verifica??o da corre??o ? 10/11/2026
+# Verificação da correção — 10/11/2026
 
-Vers?o mais cr?tica solicitada para treinamento. Teste real com textos autorais da p?gina de exemplos, usando o tema de desinforma??o exibido no site. Modelo: openai/gpt-oss-120b; temperatura 0 e seed 42. Nenhuma nota de refer?ncia foi enviada junto ? reda??o de teste; nenhum resultado foi gravado na conta de um usu?rio.
+O prompt diferencia relato pessoal de argumentação: C2 verifica o desenvolvimento do recorte social; C3 não considera pena, deboche ou mera opinião como defesa sustentada; C5 verifica se a ação enfrenta o problema proposto antes de contar elementos. Uma condição pessoal mencionada não justifica desconto ou inferências sobre o indivíduo. Não há desconto global nem mudança no cálculo da soma.
 
-| Refer?ncia did?tica | Resultado observado na vers?o final | C1 / C2 / C3 / C4 / C5 |
+Teste real da versão atual, uma execução por caso, com openai/gpt-oss-120b, temperatura 0 e seed 42:
+
+| Caso | Resultado | C1 / C2 / C3 / C4 / C5 |
 | --- | --- | --- |
-| 800 | 760 | 160 / 120 / 160 / 160 / 160 |
-| 1000 | 960 | 160 / 200 / 200 / 200 / 200 |
+| Texto ambiental inteiramente fictício, repetitivo, sem sustentação e com proposta vaga | 200 | 40 / 40 / 40 / 40 / 40 |
+| Exemplo público excelente do site, sobre desinformação | 1000 | 200 / 200 / 200 / 200 / 200 |
 
-Uma execu??o conclu?da por exemplo acima. O teste de 500 desta rodada foi bloqueado pelo limite tempor?rio do Groq, portanto n?o h? resultado novo para essa faixa. Na vers?o anterior havia recebido 480; esse resultado n?o valida a vers?o atual.
+O texto específico fornecido pelo usuário não foi enviado ao provedor: a revisão automática bloqueou esse teste por conter informação de saúde sobre terceiro. O teste alternativo não valida a nota desse texto. Nenhum resultado de teste foi gravado na conta de um usuário.
 
-As refer?ncias s?o did?ticas, n?o notas oficiais. A rubrica cont?m duas ?ncoras resumidas para comparar qualidade, incluindo um trecho comentado do pr?prio exemplo intermedi?rio. Assim, o resultado desse exemplo ? uma verifica??o de comportamento, n?o valida??o independente nem prova de calibra??o geral. As notas podem variar; ? preciso ampliar a avalia??o com textos in?ditos avaliados por humanos.
+Os resultados não constituem validação geral. As referências do site são didáticas, não notas oficiais. O prompt contém duas âncoras resumidas, incluindo um trecho comentado do exemplo intermediário; os exemplos do site fazem parte do conjunto de desenvolvimento, não são testes independentes. É preciso ampliar a avaliação com textos inéditos avaliados por humanos.
 
-Mudan?a: C2 exige desenvolvimento al?m da exposi??o previs?vel para 160; C3 exige sustenta??o dos eixos centrais. Mantidos os descritores inferiores, a soma por compet?ncia e a aus?ncia de desconto fixo ou teto global. N?o foi adicionada uma segunda chamada obrigat?ria.
+Na versão anterior, o exemplo de 800 recebeu 760 (160 / 120 / 160 / 160 / 160), e o de 1000 recebeu 960 (160 / 200 / 200 / 200 / 200). O exemplo de 500 foi bloqueado pelo limite temporário do Groq nessa rodada. Esses números anteriores não validam a versão atual.
 
-O prompt ? compartilhado por texto e foto. Esta verifica??o usa texto e n?o valida transcri??o de imagem. O cache inclui o prompt na chave; novas submiss?es usam a nova vers?o, enquanto relat?rios antigos permanecem no hist?rico.
+O prompt é compartilhado por texto e foto. Os testes reais acima usam texto e não validam transcrição de imagem. O cache inclui o prompt na chave; novas submissões usam a nova versão, enquanto relatórios antigos permanecem no histórico.
 
-Prompt de texto: 7481 caracteres, contra 6382 na vers?o anterior. As ?ncoras s?o resumidas; n?o se enviam reda??es-modelo completas. N?o foi feita medi??o comparativa de tokens nesta rodada.
+O prompt atual de texto tem 8309 caracteres; o de foto, 8561. Não foi medida a diferença de tokens. Não foi acrescentada uma segunda chamada obrigatória à avaliação.
 
-Verifica??o t?cnica: 89 testes passaram. Nenhuma altera??o de interface ou build do frontend nesta rodada.
+Verificação técnica: 93 testes passaram. Nenhuma alteração de interface nesta rodada.

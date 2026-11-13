@@ -36,23 +36,23 @@ function formatarCorrecaoEnem(correcao, texto) {
         "A nota considera a qualidade global e as evidências observadas no texto.",
     ).trim(),
     "",
-    "Competencias:",
+    "Competências:",
     ...competencias.map((notaCompetencia, indice) => {
       const detalhe = competenciasRecebidas[indice]?.comentario;
       return `${indice + 1}: ${notaCompetencia}${typeof detalhe === "string" && detalhe.trim() ? ` - ${detalhe.trim()}` : ""}`;
     }),
     "",
     "Erros:",
-    ...lista(correcao.erros, "Nenhum erro especifico foi identificado.").map(
+    ...lista(correcao.erros, "Nenhum erro específico foi identificado.").map(
       (item) => `- ${item}`,
     ),
     "",
-    "Sugestoes:",
+    "Sugestões:",
     ...lista(correcao.sugestoes, "Revise o texto e continue praticando.").map(
       (item) => `- ${item}`,
     ),
     "",
-    "Redacao:",
+    "Redação:",
     texto,
   ];
   return linhas.join("\n");

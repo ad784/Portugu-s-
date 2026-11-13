@@ -96,7 +96,7 @@ function normalizarCorrecao(correcao, texto) {
     const textoComentario =
       typeof comentario === "string" && comentario.trim()
         ? comentario.trim()
-        : "A resposta da IA nao trouxe justificativa para este criterio; a nota foi mantida em 0.";
+        : "A resposta da IA não trouxe justificativa para este critério; a nota foi mantida em 0.";
     return {
       competencia: numero,
       nota: notaBase,

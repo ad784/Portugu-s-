@@ -1,4 +1,9 @@
 export const scriptsByPage = {
+  "confirmar-email": [
+    () => import("../scripts/supabase.js"),
+    () => import("../scripts/confirmar-email.js"),
+    () => import("../scripts/navigation.js"),
+  ],
   contato: [() => import("../scripts/navigation.js")],
   index: [
     () => import("../scripts/supabase.js"),

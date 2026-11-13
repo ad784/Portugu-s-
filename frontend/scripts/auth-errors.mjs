@@ -32,7 +32,9 @@ export function authErrorMessage(error) {
     typeof error?.message === "string" ? error.message.trim() : "";
   const code = error?.code || "";
   if (code === "email_not_confirmed" || /email not confirmed/i.test(message))
-    return "Esta conta antiga ainda está pendente de ativação. Entre em contato com o suporte para regularizar seu acesso.";
+    return "Sua conta está pendente de ativação. Acesse a página Confirmar e-mail para solicitar um código e concluir seu cadastro.";
+  if (code === "otp_expired" || /token.*(expired|invalid)|otp.*(expired|invalid)/i.test(message))
+    return "O código é inválido ou expirou. Use o código mais recente ou solicite outro.";
   if (
     code === "invalid_credentials" ||
     /invalid login credentials/i.test(message)

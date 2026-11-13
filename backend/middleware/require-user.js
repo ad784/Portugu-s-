@@ -98,7 +98,7 @@ async function requireSupabaseUser(req, res, next, options = {}) {
       res,
       next,
       503,
-      "Autenticacao Supabase nao configurada no servidor",
+      "Autenticação Supabase não configurada no servidor",
       options,
     );
   }
@@ -109,7 +109,7 @@ async function requireSupabaseUser(req, res, next, options = {}) {
       res,
       next,
       401,
-      "Sessao invalida ou expirada",
+      "Sessão inválida ou expirada",
       options,
     );
   try {
@@ -123,7 +123,7 @@ async function requireSupabaseUser(req, res, next, options = {}) {
       jose = await getJose();
       ({ alg } = jose.decodeProtectedHeader(token));
     } catch {
-      return res.status(401).json({ erro: "Sessao invalida ou expirada" });
+      return res.status(401).json({ erro: "Sessão inválida ou expirada" });
     }
     if (
       alg !== "HS256" &&
@@ -162,8 +162,8 @@ async function requireSupabaseUser(req, res, next, options = {}) {
       const invalid = [400, 401, 403].includes(Number(error?.status));
       const status = invalid ? 401 : 503;
       const message = invalid
-        ? "Sessao invalida ou expirada"
-        : "Nao foi possivel validar sua sessao agora. Tente novamente em instantes.";
+        ? "Sessão inválida ou expirada"
+        : "Não foi possível validar sua sessão agora. Tente novamente em instantes.";
       return sendAuthFailure(req, res, next, status, message, options);
     }
     req.supabaseUser = data.user;
@@ -172,7 +172,7 @@ async function requireSupabaseUser(req, res, next, options = {}) {
     return next();
   } catch (error) {
     console.error(
-      "Falha ao validar a sessao no Supabase:",
+      "Falha ao validar a sessão no Supabase:",
       error.message,
       error.status || "sem status",
       error.code || "sem codigo",
@@ -182,7 +182,7 @@ async function requireSupabaseUser(req, res, next, options = {}) {
       res,
       next,
       503,
-      "Nao foi possivel validar sua sessao agora. Tente novamente em instantes.",
+      "Não foi possível validar sua sessão agora. Tente novamente em instantes.",
       options,
     );
   }

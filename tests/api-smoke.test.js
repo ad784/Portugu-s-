@@ -76,7 +76,7 @@ test("admin essays route responds in local mode", async () => {
   assert.deepEqual(await response.json(), { redacoes: [] });
 });
 
-test("creates and opens an account directly when Supabase auto-confirms it", async () => {
+test("creates an email account and opens the email confirmation page", async () => {
   const message = { textContent: "", className: "" };
   const button = { disabled: false, textContent: "", innerHTML: "Criar conta" };
   const fields = {
@@ -97,7 +97,7 @@ test("creates and opens an account directly when Supabase auto-confirms it", asy
         auth: {
           signUp: async () => {
             signupCalls += 1;
-            return { data: { session: {} }, error: null };
+            return { data: { session: null }, error: null };
           },
         },
       },
@@ -111,8 +111,8 @@ test("creates and opens an account directly when Supabase auto-confirms it", asy
   await context.window.cadastrar();
 
   assert.equal(signupCalls, 1);
-  assert.equal(location.href, "/nova.html");
-  assert.match(message.textContent, /Conta criada/);
+  assert.equal(location.href, "/confirmar-email");
+  assert.equal(fields.senha.value, "");
   assert.equal(button.disabled, false);
 });
 
@@ -187,7 +187,7 @@ test("rejeita imagem inválida", async () => {
   assert.equal(response.status, 400);
 });
 
-test("signup does not send confirmation email while remote confirmation is still enabled", async () => {
+test("signup stops when remote confirmation configuration is not ready", async () => {
   let calls = 0;
   const fields = {
     nome: { value: "Ana" },
@@ -201,7 +201,7 @@ test("signup does not send confirmation email while remote confirmation is still
   const context = {
     window: {
       checkSignupConfiguration: async () => {
-        throw new Error("Confirmação ainda habilitada no provedor.");
+        throw new Error("Confirmação ainda não habilitada no provedor.");
       },
       supabaseClient: {
         auth: {
@@ -221,7 +221,7 @@ test("signup does not send confirmation email while remote confirmation is still
   assert.equal(calls, 0);
   assert.match(
     fields["signup-message"].textContent,
-    /Confirmação ainda habilitada/,
+    /Confirmação ainda não habilitada/,
   );
   assert.equal(fields["signup-button"].disabled, false);
 });

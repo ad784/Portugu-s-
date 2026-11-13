@@ -1184,3 +1184,57 @@ button:disabled { cursor: not-allowed; opacity: .65; }
   .profile-privacy .privacy-action { width: 100%; }
   .privacy-policy-links { flex-direction: column; gap: 12px; }
 }
+.verification-main {
+  width: min(100% - 32px, 480px);
+  margin: 48px auto 64px;
+}
+.verification-progress {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  color: #59736c;
+  font-size: 13px;
+}
+.verification-page .verification-card {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  aspect-ratio: auto;
+  padding: clamp(24px, 4vw, 38px);
+  box-sizing: border-box;
+}
+.verification-card > * { flex-shrink: 0; }
+.verification-page .verification-card label { font-size: 14px; line-height: 1.5; }
+.verification-page .verification-card input { height: 50px; min-height: 50px; font-size: 16px; }
+.verification-page .verification-card .primary-action { min-height: 50px; height: auto; padding: 14px; font-size: 16px; }
+.verification-page .verification-card .form-footer,
+.verification-page .verification-card .form-message { font-size: 13px; line-height: 1.6; }
+.verification-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 20px;
+  border-radius: 18px;
+  background: #e8f2ec;
+  color: #315e4e;
+  font-size: 28px;
+}
+.verification-card > .eyebrow { display: block; text-align: center; }
+.verification-card h1 { margin: 12px 0; text-align: center; font-size: clamp(26px, 5vw, 34px); line-height: 1.2; }
+.verification-intro { margin: 0 0 26px; text-align: center; color: #59736c; line-height: 1.6; }
+.verification-card #verification-code { text-align: center; font-size: 20px; letter-spacing: 3px; height: 58px; }
+.verification-card #verification-code::placeholder { font-size: 14px; letter-spacing: normal; }
+.verification-help { font-size: 12px; line-height: 1.6; color: #59736c; margin-top: 10px; }
+.verification-card .primary-action { width: 100%; margin-top: 16px; }
+.verification-resend-row { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin: 24px 0 12px; font-size: 13px; }
+.verification-resend-row button { width: auto; margin: 0; padding: 8px; background: transparent; border: 0; color: #315e4e; text-decoration: underline; font: inherit; cursor: pointer; }
+.verification-resend-row button:disabled { opacity: .5; cursor: wait; }
+.verification-footer { text-align: center; font-size: 12px; color: #59736c; margin-top: 24px; }
+@media (max-width: 540px) {
+  .verification-main { margin-top: 28px; }
+  .verification-progress { gap: 10px; font-size: 12px; }
+}

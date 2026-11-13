@@ -12,7 +12,7 @@ function formatDate(value) {
 }
 
 function extractPreview(resultado) {
-  const text = (resultado || "").replace(/^.*?Redacao:\s*/is, "").trim();
+  const text = (resultado || "").replace(/^.*?Reda[çc][ãa]o:\s*/is, "").trim();
   return text.length > 180
     ? `${text.slice(0, 180)}…`
     : text || "Correção por foto";

@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Navigate, useLocation } from "react-router";
 
 const pages = {
+  "confirmar-email": lazy(() => import("../pages/content/VerifyEmailPage.jsx")),
   contato: lazy(() => import("../pages/content/ContactPage.jsx")),
   aceite: lazy(() => import("../pages/content/ConsentPage.jsx")),
   termos: lazy(() => import("../pages/content/TermsPage.jsx")),

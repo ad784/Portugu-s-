@@ -66,13 +66,10 @@ async function cadastrar(event) {
 
     if (data?.session) {
       signupMessage("Conta criada. Abrindo a plataforma...", "success");
-      window.location.href = "/nova.html";
+      window.location.href = "/nova";
       return;
     }
-
-    signupMessage(
-      "Não foi possível abrir a conta automaticamente. Tente entrar com seu e-mail e senha; se não conseguir, entre em contato com o suporte.",
-    );
+    showVerification(email);
   } catch (error) {
     signupMessage(
       window.authErrorMessage
@@ -89,3 +86,9 @@ async function cadastrar(event) {
 
 window.cadastrar = cadastrar;
 document.getElementById("signup-form")?.addEventListener?.("submit", cadastrar);
+
+function showVerification(email) {
+  try { sessionStorage.setItem("signup-verification", JSON.stringify({ email, resendAfter: Date.now() + 60_000 })); } catch {}
+  document.getElementById("senha").value = "";
+  window.location.href = "/confirmar-email";
+}
