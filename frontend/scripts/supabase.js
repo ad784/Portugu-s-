@@ -36,10 +36,6 @@ export const ready = (async () => {
     const settings = await response.json();
     if (settings.disable_signup || settings.external?.email === false)
       throw new Error("Novos cadastros estão temporariamente indisponíveis.");
-    if (settings.mailer_autoconfirm !== false)
-      throw new Error(
-        "A confirmação por e-mail ainda não foi habilitada. Tente novamente após a configuração do serviço.",
-      );
   };
   window.supabaseClient = createClient(
     config?.supabaseUrl || supabaseUrl,

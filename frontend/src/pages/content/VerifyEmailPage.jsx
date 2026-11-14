@@ -8,7 +8,12 @@ export default function VerifyEmailPage() {
           <img className="brand-icon" src="/assets/logo-portugues-mais.png" alt="" />
           <span>Português<span>+</span></span>
         </a>
-        <a href="/">Voltar para entrar</a>
+        <a className="verification-back" href="/cadastro">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="m12 5-7 7 7 7M5 12h14" />
+          </svg>
+          <span>Voltar ao cadastro</span>
+        </a>
       </header>
       <main className="verification-main">
         <div className="verification-progress" aria-label="Etapa 2 de 2">

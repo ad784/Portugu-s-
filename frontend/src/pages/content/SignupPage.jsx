@@ -128,6 +128,14 @@ export default function SignupPage() {
             role="status"
             aria-live="polite"
           ></p>{" "}
+          <button
+            id="signup-resend-confirmation"
+            className="secondary-action"
+            type="button"
+            hidden
+          >
+            Reenviar confirmação
+          </button>{" "}
           <button id="signup-button" className="primary-action" type="submit">
             {"Criar minha conta "}
             <span>{"→"}</span>

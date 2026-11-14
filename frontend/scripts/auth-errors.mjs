@@ -42,8 +42,14 @@ export function authErrorMessage(error) {
     return "E-mail ou senha incorretos. Confira os dados e tente novamente.";
   if (
     /Error sending (confirmation|recovery|magic link) email|smtp/i.test(message)
-  )
+  ) {
+    if (
+      /535|badcredentials|username and password not accepted/i.test(message)
+    ) {
+      return "O Gmail rejeitou as credenciais SMTP salvas no Supabase (erro 535). O cadastro pode ter sido criado sem confirmação. O responsável precisa atualizar a senha de app no SMTP do Supabase; depois, use Reenviar confirmação.";
+    }
     return "Não foi possível enviar o e-mail de confirmação. O responsável pelo site precisa conferir as configurações SMTP e os logs de autenticação no Supabase.";
+  }
   if (/Database error (saving|creating) new user/i.test(message))
     return "O banco de dados recusou a criação da conta. O responsável pelo site precisa conferir os logs e as funções de cadastro no Supabase.";
   if (
