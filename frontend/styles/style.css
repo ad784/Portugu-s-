@@ -687,6 +687,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .chart-note { margin-bottom: 0; font-size: 12px; }
 .progress-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; margin-top: 22px; }
 .secondary-action { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; padding: 10px 15px; border: 1px solid #b8d7cc; border-radius: 10px; color: var(--brand-dark); font-weight: 700; text-decoration: none; }
+#signup-resend-confirmation { color: #fff; }
 .history-progress-link { margin: 18px 0 -10px; text-align: right; }
 .history-progress-link a { color: var(--brand-dark); font-size: 13px; font-weight: 700; text-decoration: none; }
 .history-progress-link a:hover { text-decoration: underline; text-underline-offset: 3px; }
