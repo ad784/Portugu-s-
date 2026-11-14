@@ -97,7 +97,7 @@ test("creates an email account and opens the email confirmation page", async () 
         auth: {
           signUp: async () => {
             signupCalls += 1;
-            return { data: { session: null }, error: null };
+            return { data: { session: {} }, error: null };
           },
         },
       },
@@ -111,8 +111,8 @@ test("creates an email account and opens the email confirmation page", async () 
   await context.window.cadastrar();
 
   assert.equal(signupCalls, 1);
-  assert.equal(location.href, "/confirmar-email");
-  assert.equal(fields.senha.value, "");
+  assert.equal(location.href, "/nova.html");
+  assert.equal(fields.senha.value, "a-long-test-password");
   assert.equal(button.disabled, false);
 });
 
@@ -169,7 +169,7 @@ test("signup refuses missing terms or AI consent and sends document versions", a
   assert.equal(received.options.data.terms_version, "2026-10-30");
   assert.equal(received.options.data.privacy_version, "2026-10-30");
   assert.equal(received.options.data.ai_consent, true);
-  assert.equal(received.options.emailRedirectTo, undefined);
+  assert.equal(received.options.emailRedirectTo, "https://example.com/nova.html");
 });
 
 test("histórico local responde sem erro", async () => {
