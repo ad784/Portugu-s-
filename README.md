@@ -51,9 +51,51 @@ O Vite abre [http://localhost:5173](http://localhost:5173) e encaminha as chamad
 
 ## Interface React e rotas
 
-As telas são componentes JSX em `frontend/src/pages/content/`, carregados pelas rotas do React Router. Os caminhos antigos terminados em `.html` continuam aceitos como aliases para compatibilidade, mas não existem páginas HTML independentes para cada tela.
+As telas são componentes JSX em `frontend/frontend-src/pages/`, carregados pelas rotas do React Router. Os caminhos antigos terminados em `.html` continuam aceitos como aliases para compatibilidade, mas não existem páginas HTML independentes para cada tela.
 
-Alguns comportamentos do navegador — como autenticação Supabase, edição e salvamento do rascunho, câmera, histórico e perfil — permanecem em módulos JavaScript separados em `frontend/scripts/`. `frontend/src/pageScripts.js` associa esses módulos às páginas; `PageFrame.jsx` os carrega depois que o React monta cada tela. Os estilos compartilhados ficam em `frontend/styles/style.css`. O layout inclui regras responsivas e menu hambúrguer para telas menores.
+Os comportamentos do editor, câmera, histórico e perfil ficam em `frontend/frontend-src/scripts/`. A autenticação e o gerenciamento da sessão ficam em `frontend/frontend-src/services/`. `frontend/frontend-src/pageScripts.js` associa os módulos às páginas; `frontend/frontend-src/components/layout/PageFrame.jsx` os carrega depois que o React monta cada tela. Os estilos compartilhados ficam em `frontend/frontend-src/assets/styles/style.css`.
+
+## Organização do projeto
+
+```text
+backend/
+  api/index.js              # Entrada da API na Vercel
+  backend-src/
+    config/                 # Ambiente, db.js e configurações públicas e de foto
+    controllers/            # Recebem requisições e produzem respostas
+    routes/                 # URLs, métodos HTTP e middleware de cada rota
+    middleware/             # Autenticação, autorização, limites e erros
+    models/                 # Consultas e alterações dos dados por domínio
+    db/
+      migrations/           # Histórico SQL do banco
+    services/               # Correção por IA, regras, cache e persistência
+    utils/                  # Funções auxiliares compartilhadas
+    validations/            # Validação e normalização das entradas
+    uploads/                # Reservado; fotos atualmente no Supabase
+    app.js                  # Montagem da aplicação Express
+    server.js               # Inicialização do servidor local
+frontend/
+  public/images/            # Imagens públicas
+  public/icons/             # Ícones públicos
+  frontend-src/
+    assets/styles/          # CSS
+    components/layout/      # Layout compartilhado
+    pages/                  # Telas React
+    routes/                 # Rotas React Router
+    services/               # Supabase e gerenciamento da sessão
+    scripts/                # Comportamento das páginas
+    utils/                  # Utilitários, como mensagens de autenticação
+    root.jsx                # Componente raiz
+    routes.js               # Configuração de rotas
+    pageScripts.js          # Associação entre páginas e módulos
+shared/                     # Regras e documentos usados por ambas as partes
+tests/                      # Testes automatizados
+scripts/                    # Comandos de manutenção do projeto
+```
+
+O fluxo da API é **rota → middleware → controller → model/service**. Os models usam o cliente autenticado da requisição, preservando as permissões do usuário no Supabase. `db/migrations` contém os scripts SQL; a reorganização de pastas não exige executar migrations novamente.
+
+O `package.json`, o lockfile e o `.env` continuam na raiz para manter um único comando de instalação e execução. Também é aceito `backend/.env`. Use `npm start` para executar tudo, `npm test` para verificar o backend e os fluxos do navegador e `npm run build` para compilar o frontend. As pastas reservadas do modelo usam `.gitkeep`; hooks, context, store e uploads locais ainda não são usados. As fotos são armazenadas no Supabase. Veja também [backend/README.md](backend/README.md) e [frontend/README.md](frontend/README.md). Cada parte tem comandos próprios em seu `package.json`, usando as dependências compartilhadas na raiz.
 
 O texto e o tema selecionado no editor são salvos automaticamente no armazenamento local do navegador, para que o rascunho continue disponível ao sair da página e voltar no mesmo dispositivo e navegador.
 
@@ -73,7 +115,7 @@ A imagem é validada no servidor e pode ser enviada ao bucket privado `redacoes`
 
 ## API do backend
 
-As rotas Express são separadas por domínio em `backend/routes/`. Rotas, autenticação, serviços de IA e migrações Supabase ficam dentro de `backend/`.
+As rotas Express são separadas por domínio em `backend/backend-src/routes/`. Rotas, autenticação, serviços de IA e migrações Supabase ficam dentro de `backend/`.
 
 | Método e rota | Função |
 | --- | --- |
@@ -90,11 +132,11 @@ As rotas de dados exigem uma sessão Supabase válida. Para tokens assinados com
 
 Para configurar banco, políticas e armazenamento de fotos, execute estas migrations no SQL Editor do Supabase, nesta ordem:
 
-1. `backend/supabase/migrations/20260805162000_create_profiles_and_redacoes.sql`
-2. `backend/supabase/migrations/20260805170000_add_photo_storage.sql`
-3. `backend/supabase/migrations/20260830190000_add_theme_and_storage_policies.sql`
-4. `backend/supabase/migrations/20261013120000_allow_users_to_insert_own_profile.sql`
-5. `backend/supabase/migrations/20261017120000_allow_users_to_upload_own_essay_photos.sql`
+1. `backend/backend-src/db/migrations/20260805162000_create_profiles_and_redacoes.sql`
+2. `backend/backend-src/db/migrations/20260805170000_add_photo_storage.sql`
+3. `backend/backend-src/db/migrations/20260830190000_add_theme_and_storage_policies.sql`
+4. `backend/backend-src/db/migrations/20261013120000_allow_users_to_insert_own_profile.sql`
+5. `backend/backend-src/db/migrations/20261017120000_allow_users_to_upload_own_essay_photos.sql`
 
 O bucket `redacoes` deve permanecer privado. As políticas RLS restringem os dados às contas correspondentes.
 
@@ -110,29 +152,3 @@ npm run build
 ```
 
 Os testes usam o modo local e não precisam acessar o Supabase para os fluxos simulados.
-
-## Estrutura do projeto
-
-```text
-backend/
-  api/                 adaptador serverless da Vercel
-  middleware/          autenticação e autorização
-  routes/              endpoints Express
-  services/            correção, integração com IA e persistência
-  supabase/migrations/ migrações do banco e políticas
-  server.js            configuração e inicialização local do Express
-frontend/
-  src/pages/content/   telas React em JSX
-  src/routes/          componentes de rota
-  scripts/             lógica de interação carregada por página
-  styles/              estilos compartilhados e responsivos
-  public/assets/       imagens e recursos estáticos
-  build/               saída gerada; não versionar
-  react-router.config.mjs
-  vite.config.mjs
-
-docs/                  documentação complementar do projeto
-tests/                 testes automatizados
-.env.example            modelo de variáveis, sem chaves privadas
-package.json            scripts e dependências únicos do projeto
-```

@@ -1,0 +1,11 @@
+{
+  "name": "portugues-backend",
+  "private": true,
+  "type": "commonjs",
+  "main": "backend-src/server.js",
+  "scripts": {
+    "start": "node backend-src/server.js",
+    "dev": "node --watch backend-src/server.js",
+    "test": "npm --prefix .. test"
+  }
+}

@@ -1,16 +1,18 @@
+const {
+  requireLegalAcceptance,
+} = require("../backend/backend-src/middleware/require-legal-acceptance");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const express = require("express");
-const {
-  createLegalRouter,
-  requireLegalAcceptance,
-} = require("../backend/routes/legal");
+const { createLegalRouter } = require("../backend/backend-src/routes/legal");
 const legal = require("../shared/legal.json");
 const {
   acquireCorrection,
-} = require("../backend/middleware/correction-limits");
+} = require("../backend/backend-src/middleware/correction-limits");
 test("private Supabase keys never qualify for browser configuration", () => {
-  const { isPublicSupabaseKey } = require("../backend/services/public-config");
+  const {
+    isPublicSupabaseKey,
+  } = require("../backend/backend-src/config/public-config");
   assert.equal(isPublicSupabaseKey("sb_secret_private"), false);
   const jwt = (role) =>
     `header.${Buffer.from(JSON.stringify({ role })).toString("base64url")}.signature`;

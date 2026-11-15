@@ -1,6 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const folder = path.join(__dirname, "../backend/supabase/migrations");
+const folder = path.join(__dirname, "../backend/backend-src/db/migrations");
 const target = path.join(__dirname, "../docs/SUPABASE-NOVO-PROJETO.sql");
 const files = fs
   .readdirSync(folder)

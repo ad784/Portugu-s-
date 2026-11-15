@@ -25,7 +25,7 @@ Os testes automatizados existentes cobrem principalmente API, funções e integr
 
 A rota inicial atende apenas `/`; a rota genérica não inclui `index` entre as páginas e redireciona uma página desconhecida para `/index.html`, que continua sem componente correspondente. Os links de voltar, entrar, logotipo, saída e recuperação usam esse endereço.
 
-Evidências: `frontend/src/routes.js:3`, `frontend/src/routes/page.jsx:5` e `frontend/src/routes/page.jsx:22`.
+Evidências: `frontend/frontend-src/routes.js:3`, `frontend/frontend-src/routes/page.jsx:5` e `frontend/frontend-src/routes/page.jsx:22`.
 
 Correção: fazer os aliases existentes apontarem para a tela inicial correta. Validar acesso direto, recarregamento, saída e retorno após expiração da sessão.
 
@@ -35,7 +35,7 @@ Correção: fazer os aliases existentes apontarem para a tela inicial correta. V
 
 O script trata qualquer link `.nav-cta` como saída se existir `window.sair`. A página inicial carrega esse método, embora seu botão seja de cadastro.
 
-Evidência: `frontend/scripts/navigation.js:24`.
+Evidência: `frontend/frontend-src/scripts/navigation.js:24`.
 
 Correção: identificar a ação de saída explicitamente, sem inferi-la pela classe visual compartilhada.
 
@@ -43,7 +43,7 @@ Correção: identificar a ação de saída explicitamente, sem inferi-la pela cl
 
 **Confirmado no código e na inicialização da tela.** A página de resultado tem “Sair” e carrega o script com `sair()`, mas não carrega `supabase.js`. Em uma abertura direta, `window.supabaseClient` não existe e a chamada opcional de `signOut()` é ignorada. Limpar apenas o resultado local e redirecionar não encerra a sessão persistida.
 
-Evidências: `frontend/src/pageScripts.js:17` e `frontend/scripts/script.js:204`.
+Evidências: `frontend/frontend-src/pageScripts.js:17` e `frontend/frontend-src/scripts/script.js:204`.
 
 Correção: centralizar autenticação e saída para todas as telas relevantes. Confirmar que, após sair por qualquer tela, uma ação protegida exige novo login.
 
@@ -51,7 +51,7 @@ Correção: centralizar autenticação e saída para todas as telas relevantes. 
 
 **Confirmado no código.** O link de recuperação volta para `/index.html`. Não há tratamento de `PASSWORD_RECOVERY` para oferecer a troca de senha nesse fluxo. A troca existente está na tela de perfil e não é apresentada pelo retorno de recuperação.
 
-Evidências: `frontend/scripts/recuperar.js:8`, `frontend/scripts/perfil.js:110` e `frontend/src/pages/content/RecoveryPage.jsx`.
+Evidências: `frontend/frontend-src/scripts/recuperar.js:8`, `frontend/frontend-src/scripts/perfil.js:110` e `frontend/frontend-src/pages/RecoveryPage.jsx`.
 
 Correção: usar a própria tela de recuperação ou a de perfil para receber o retorno, validar o estado da sessão, pedir senha e confirmação e concluir `updateUser`. Não exige página nova.
 
@@ -63,7 +63,7 @@ Referência: [fluxo de senhas do Supabase](https://supabase.com/docs/guides/auth
 
 Isso permite misturar dados de contas que usam o mesmo navegador e manter uma redação anterior disponível na tela de resultado. Não é evidência de falha no RLS remoto: o problema está no armazenamento e na apresentação locais.
 
-Evidências: `frontend/scripts/script.js:15`, `frontend/scripts/script.js:23`, `frontend/scripts/historico.js:17`, `frontend/scripts/historico.js:77`, `frontend/scripts/evolucao.js:1` e `frontend/scripts/foto.js:211`.
+Evidências: `frontend/frontend-src/scripts/script.js:15`, `frontend/frontend-src/scripts/script.js:23`, `frontend/frontend-src/scripts/historico.js:17`, `frontend/frontend-src/scripts/historico.js:77`, `frontend/frontend-src/scripts/evolucao.js:1` e `frontend/frontend-src/scripts/foto.js:211`.
 
 Correção: associar dados locais ao ID autenticado, limpar o estado da conta na saída e impedir a mistura ao trocar de usuário. Testar com contas A e B no mesmo navegador.
 
@@ -73,7 +73,7 @@ Correção: associar dados locais ao ID autenticado, limpar o estado da conta na
 
 Isso acontece porque `continueOnAuthOutage` deixa a requisição continuar após uma falha de validação. Em produção, uma indisponibilidade não deve converter uma sessão não verificada em autorização para consumir IA.
 
-Evidências: `backend/routes/photo.js:6` e `backend/middleware/require-user.js:49`.
+Evidências: `backend/backend-src/routes/photo.js:6` e `backend/backend-src/middleware/require-user.js:49`.
 
 Correção: exigir identidade validada antes da análise. Se a sessão não puder ser verificada, responder com erro temporário; manter funcionamento offline apenas quando existir uma validação criptográfica confiável.
 
@@ -83,7 +83,7 @@ Correção: exigir identidade validada antes da análise. Se a sessão não pude
 
 Há tentativas automáticas em camadas diferentes; uma falha pode prolongar a espera ou repetir trabalho. O bloqueio do botão protege apenas a interação naquela página, não o endpoint público.
 
-Evidências: `backend/server.js:37`, `backend/routes/text-correction.js:100`, `backend/routes/text-correction.js:202`, `backend/services/photo-correction.js:103` e `frontend/scripts/foto.js:176`.
+Evidências: `backend/backend-src/server.js:37`, `backend/backend-src/routes/text-correction.js:100`, `backend/backend-src/routes/text-correction.js:202`, `backend/backend-src/services/photo-correction.js:103` e `frontend/frontend-src/scripts/foto.js:176`.
 
 Correção: definir tamanho máximo de redação, quota, concorrência, prazo máximo e regras de repetição. Respeitar o tempo de espera do serviço no frontend. Manter uma única avaliação normal; repetir apenas falhas recuperáveis.
 
@@ -93,7 +93,7 @@ Correção: definir tamanho máximo de redação, quota, concorrência, prazo m�
 
 O cache reutiliza a correção, porém chama novamente `saveCorrection`. A duplicação afeta a quantidade de redações, as médias e o gráfico de evolução. Também falta uma proteção para duas requisições simultâneas antes de existir cache.
 
-Evidências: `backend/routes/text-correction.js:130`, `backend/routes/text-correction.js:175` e `backend/services/essay-storage.js:115`.
+Evidências: `backend/backend-src/routes/text-correction.js:130`, `backend/backend-src/routes/text-correction.js:175` e `backend/backend-src/services/essay-storage.js:115`.
 
 Correção: usar um identificador persistente da avaliação/envio, reutilizar o registro já criado e tratar concorrência. Uma reescrita com texto diferente deve continuar sendo um registro novo.
 
@@ -103,7 +103,7 @@ Correção: usar um identificador persistente da avaliação/envio, reutilizar o
 
 Sem cache compartilhado, novas instâncias podem chamar a IA novamente para o mesmo texto, consumir mais quota e retornar avaliações diferentes. Trocar apenas para `/tmp` não fornece persistência compartilhada.
 
-Evidência: `backend/routes/text-correction.js:170` e `backend/routes/text-correction.js:265`.
+Evidência: `backend/backend-src/routes/text-correction.js:170` e `backend/backend-src/routes/text-correction.js:265`.
 
 Correção: persistir avaliações e sua versão de rubrica no banco, com separação por usuário e controle de duplicação.
 
@@ -115,7 +115,7 @@ Referência: [sistema de arquivos das funções Vercel](https://vercel.com/docs/
 
 A foto também limita a resposta a 1000 tokens, compartilhados entre transcrição integral, cinco competências, erros e sugestões. Isso aumenta o risco de faltar transcrição ou feedback em textos longos; não foi feita uma medição real de OCR nesta revisão.
 
-Evidências: `backend/services/text-rubric.js` e `backend/services/photo-correction.js:109`.
+Evidências: `backend/backend-src/services/text-rubric.js` e `backend/backend-src/services/photo-correction.js:109`.
 
 Correção: compartilhar a rubrica pedagógica e o formato de resultado; dimensionar o orçamento de saída para transcrição e avaliação. Não é obrigatório criar uma segunda avaliação: o pedido multimodal pode reunir leitura e avaliação com os mesmos critérios.
 
@@ -125,7 +125,7 @@ Correção: compartilhar a rubrica pedagógica e o formato de resultado; dimensi
 
 No fluxo digitado, a falha de sincronização é registrada no console, o histórico local é criado e `resultado-aviso` é removido. O estudante pode acreditar que a redação está salva na conta quando ela só está naquele navegador. O fluxo de foto exibe um aviso, mas ainda pode mostrar detalhes de configuração do Supabase ao estudante.
 
-Evidências: `frontend/scripts/script.js:313`, `frontend/scripts/script.js:320` e `backend/routes/photo.js:38`.
+Evidências: `frontend/frontend-src/scripts/script.js:313`, `frontend/frontend-src/scripts/script.js:320` e `backend/backend-src/routes/photo.js:38`.
 
 Correção: usar o aviso já existente na tela de resultado, distinguir “salvo na conta” de “salvo neste dispositivo” e oferecer nova tentativa de sincronização sem repetir a IA. Não há sincronização posterior automática dos registros locais no código atual.
 
@@ -135,7 +135,7 @@ Correção: usar o aviso já existente na tela de resultado, distinguir “salvo
 
 Isso altera o mínimo de envio conforme a tela e pode impedir reutilizar a mesma avaliação em outro dispositivo.
 
-Evidências: `frontend/scripts/script.js:458` e `backend/routes/text-correction.js:150`.
+Evidências: `frontend/frontend-src/scripts/script.js:458` e `backend/backend-src/routes/text-correction.js:150`.
 
 Correção: definir uma referência de escrita estável e conferir os critérios de extensão no servidor. Não usar largura do celular como medida da redação. Preservar um contador visual separado se for útil para digitação.
 
@@ -143,16 +143,16 @@ Correção: definir uma referência de escrita estável e conferir os critérios
 
 O editor oferece “Tema em aberto”, mas o valor enviado é vazio e não há campo para digitar uma proposta personalizada. A API então não consegue verificar a adequação ao tema com a mesma precisão.
 
-Evidências: `frontend/src/pages/content/EditorPage.jsx:82` e `frontend/src/pages/content/EditorPage.jsx:272`.
+Evidências: `frontend/frontend-src/pages/EditorPage.jsx:82` e `frontend/frontend-src/pages/EditorPage.jsx:272`.
 
 Correção: mostrar um campo de tema na própria tela do editor ao escolher a opção livre. Na foto, também falta enviar um tema selecionado.
 
 ### 14. Ajustes de cadastro, login e uso por teclado
 
-- O login remove espaços da senha com `trim()`, enquanto cadastro e troca preservam os espaços. Uma senha aceita no cadastro pode ser alterada pelo login. Evidência: `frontend/scripts/script.js:177`.
-- Quando o cadastro não retorna sessão, a mensagem diz que já é possível entrar. Se a confirmação de e-mail estiver habilitada, deve orientar a confirmá-lo primeiro. Evidência: `frontend/scripts/cadastro.js:44`.
+- O login remove espaços da senha com `trim()`, enquanto cadastro e troca preservam os espaços. Uma senha aceita no cadastro pode ser alterada pelo login. Evidência: `frontend/frontend-src/scripts/script.js:177`.
+- Quando o cadastro não retorna sessão, a mensagem diz que já é possível entrar. Se a confirmação de e-mail estiver habilitada, deve orientar a confirmá-lo primeiro. Evidência: `frontend/frontend-src/scripts/cadastro.js:44`.
 - Os blocos de login, cadastro e recuperação não são formulários de envio; falta o fluxo normal de Enter e validação uniforme. No navegador, `document.forms.length` foi zero nessas telas.
-- A recuperação de senha não usa `try/finally`; uma exceção pode deixar o botão desabilitado. Evidência: `frontend/scripts/recuperar.js`.
+- A recuperação de senha não usa `try/finally`; uma exceção pode deixar o botão desabilitado. Evidência: `frontend/frontend-src/scripts/recuperar.js`.
 - Uma abertura direta do resultado, sem dado salvo, mostra “Seu resultado chegou” com nota `---`, em vez de orientar a enviar uma redação.
 - Reforçar o foco do teclado, o fechamento do menu móvel e as mensagens de carregamento, falha e ausência de dados. O carregamento inicial atualmente pode ser uma área vazia.
 
@@ -162,7 +162,7 @@ As consultas retornam o histórico completo, incluindo o relatório de cada reda
 
 Há ainda inserção de `error.message` com `innerHTML` na tela de evolução; deve ser texto, sem interpretar HTML de uma mensagem retornada externamente.
 
-Evidências: `backend/routes/essays.js:18`, `frontend/scripts/historico.js:67` e `frontend/scripts/evolucao.js:127`.
+Evidências: `backend/backend-src/routes/essays.js:18`, `frontend/frontend-src/scripts/historico.js:67` e `frontend/frontend-src/scripts/evolucao.js:127`.
 
 Correção: paginar, carregar detalhe sob demanda, padronizar sessão e renderizar erros com `textContent`.
 
@@ -178,7 +178,7 @@ Referência: [limites das funções Vercel](https://vercel.com/docs/functions/li
 
 A política atual manda procurar o contato “apresentado na entrega do TCC”. Isso não serve como canal de atendimento do site público. Falta esclarecer o responsável, um contato acessível, os serviços utilizados e como solicitar remoção dos dados, incluindo fotos e cópias locais quando aplicável.
 
-Evidência: `frontend/src/pages/content/PrivacyPage.jsx:64`.
+Evidência: `frontend/frontend-src/pages/PrivacyPage.jsx:64`.
 
 Correção: completar a página de privacidade existente e estabelecer um procedimento real para atender solicitações. Esta constatação é de clareza e funcionamento do produto, não uma certificação jurídica.
 

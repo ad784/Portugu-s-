@@ -1,0 +1,13 @@
+{
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/.react-router": true,
+    "frontend/build": true,
+    ".correction-cache": true,
+    ".groq-usage": true,
+    ".qa": true,
+    "**/server*.log": true,
+    "**/.server-*.log": true,
+    "**/.gitkeep": true
+  }
+}

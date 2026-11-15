@@ -13,8 +13,8 @@ const {
   parsePhotoDataUrl,
   formatPhotoCorrection,
   analyzePhoto,
-} = require("../backend/services/photo-correction");
-const { createPhotoRouter } = require("../backend/routes/photo");
+} = require("../backend/backend-src/services/photo-correction");
+const { createPhotoRouter } = require("../backend/backend-src/routes/photo");
 
 const jpeg = Buffer.concat([
   Buffer.from([0xff, 0xd8]),

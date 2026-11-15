@@ -14,7 +14,7 @@ O recibo é criado por trigger no cadastro. Não pode ser editado pelo navegador
 
 ## Configuração externa necessária
 
-1. No Supabase, executar em ordem todos os arquivos de `backend/supabase/migrations/`, inclusive `20261029120000_deduplicate_corrections.sql` e `20261030120000_record_signup_acceptance.sql`. A última migration deve entrar junto com o novo cadastro: clientes antigos sem os campos de aceite terão cadastros recusados. O trigger atual atende cadastro por e-mail; novos provedores e convites precisarão de fluxo de aceite próprio.
+1. No Supabase, executar em ordem todos os arquivos de `backend/backend-src/db/migrations/`, inclusive `20261029120000_deduplicate_corrections.sql` e `20261030120000_record_signup_acceptance.sql`. A última migration deve entrar junto com o novo cadastro: clientes antigos sem os campos de aceite terão cadastros recusados. O trigger atual atende cadastro por e-mail; novos provedores e convites precisarão de fluxo de aceite próprio.
 2. Manter bucket `redacoes` privado e conferir RLS com duas contas reais.
 3. Configurar no Supabase o Site URL HTTPS e os redirects do domínio publicado, incluindo `/` e `/recuperar?reset=1`.
 4. Configurar SMTP próprio em Authentication para confirmação e recuperação. Contato definido como `portuguesmais02@gmail.com`; isso não autentica o Gmail, não configura SMTP e não envia recibos por e-mail. Nunca colocar senha pessoal no código. Documentação: https://supabase.com/docs/guides/auth/auth-smtp

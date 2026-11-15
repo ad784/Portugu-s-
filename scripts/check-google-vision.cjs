@@ -4,8 +4,8 @@ require("dotenv").config({
   path: path.join(__dirname, "../.env"),
   quiet: true,
 });
-const { readGooglePhoto } = require("../backend/services/google-photo");
-const rules = require("../backend/services/writing-rules");
+const { readGooglePhoto } = require("../backend/backend-src/services/google-photo");
+const rules = require("../backend/backend-src/utils/writing-rules");
 
 async function main() {
   const key = process.env.GOOGLE_VISION_API_KEY?.trim();

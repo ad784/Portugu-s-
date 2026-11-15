@@ -24,7 +24,7 @@ check(
   !!env.GROQ_API_KEY && !/your-|example/i.test(env.GROQ_API_KEY),
   "Configure GROQ_API_KEY somente no servidor.",
 );
-const { photoConfig } = require("../backend/services/photo-config");
+const { photoConfig } = require("../backend/backend-src/config/photo-config");
 const photo = photoConfig(env);
 check(
   "Leitor de fotos válido",
@@ -73,6 +73,6 @@ console.log(
   "As verificações acima são locais; não certificam migrations, SMTP, domínio ou quota da IA.",
 );
 console.log(
-  "Execute as migrations pendentes em backend/supabase/migrations e siga docs/PUBLICACAO.md.",
+  "Execute as migrations pendentes em backend/backend-src/db/migrations e siga docs/PUBLICACAO.md.",
 );
 process.exitCode = failed ? 1 : 0;

@@ -1,7 +1,7 @@
 let app;
 
 try {
-  app = require("../server");
+  app = require("../backend-src/app");
 } catch (error) {
   console.error("Falha ao iniciar a API:", error);
   app = (_req, res) => {

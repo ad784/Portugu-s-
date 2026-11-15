@@ -58,7 +58,7 @@ function setup({ recovering = false, session = true, sendError = null } = {}) {
     clearTimeout() {},
   };
   vm.runInNewContext(
-    fs.readFileSync("frontend/scripts/recuperar.js", "utf8"),
+    fs.readFileSync("frontend/frontend-src/scripts/recuperar.js", "utf8"),
     context,
   );
   return { context, calls, fields, storage };

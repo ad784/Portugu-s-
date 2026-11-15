@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const express = require("express");
-const { createProfileRouter } = require("../backend/routes/profile");
+const { createProfileRouter } = require("../backend/backend-src/routes/profile");
 
 test("privacy export scopes every table to the account and exports multiple pages of legal events", async (t) => {
   const queries = [];

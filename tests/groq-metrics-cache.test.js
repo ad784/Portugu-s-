@@ -8,13 +8,13 @@ process.env.GROQ_METRICS_DIR = path.join(root, "metrics");
 // Deliberately unavailable disk cache: it is a file, not a directory.
 process.env.CORRECTION_CACHE_DIR = path.join(root, "blocked");
 fs.writeFileSync(process.env.CORRECTION_CACHE_DIR, "blocked");
-const { recordUsage } = require("../backend/services/groq-metrics");
+const { recordUsage } = require("../backend/backend-src/services/groq-metrics");
 const {
   singleFlight,
   readCache,
   writeCache,
   fingerprint,
-} = require("../backend/services/evaluation-cache");
+} = require("../backend/backend-src/services/evaluation-cache");
 test.after(() => fs.rmSync(root, { recursive: true, force: true }));
 
 test("counts provider usage and retry separately without recording private content", () => {
@@ -93,7 +93,7 @@ test("failed work releases duplicate lock for a later retry", async () => {
 });
 
 test("quota diagnostics retain numeric limits without organization details", () => {
-  const { providerLimit } = require("../backend/services/provider-limits");
+  const { providerLimit } = require("../backend/backend-src/services/provider-limits");
   const quota = providerLimit(
     {
       headers: {

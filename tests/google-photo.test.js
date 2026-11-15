@@ -11,13 +11,13 @@ process.env.GROQ_METRICS_DIR = path.join(directory, "metrics");
 const {
   readGooglePhoto,
   analyzeGooglePhoto,
-} = require("../backend/services/google-photo");
+} = require("../backend/backend-src/services/google-photo");
 const {
   photoConfig,
   legalVersions,
-} = require("../backend/services/photo-config");
-const { isAccepted } = require("../backend/routes/legal");
-const { PROMPT_CORRECAO_ENEM } = require("../backend/services/essay-storage");
+} = require("../backend/backend-src/config/photo-config");
+const { isAccepted } = require("../backend/backend-src/services/legal-acceptance");
+const { PROMPT_CORRECAO_ENEM } = require("../backend/backend-src/services/essay-storage");
 const image =
   "data:image/jpeg;base64," +
   Buffer.from([255, 216, 1, 2, 255, 217]).toString("base64");
@@ -204,7 +204,7 @@ test("Google activation requires updated privacy without changing existing Groq 
 
 test("Google photo endpoint persists a photo correction with the extracted essay and same five comments", async (t) => {
   const express = require("express");
-  const { createPhotoRouter } = require("../backend/routes/photo");
+  const { createPhotoRouter } = require("../backend/backend-src/routes/photo");
   const app = express();
   app.use(express.json());
   let saved;

@@ -10,7 +10,7 @@ Sem credenciais Google, o leitor atual continua ativo. Não há fallback automá
 
 1. Crie um projeto no Google Cloud e vincule faturamento, com perfil Individual se aplicável. Ative a **Cloud Vision API**. Confira os preços e cotas antes dos testes: https://cloud.google.com/vision/pricing.
 2. Crie uma chave de API no projeto e restrinja seu uso à **Cloud Vision API**. Ela será usada somente no backend; não configure restrição de referenciador de navegador para uma chave de servidor. Não coloque a chave no frontend, no Git ou no chat.
-3. No Supabase, abra **SQL Editor**, copie e execute somente `backend/supabase/migrations/20261108120000_google_vision_privacy.sql`. Essa migration é compatível com o leitor antigo e preserva os aceites existentes. Não execute o instalador de banco novo.
+3. No Supabase, abra **SQL Editor**, copie e execute somente `backend/backend-src/db/migrations/20261108120000_google_vision_privacy.sql`. Essa migration é compatível com o leitor antigo e preserva os aceites existentes. Não execute o instalador de banco novo.
 4. Na Vercel, no projeto que você usa, abra **Settings → Environment Variables**. Adicione `GOOGLE_VISION_API_KEY` com a chave e `PHOTO_READER=google`. Preserve `GROQ_API_KEY` e `GROQ_MODEL`. A chave Google não é uma chave Gemini.
 5. Faça um **Redeploy** para as novas variáveis entrarem em vigor. Não é necessário trocar o domínio. Localmente, use as mesmas variáveis no `.env` e reinicie o servidor.
 6. No site, o cadastro usa as versões devolvidas pelo servidor. Contas antigas precisam aceitar a política de 08/11 na página de aceite antes da primeira correção com o Google. O texto de autorização explica os dois provedores. Não há aceite repetido dentro do editor.

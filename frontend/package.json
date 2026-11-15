@@ -1,0 +1,11 @@
+{
+  "name": "portugues-frontend",
+  "private": true,
+  "scripts": {
+    "dev": "react-router dev",
+    "build": "react-router build"
+  },
+  "dependencies": {
+    "isbot": "^5"
+  }
+}

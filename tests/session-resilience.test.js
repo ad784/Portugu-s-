@@ -56,7 +56,7 @@ function environment({ storageFails = false, unauthorized = false } = {}) {
     },
   };
   const source = fs
-    .readFileSync("frontend/scripts/session.js", "utf8")
+    .readFileSync("frontend/frontend-src/services/session.js", "utf8")
     .replace(
       /^import writingRules.*$/m,
       "const writingRules = {charactersPerLine: 55};",

@@ -26,7 +26,7 @@ test("leaving a completed essay does not recreate its draft, while later edits a
     setTimeout,
   };
   vm.runInNewContext(
-    fs.readFileSync("frontend/scripts/script.js", "utf8"),
+    fs.readFileSync("frontend/frontend-src/scripts/script.js", "utf8"),
     context,
   );
   vm.runInNewContext(
@@ -50,13 +50,13 @@ test("history merges records by the correction hash and tolerates invalid dates"
   const context = { window: { addEventListener() {} } };
   vm.runInNewContext(
     fs
-      .readFileSync("frontend/scripts/session.js", "utf8")
+      .readFileSync("frontend/frontend-src/services/session.js", "utf8")
       .replace(/^import writingRules.*$/m, "const writingRules = {};")
       .replace(/export /g, ""),
     context,
   );
   vm.runInNewContext(
-    fs.readFileSync("frontend/scripts/historico.js", "utf8"),
+    fs.readFileSync("frontend/frontend-src/scripts/historico.js", "utf8"),
     context,
   );
   const result = context.mergeCorrections(

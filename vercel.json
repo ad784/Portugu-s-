@@ -11,6 +11,8 @@
   "routes": [
     { "src": "/api(?:/.*)?$", "dest": "/backend/api/index.js" },
     { "src": "/assets/(.*)$", "dest": "/assets/$1" },
+    { "src": "/images/(.*)$", "dest": "/images/$1" },
+    { "src": "/icons/(.*)$", "dest": "/icons/$1" },
     { "src": "/(index|cadastro|nova|resultado|foto|exemplos|historico|evolucao|perfil|recuperar|privacidade|contato)(\\.html)?$", "dest": "/index.html" },
     { "src": "/$", "dest": "/index.html" },
     { "src": "/.*", "dest": "/index.html" }

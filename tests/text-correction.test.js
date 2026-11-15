@@ -1,3 +1,7 @@
+const {
+  normalizarCorrecao,
+  correctionResponseFormat,
+} = require("../backend/backend-src/controllers/text-correction");
 process.env.CORRECTIONS_PER_MINUTE = "100";
 process.env.CORRECTIONS_PER_DAY = "1000";
 const test = require("node:test");
@@ -5,14 +9,12 @@ const assert = require("node:assert/strict");
 const express = require("express");
 const {
   createTextCorrectionRouter,
-  normalizarCorrecao,
-  correctionResponseFormat,
-} = require("../backend/routes/text-correction");
+} = require("../backend/backend-src/routes/text-correction");
 
 const {
   REQUIREMENTS,
   enforceEvidence,
-} = require("../backend/services/strict-rubric");
+} = require("../backend/backend-src/services/strict-rubric");
 const evidence = Array(8)
   .fill("Texto de evidencia para os testes da rubrica.")
   .join("\n");

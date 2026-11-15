@@ -1,5 +1,5 @@
 export default {
-  appDirectory: "src",
+  appDirectory: "frontend-src",
   buildDirectory: "build",
   serverModuleFormat: "cjs",
   ssr: false,

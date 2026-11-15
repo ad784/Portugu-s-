@@ -3,13 +3,13 @@
 const fs = require("node:fs");
 const path = require("node:path");
 require("dotenv").config({ quiet: true });
-const { createTextHandler } = require("../backend/services/text-evaluation");
+const { createTextHandler } = require("../backend/backend-src/services/text-evaluation");
 const {
   normalizarCorrecao,
   correctionResponseFormat,
-} = require("../backend/routes/text-correction");
-const { analyzePhoto } = require("../backend/services/photo-correction");
-const calibration = require("../backend/services/calibration-examples.json");
+} = require("../backend/backend-src/controllers/text-correction");
+const { analyzePhoto } = require("../backend/backend-src/services/photo-correction");
+const calibration = require("../backend/backend-src/services/calibration-examples.json");
 
 async function main() {
   const captures = {};

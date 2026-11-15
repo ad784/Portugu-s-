@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 
 process.env.LOCAL_DEMO_AUTH = "true";
-const app = require("../backend/server");
+const app = require("../backend/backend-src/app");
 
 let server;
 let baseUrl;
@@ -105,7 +105,7 @@ test("creates an email account and opens the email confirmation page", async () 
     document: { getElementById: (id) => fields[id] },
   };
   vm.runInNewContext(
-    fs.readFileSync("frontend/scripts/cadastro.js", "utf8"),
+    fs.readFileSync("frontend/frontend-src/scripts/cadastro.js", "utf8"),
     context,
   );
   await context.window.cadastrar();
@@ -154,7 +154,7 @@ test("signup refuses missing terms or AI consent and sends document versions", a
     document: { getElementById: (id) => fields[id] },
   };
   vm.runInNewContext(
-    fs.readFileSync("frontend/scripts/cadastro.js", "utf8"),
+    fs.readFileSync("frontend/frontend-src/scripts/cadastro.js", "utf8"),
     context,
   );
   await context.window.cadastrar();
@@ -214,7 +214,7 @@ test("signup stops when remote confirmation configuration is not ready", async (
     document: { getElementById: (id) => fields[id] },
   };
   vm.runInNewContext(
-    fs.readFileSync("frontend/scripts/cadastro.js", "utf8"),
+    fs.readFileSync("frontend/frontend-src/scripts/cadastro.js", "utf8"),
     context,
   );
   await context.window.cadastrar();
@@ -261,7 +261,7 @@ test("paused password recovery shows support and never requests an email", async
     clearTimeout,
   };
   vm.runInNewContext(
-    fs.readFileSync("frontend/scripts/recuperar.js", "utf8"),
+    fs.readFileSync("frontend/frontend-src/scripts/recuperar.js", "utf8"),
     context,
   );
   context.updateRecoveryForm();

@@ -84,7 +84,7 @@ function setup({
     },
   };
   vm.runInNewContext(
-    fs.readFileSync("frontend/scripts/foto.js", "utf8"),
+    fs.readFileSync("frontend/frontend-src/scripts/foto.js", "utf8"),
     context,
   );
   return { context, fields, storage, listeners, requests: () => requests };
