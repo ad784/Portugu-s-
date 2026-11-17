@@ -5,6 +5,8 @@ const {
 } = require("../services/essay-storage");
 
 const NOTAS_ENEM = new Set([0, 40, 80, 120, 160, 200]);
+const { consistentScore } = require("../services/score-consistency");
+const { REQUIREMENTS, enforceEvidence } = require("../services/strict-rubric");
 function correctionResponseFormat(model) {
   return [
     "openai/gpt-oss-120b",
@@ -33,7 +35,11 @@ function parseJsonObject(content) {
   }
 }
 
-function isCompleteCorrection(correcao, texto) {
+function isCompleteCorrection(
+  correcao,
+  texto,
+  requireStructuredChecks = false,
+) {
   if (!correcao || typeof correcao !== "object" || Array.isArray(correcao))
     return false;
   const nota = Number(correcao.nota_final ?? correcao.notaFinal);
@@ -60,9 +66,48 @@ function isCompleteCorrection(correcao, texto) {
     // Completude depende dos dados exibidos. Metadados auxiliares de evidencia
     // ou tamanho do comentario nao devem descartar uma avaliacao completa.
     if (!NOTAS_ENEM.has(notaCompetencia) || !comentario) return false;
+    if (requireStructuredChecks && !hasStructuredChecks(competencia, item))
+      return false;
     numeros.add(competencia);
   }
   return numeros.size === 5;
+}
+
+function hasStructuredChecks(competencia, item) {
+  if ([1, 2, 4].includes(competencia))
+    return hasExactlyTheseCriteria(
+      item.requisitos,
+      REQUIREMENTS[competencia].base,
+    );
+  if (competencia === 3)
+    return hasExactlyTheseCriteria(item.requisitos, [
+      "sustentacao_argumentativa",
+      "eixos_centrais_desenvolvidos",
+    ]);
+  if (competencia === 5)
+    return hasExactlyTheseCriteria(item.requisitos, [
+      "agente",
+      "acao",
+      "meio_modo",
+      "finalidade",
+      "detalhamento",
+    ]);
+  return true;
+}
+
+function hasExactlyTheseCriteria(requirements, criteria) {
+  if (!Array.isArray(requirements) || requirements.length !== criteria.length)
+    return false;
+  return criteria.every(
+    (criterio) =>
+      requirements.filter(
+        (item) =>
+          item?.criterio === criterio &&
+          typeof item.atendido === "boolean" &&
+          typeof item.analise === "string" &&
+          item.analise.trim(),
+      ).length === 1,
+  );
 }
 
 function numeroDaCompetencia(item, index) {
@@ -72,7 +117,7 @@ function numeroDaCompetencia(item, index) {
   return label ? Number(label) : index + 1;
 }
 
-function normalizarCorrecao(correcao, texto) {
+function normalizarCorrecao(correcao, texto, { strictHighEvidence = false } = {}) {
   const recebidas = Array.isArray(correcao.competencias)
     ? correcao.competencias
     : [];
@@ -96,10 +141,17 @@ function normalizarCorrecao(correcao, texto) {
       typeof comentario === "string" && comentario.trim()
         ? comentario.trim()
         : "A resposta da IA não trouxe justificativa para este critério; a nota foi mantida em 0.";
+    const requirements = Array.isArray(item.requisitos)
+      ? Object.assign([...item.requisitos], { comment: textoComentario })
+      : item.requisitos;
+    const evidenceScore = strictHighEvidence && [1, 2, 4].includes(numero)
+      ? enforceEvidence(numero, notaBase, item.requisitos, texto)
+      : notaBase;
+    const checked = consistentScore(numero, evidenceScore, requirements, texto);
     return {
       competencia: numero,
-      nota: notaBase,
-      comentario: textoComentario,
+      nota: checked.score,
+      comentario: checked.comment || textoComentario,
     };
   });
 
@@ -136,8 +188,10 @@ function createTextCorrectionController({
     apiKey,
     model,
     parseJsonObject,
-    isCompleteCorrection,
-    normalizarCorrecao,
+    isCompleteCorrection: (correcao, texto) =>
+      isCompleteCorrection(correcao, texto, true),
+    normalizarCorrecao: (correcao, texto) =>
+      normalizarCorrecao(correcao, texto, { strictHighEvidence: true }),
     correctionResponseFormat,
   });
 }

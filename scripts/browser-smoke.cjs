@@ -165,9 +165,72 @@ async function main() {
         { urlPattern: "https://*.supabase.co/*" },
       ],
     });
-    await call("Page.addScriptToEvaluateOnNewDocument", {
+    const sessionSetup = await call("Page.addScriptToEvaluateOnNewDocument", {
       source: `if(location.hostname==='localhost'){const key='sb-qa-auth-token';if(['/nova','/foto','/resultado','/historico','/evolucao','/perfil','/aceite'].includes(location.pathname))localStorage.setItem(key,${JSON.stringify(JSON.stringify(session))});else localStorage.removeItem(key);}`,
     });
+    if (process.argv.includes("--login-access")) {
+      const evaluate = async (expression) => {
+        const result = await call("Runtime.evaluate", { expression, returnByValue: true });
+        if (result.exceptionDetails) throw new Error(result.exceptionDetails.text);
+        return result.result.value;
+      };
+      const waitFor = async (expression) => {
+        for (let attempt = 0; attempt < 80; attempt++) {
+          if (await evaluate(expression)) return;
+          await delay(100);
+        }
+        throw new Error("Condição não atingida: " + expression);
+      };
+      for (const width of [1512, 390]) {
+        await call("Emulation.setDeviceMetricsOverride", { width, height: 900, deviceScaleFactor: 1, mobile: width < 500 });
+        await call("Page.navigate", { url: "http://localhost:3000/" });
+        await waitFor("!!document.querySelector('#login-form') && !!document.querySelector('.nav-menu-toggle')");
+        const layout = await evaluate(`({
+          examples: !!document.querySelector('.site-nav a[href="/exemplos"]'),
+          overflow: document.documentElement.scrollWidth > innerWidth,
+          cardWidth: document.querySelector('#login-form').getBoundingClientRect().width,
+          cardHeight: document.querySelector('#login-form').getBoundingClientRect().height
+        })`);
+        if (layout.examples || layout.overflow) throw new Error("Menu ou largura do login incorretos.");
+        console.log(JSON.stringify({ width, ...layout }));
+        const screenshot = await call("Page.captureScreenshot", { format: "png" });
+        fs.writeFileSync(path.join(reportDir, `login-access-${width}.png`), Buffer.from(screenshot.data, "base64"));
+      }
+      // Public examples can remain available, but their editor link must not
+      // reveal protected content before a session has been established.
+      await call("Page.removeScriptToEvaluateOnNewDocument", { identifier: sessionSetup.identifier });
+      await evaluate("localStorage.clear(); sessionStorage.clear()");
+      await call("Page.addScriptToEvaluateOnNewDocument", { source: `
+        window.exposedEditor = false;
+        new MutationObserver(() => {
+          const editor = document.getElementById('redacao');
+          if (editor?.getClientRects().length) window.exposedEditor = true;
+        }).observe(document, { childList: true, subtree: true, attributes: true });
+      ` });
+      for (const route of ["/nova", "/nova.html"]) {
+        await call("Page.navigate", { url: "http://localhost:3000" + route });
+        await waitFor("location.pathname==='/' && !!document.getElementById('login-form')");
+        console.log("Visitante redirecionado ao login: " + route);
+      }
+      await call("Page.navigate", { url: "http://localhost:3000/exemplos" });
+      await waitFor("!!document.querySelector('a[href=\"/nova\"]')");
+      await evaluate("document.querySelector('a[href=\"/nova\"]').click()");
+      await waitFor("location.pathname==='/' && !!document.getElementById('login-form')");
+      // Hold auth configuration unavailable: the editor must remain hidden.
+      await call("Network.enable");
+      await call("Network.setBlockedURLs", { urls: ["*api/config*"] });
+      await call("Page.navigate", { url: "http://localhost:3000/nova" });
+      await delay(500);
+      if (await evaluate("window.exposedEditor || !!document.getElementById('redacao')?.getClientRects().length"))
+        throw new Error("Editor exposto antes da autenticação.");
+      await call("Network.setBlockedURLs", { urls: [] });
+      await call("Page.addScriptToEvaluateOnNewDocument", { source: `localStorage.setItem('sb-qa-auth-token', ${JSON.stringify(JSON.stringify(session))});` });
+      currentRoute = "/nova";
+      await call("Page.navigate", { url: "http://localhost:3000/nova" });
+      await waitFor("location.pathname==='/nova' && !!document.getElementById('redacao')?.getClientRects().length && !!document.querySelector('.nav-menu-toggle')");
+      console.log("ACESSO OK: visitante bloqueado; editor disponível para sessão autenticada.");
+      return;
+    }
     const reports = [];
     for (const width of [1366, 390]) {
       await call("Emulation.setDeviceMetricsOverride", {

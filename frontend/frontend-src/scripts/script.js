@@ -89,6 +89,16 @@ const argumentosDeApoio = {
       "Dar espaço a artistas e pesquisadores afro-brasileiros amplia referências. A circulação dessas produções ajuda a combater estereótipos e reconhecer seus protagonistas.",
     ],
   ],
+  2026: [
+    [
+      "Universalidade do SUS",
+      "O Ministério da Saúde apresenta a universalidade como acesso à saúde para todas as pessoas. Use esse princípio para discutir a diferença entre reconhecer um direito e garantir atendimento: distância dos serviços e dificuldades de acesso podem impedir sua concretização. Explique essa relação, em vez de apenas citar o SUS.",
+    ],
+    [
+      "Cuidado integral",
+      "O SUS reúne prevenção e tratamento, e não apenas atendimento hospitalar. Esse repertório permite argumentar que valorizar a rede também envolve vacinação e acompanhamento contínuo. Relacione essas ações à proteção coletiva e ao acesso ao cuidado, sem inventar estatísticas.",
+    ],
+  ],
   2025: [
     [
       "Autonomia e acessibilidade",
@@ -129,6 +139,15 @@ let draftSaveTimer;
 let completedDraft = null;
 
 const textosDeApoio = {
+  2026: {
+    titulo: "SUS: direito universal e cuidado integral",
+    texto:
+      "O Sistema Único de Saúde organiza serviços públicos que abrangem prevenção, atendimento e tratamento. Segundo o Ministério da Saúde, o acesso universal e a atenção integral orientam essa rede. Para discutir sua valorização, é possível analisar como o reconhecimento desse direito se transforma em acesso efetivo e por que ações preventivas também merecem atenção. Texto de apoio autoral para estudo; não reproduz os textos motivadores da prova.",
+    pergunta:
+      "Como ampliar o reconhecimento do SUS e enfrentar barreiras que dificultam o acesso universal aos seus serviços?",
+    fonte: "Ministério da Saúde — Sistema Único de Saúde",
+    url: "https://www.gov.br/saude/pt-br/sus",
+  },
   2025: {
     titulo: "Envelhecimento e participação social",
     texto:
@@ -461,6 +480,12 @@ async function corrigir() {
     return;
   }
 
+  const themeWarning = temaDivergeDoTexto(tema, texto);
+  if (themeWarning) {
+    showMessage("editor-message", themeWarning);
+    return;
+  }
+
   if (linhasVisuais < 8) {
     showMessage(
       "editor-message",
@@ -573,6 +598,27 @@ async function corrigir() {
       updateCorrectionButton();
     }
   }
+}
+
+function temaDivergeDoTexto(tema, texto) {
+  const selected = String(tema || "").toLocaleLowerCase("pt-BR");
+  const essay = String(texto || "").toLocaleLowerCase("pt-BR");
+  if (
+    selected.includes("envelhecimento") &&
+    !/\bidos|envelhec|velhic|terceira idade/.test(essay)
+  )
+    return "O tema selecionado é sobre envelhecimento, mas sua redação não menciona pessoas idosas ou envelhecer. Escolha o tema correspondente ou use Tema em aberto antes de corrigir.";
+  if (
+    selected.includes("herança africana") &&
+    !/\bafro|afric|racis|quilomb/.test(essay)
+  )
+    return "O tema selecionado é sobre herança africana, mas sua redação não parece abordar esse recorte. Escolha o tema correspondente ou use Tema em aberto antes de corrigir.";
+  if (
+    selected.includes("sistema único de saúde") &&
+    !/\bsus\b|saúde|hospital|atenção básica|vacina/.test(essay)
+  )
+    return "O tema selecionado é sobre o SUS, mas sua redação não parece abordar saúde pública. Escolha o tema correspondente ou use Tema em aberto antes de corrigir.";
+  return "";
 }
 
 function configurarSeletorTema() {

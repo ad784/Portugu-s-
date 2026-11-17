@@ -6,7 +6,7 @@ export default function HomePage() {
       name="index"
       title="Entrar | Português+"
       lang="pt-br"
-      bodyClass="auth-page"
+      bodyClass="auth-page login-page"
     >
       {" "}
       <header className="site-header">
@@ -25,7 +25,7 @@ export default function HomePage() {
         </a>{" "}
         <nav className="site-nav" aria-label="Navegação principal">
           {" "}
-          <a href="/exemplos">{"Exemplos"}</a> <a href="/contato">Contato</a>{" "}
+          <a href="/contato">Contato</a>{" "}
           <a href="#como-funciona">{"Como funciona"}</a>{" "}
           <a href="/cadastro" className="nav-cta">
             {"Criar conta"}

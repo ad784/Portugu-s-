@@ -28,6 +28,20 @@ const proofs = (number) =>
         "Analise especifica da evidencia relacionada ao requisito da competencia.",
     }),
   );
+const structuredProofs = (number) => {
+  const criteria =
+    number === 3
+      ? ["sustentacao_argumentativa", "eixos_centrais_desenvolvidos"]
+      : number === 5
+        ? ["agente", "acao", "meio_modo", "finalidade", "detalhamento"]
+        : REQUIREMENTS[number].base;
+  return criteria.map((criterio) => ({
+    criterio,
+    atendido: true,
+    evidencia: evidence,
+    analise: "Analise especifica da evidencia relacionada ao requisito.",
+  }));
+};
 const app = express();
 app.use(express.json());
 
@@ -77,7 +91,7 @@ const correction = {
 };
 
 correction.competencias.forEach((item) => {
-  item.requisitos = proofs(item.competencia);
+  item.requisitos = structuredProofs(item.competencia);
 });
 
 app.use(
@@ -271,14 +285,7 @@ test("repete avaliacao sem comentario em vez de salvar notas rebaixadas", async 
           /incompleta/,
         );
       candidate.competencias.forEach((item) => {
-        item.requisitos = [
-          {
-            criterio: "avaliacao",
-            evidencia: evidence,
-            analise: "Trecho pertinente.",
-            atendido: true,
-          },
-        ];
+        item.requisitos = structuredProofs(item.competencia);
       });
     }
     return {
@@ -299,7 +306,7 @@ test("repete avaliacao sem comentario em vez de salvar notas rebaixadas", async 
       }),
     });
     assert.equal(response.status, 200);
-    assert.match((await response.json()).resultado, /^Nota: 1000/m);
+    assert.match((await response.json()).resultado, /^Nota: 880/m);
     assert.equal(calls, 2);
   } finally {
     global.fetch = realFetch;
@@ -341,14 +348,13 @@ test("avaliacao completa faz uma unica chamada e reutiliza o resultado identico"
   }
 });
 
-test("aceita comentarios concisos e metadados ausentes sem nova chamada ou mudanca da nota", async () => {
+test("aceita comentarios concisos quando as evidencias obrigatorias acompanham todas as competencias", async () => {
   const realFetch = global.fetch;
   let calls = 0;
   const candidate = structuredClone(correction);
   candidate.justificativa_nota = "Soma das cinco competencias.";
   candidate.competencias.forEach((item) => {
     item.comentario = "Registro formal claro.";
-    delete item.requisitos;
   });
   global.fetch = async (url, options) => {
     if (url !== "https://api.groq.com/openai/v1/chat/completions")

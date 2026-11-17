@@ -100,6 +100,15 @@ export default function EditorPage() {
                   </span>{" "}
                 </summary>{" "}
                 <div className="theme-options" aria-label="Temas de redação">
+                  <button
+                    type="button"
+                    className="theme-option"
+                    data-theme="A valorização do Sistema Único de Saúde (SUS) como direito universal"
+                  >
+                    <span className="theme-year">2026</span>
+                    <span className="theme-name">A valorização do Sistema Único de Saúde (SUS) como direito universal</span>
+                    <span className="theme-check" aria-hidden="true">✓</span>
+                  </button>
                   {" "}
                   <button
                     type="button"

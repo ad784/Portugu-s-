@@ -1099,6 +1099,18 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
     font-size: clamp(22px, 1.35vw, 36px) !important;
   }
 }
+/* Login: slightly narrower card, sized to its content instead of a square. */
+@media (min-width: 1200px) {
+  .login-page .auth-main {
+    grid-template-columns: minmax(0, 1fr) min(1080px, max(640px, 51vw));
+  }
+  .login-page .auth-card {
+    aspect-ratio: auto;
+    height: auto;
+    min-height: 0;
+    padding: clamp(36px, 2.5vw, 72px);
+  }
+}
 /* Shared privacy controls must retain checkbox sizing on large auth layouts. */
 .auth-page .auth-card .consent-field input[type="checkbox"],
 .consent-field input[type="checkbox"] {

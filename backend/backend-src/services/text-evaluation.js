@@ -185,7 +185,7 @@ function createTextHandler(options) {
         erro: "Sua redação precisa ter pelo menos 8 linhas de referência para ser enviada à correção.",
       });
     const hash = fingerprint([
-      "avaliacao-unica-v5",
+      "avaliacao-estruturada-v10",
       req.supabaseUser.id,
       model,
       PROMPT_CORRECAO_ENEM,

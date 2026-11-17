@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { scriptsByPage } from "../../pageScripts.js";
 
+const protectedPages = new Set([
+  "nova", "resultado", "foto", "historico", "evolucao", "perfil",
+]);
+
 export default function PageFrame({
   name,
   title,
@@ -12,6 +16,8 @@ export default function PageFrame({
   const [offline, setOffline] = useState(false);
   const [storageUnavailable, setStorageUnavailable] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
+  const [authorizedPage, setAuthorizedPage] = useState(null);
+  const contentReady = !protectedPages.has(name) || authorizedPage === name;
   useEffect(() => {
     const connection = () => setOffline(navigator.onLine === false);
     const storage = () => setStorageUnavailable(true);
@@ -37,20 +43,24 @@ export default function PageFrame({
 
     let active = true;
     (async () => {
+      if (protectedPages.has(name)) {
+        const auth = await import("../../services/supabase.js");
+        if (auth.ready) await auth.ready;
+        if (!active) return;
+        const session = await window.portuguesSession?.getSession();
+        if (!active) return;
+        if (!session?.user) {
+          active = false;
+          window.location.replace("/");
+          return;
+        }
+      }
       for (const loadScript of scriptsByPage[name] || []) {
         if (!active) return;
         const resource = await loadScript();
         if (resource.ready) await resource.ready;
       }
-      const protectedPages = [
-        "nova",
-        "resultado",
-        "foto",
-        "historico",
-        "evolucao",
-        "perfil",
-      ];
-      if (protectedPages.includes(name) && !window.portuguesSession?.userId()) {
+      if (protectedPages.has(name) && !window.portuguesSession?.userId()) {
         active = false;
         window.location.replace("/");
         return;
@@ -71,6 +81,7 @@ export default function PageFrame({
     })()
       .then(() => {
         if (!active) return;
+        setAuthorizedPage(name);
         // These legacy page modules are loaded after React has mounted, so the
         // browser's original ready events have already fired. Notify listeners
         // registered on either target that their page is ready.
@@ -125,7 +136,12 @@ export default function PageFrame({
           </button>
         </div>
       )}
-      {children}
+      {!contentReady && !loadError && (
+        <p className="app-loading" role="status">Verificando seu acesso…</p>
+      )}
+      <div hidden={!contentReady} style={{ display: contentReady ? "contents" : "none" }}>
+        {children}
+      </div>
       <div className="legal-links">
         <a href="/termos">Termos de uso</a>
         <a href="/privacidade">Privacidade</a>
