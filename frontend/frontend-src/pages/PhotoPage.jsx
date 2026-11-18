@@ -112,7 +112,7 @@ export default function PhotoPage() {
             </div>{" "}
             <button
               id="cancel-photo-wait"
-              className="photo-action"
+              className="photo-action cancel-photo-wait"
               type="button"
               hidden
             >

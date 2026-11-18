@@ -608,6 +608,26 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   color: #315d51;
 }
 .photo-action:hover, .back-editor:hover { background: var(--brand-soft); }
+.cancel-photo-wait {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 16px;
+  padding: 14px 22px;
+  border: 1px solid var(--brand);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+  cursor: pointer;
+  transition: background-color .15s ease, box-shadow .15s ease;
+}
+.cancel-photo-wait[hidden] { display: none; }
+.cancel-photo-wait:focus-visible {
+  outline: 3px solid var(--brand);
+  outline-offset: 3px;
+}
 .tips-panel { padding: 24px; border-color: #d6e7df; border-radius: 17px; background: #edf5f0; }
 .theme-support-content { border-color: #d6e5dd; }
 .support-eyebrow, .support-source { color: #376f5c; }
