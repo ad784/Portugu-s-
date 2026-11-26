@@ -283,27 +283,74 @@ test("provider 503 is identified as transient and permits browser retry", async 
   );
 });
 
-test("output quota too small is distinguished without truncating the correction", async () => {
-  await assert.rejects(
-    analyzePhoto({
-      image,
-      apiKey: "test-key",
-      fetchImpl: async () => ({
-        ok: false,
-        status: 429,
+test("output quota switches to reading and full text grading without changing the rubric", async () => {
+  const requests = [];
+  const transcript =
+    "A sociedade brasileira enfrenta desafios importantes. As políticas públicas precisam ampliar o acesso à educação para todos os cidadãos.";
+  const correction = {
+    nota_final: 800,
+    justificativa_nota: "Avaliação completa.",
+    competencias: Array.from({ length: 5 }, (_, i) => ({
+      competencia: i + 1,
+      nota: 160,
+      comentario: "Argumentação adequada com pontos a desenvolver.",
+    })),
+    erros: [],
+    sugestoes: ["Aprofunde os argumentos."],
+  };
+  const result = await analyzePhoto({
+    image,
+    apiKey: "test-key",
+    fetchImpl: async (_url, options) => {
+      const payload = JSON.parse(options.body);
+      requests.push(payload);
+      if (requests.length === 1)
+        return {
+          ok: false,
+          status: 429,
+          json: async () => ({
+            error: {
+              message:
+                "Request too large on output tokens per minute (OTPM): Limit 1000, Requested 1397",
+            },
+          }),
+        };
+      return {
+        ok: true,
+        status: 200,
         json: async () => ({
-          error: {
-            message:
-              "Request too large on output tokens per minute (OTPM): Limit 1000, Requested 1065",
-          },
+          choices: [
+            {
+              finish_reason: "stop",
+              message: {
+                content: JSON.stringify(
+                  requests.length === 2
+                    ? {
+                        transcricao: transcript,
+                        caligrafia: {
+                          nota: 8,
+                          comentario: "Boa legibilidade.",
+                        },
+                      }
+                    : correction,
+                ),
+              },
+            },
+          ],
         }),
-      }),
-    }),
-    (error) =>
-      error.code === "PHOTO_REQUEST_TOO_LARGE" &&
-      !error.retryAfterSeconds &&
-      /geração de respostas/.test(error.message),
+      };
+    },
+  });
+  assert.equal(requests.length, 3);
+  assert.equal(requests[1].max_completion_tokens, 1000);
+  assert.equal(
+    requests[2].messages[0].content,
+    require("../backend/backend-src/services/essay-storage")
+      .PROMPT_CORRECAO_ENEM,
   );
+  assert.match(result.result, /^Nota: 800/);
+  assert.match(result.result, /Caligrafia: 8 \/ 10/);
+  assert.ok(result.result.endsWith(transcript));
 });
 
 test("photo endpoint saves the image, transcript and correction before returning success", async (t) => {

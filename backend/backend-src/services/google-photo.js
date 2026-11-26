@@ -1,3 +1,4 @@
+const { addHandwriting, evaluateHandwriting } = require("./handwriting");
 const { parsePhotoDataUrl } = require("./photo-correction");
 const { fingerprint, readCache, writeCache } = require("./evaluation-cache");
 const { createTextEvaluator } = require("./text-evaluation");
@@ -173,7 +174,14 @@ async function analyzeGooglePhoto({
     });
   try {
     const correction = await evaluator(transcript, tema, lines);
-    return { result: formatarCorrecaoEnem(correction, transcript), mime };
+    const handwriting = await evaluateHandwriting({ image, apiKey, fetchImpl });
+    return {
+      result: addHandwriting(
+        formatarCorrecaoEnem(correction, transcript),
+        handwriting,
+      ),
+      mime,
+    };
   } catch (error) {
     if (error.status === 429) {
       error.code = /cota diaria/i.test(error.message)

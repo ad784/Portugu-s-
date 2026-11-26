@@ -62,6 +62,7 @@ function createTextEvaluator({
   normalizarCorrecao,
   correctionResponseFormat,
   budgetMs = 50000,
+  fetchImpl = (...args) => fetch(...args),
 }) {
   return async function generate(texto, tema, linhas) {
     const payload = {
@@ -84,7 +85,7 @@ function createTextEvaluator({
       const started = Date.now();
       let response;
       try {
-        response = await fetch(
+        response = await fetchImpl(
           "https://api.groq.com/openai/v1/chat/completions",
           {
             method: "POST",

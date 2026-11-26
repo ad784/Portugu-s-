@@ -3,7 +3,9 @@ const assert = require("node:assert/strict");
 const { createClient } = require("@supabase/supabase-js");
 
 test("real Supabase SDK preserves SMTP and database errors instead of displaying empty braces", async () => {
-  const { createAuthFetch, authErrorMessage } =
+  const { createAuthFetch } =
+    await import("../backend/backend-src/utils/auth-fetch.mjs");
+  const { authErrorMessage } =
     await import("../frontend/frontend-src/utils/auth-errors.mjs");
   for (const message of [
     "Error sending confirmation email",
@@ -40,7 +42,9 @@ test("real Supabase SDK preserves SMTP and database errors instead of displaying
 });
 
 test("auth errors handle gateways, empty messages and rate limits without exposing raw errors", async () => {
-  const { createAuthFetch, authErrorMessage } =
+  const { createAuthFetch } =
+    await import("../backend/backend-src/utils/auth-fetch.mjs");
+  const { authErrorMessage } =
     await import("../frontend/frontend-src/utils/auth-errors.mjs");
   const response = await createAuthFetch(
     async () => new Response("<html>Bad Gateway</html>", { status: 502 }),

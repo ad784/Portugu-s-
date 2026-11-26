@@ -93,6 +93,9 @@ export default function ProgressPage() {
           </p>{" "}
         </section>{" "}
         <section className="progress-actions">
+          <a className="secondary-action" href="/questoes">
+            Ver meus treinos de escrita
+          </a>
           <a className="secondary-action" href="/historico">
             {"Ver todas as redações"}
           </a>

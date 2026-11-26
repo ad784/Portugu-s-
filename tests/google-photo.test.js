@@ -16,8 +16,12 @@ const {
   photoConfig,
   legalVersions,
 } = require("../backend/backend-src/config/photo-config");
-const { isAccepted } = require("../backend/backend-src/services/legal-acceptance");
-const { PROMPT_CORRECAO_ENEM } = require("../backend/backend-src/services/essay-storage");
+const {
+  isAccepted,
+} = require("../backend/backend-src/services/legal-acceptance");
+const {
+  PROMPT_CORRECAO_ENEM,
+} = require("../backend/backend-src/services/essay-storage");
 const image =
   "data:image/jpeg;base64," +
   Buffer.from([255, 216, 1, 2, 255, 217]).toString("base64");
@@ -101,7 +105,20 @@ test("grading retry reuses OCR for the same account without mixing other account
     apiKey: "groq-test",
     googleApiKey: "google-test",
     userId: "original",
-    fetchImpl: async () => {
+    fetchImpl: async (url) => {
+      if (!url.startsWith("https://vision.googleapis.com/"))
+        return ok({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  nota: 8,
+                  comentario: "Boa legibilidade.",
+                }),
+              },
+            },
+          ],
+        });
       reads++;
       return ok({ responses: [{ fullTextAnnotation: { text } }] });
     },
@@ -153,7 +170,8 @@ test("full pipeline sends only extracted text to the existing Groq text evaluato
       googleApiKey: "google-test",
       userId: "pipeline",
     });
-    assert.equal(calls.length, 2);
+    assert.equal(calls.length, 3);
+    assert.equal(calls[2].body.model, "qwen/qwen3.8-27b");
     const payload = calls[1].body;
     assert.equal(payload.model, "openai/gpt-oss-120b");
     assert.equal(payload.messages[0].content, PROMPT_CORRECAO_ENEM);
@@ -263,7 +281,11 @@ test("Google photo endpoint persists a photo correction with the extracted essay
     assert.equal(saved.tipo, "foto");
     assert.equal(saved.conteudo, text);
     assert.equal(saved.imagemPath, "route-google/image.jpg");
-    assert.deepEqual(calls, ["google", "openai/gpt-oss-120b"]);
+    assert.deepEqual(calls, [
+      "google",
+      "openai/gpt-oss-120b",
+      "qwen/qwen3.8-27b",
+    ]);
     assert.match(data.resultado, /5: 160 - Comentário da competência 5/);
   } finally {
     global.fetch = originalFetch;

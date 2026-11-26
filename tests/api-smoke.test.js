@@ -93,7 +93,7 @@ test("creates an email account and opens the email confirmation page", async () 
   const context = {
     window: {
       location,
-      supabaseClient: {
+      authClient: {
         auth: {
           signUp: async () => {
             signupCalls += 1;
@@ -142,7 +142,7 @@ test("signup refuses missing terms or AI consent and sends document versions", a
   const context = {
     window: {
       location: { origin: "https://example.com" },
-      supabaseClient: {
+      authClient: {
         auth: {
           signUp: async (input) => {
             received = input;
@@ -169,7 +169,10 @@ test("signup refuses missing terms or AI consent and sends document versions", a
   assert.equal(received.options.data.terms_version, "2026-10-30");
   assert.equal(received.options.data.privacy_version, "2026-10-30");
   assert.equal(received.options.data.ai_consent, true);
-  assert.equal(received.options.emailRedirectTo, "https://example.com/nova.html");
+  assert.equal(
+    received.options.emailRedirectTo,
+    "https://example.com/nova.html",
+  );
 });
 
 test("histórico local responde sem erro", async () => {
@@ -203,7 +206,7 @@ test("signup stops when remote confirmation configuration is not ready", async (
       checkSignupConfiguration: async () => {
         throw new Error("Confirmação ainda não habilitada no provedor.");
       },
-      supabaseClient: {
+      authClient: {
         auth: {
           signUp: async () => {
             calls++;
@@ -245,7 +248,7 @@ test("paused password recovery shows support and never requests an email", async
     window: {
       emailRecoveryEnabled: false,
       addEventListener() {},
-      supabaseClient: {
+      authClient: {
         auth: {
           resetPasswordForEmail: async () => {
             calls++;

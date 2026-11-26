@@ -1,0 +1,614 @@
+.technical-main {
+  color: #203b35;
+  padding-bottom: 48px;
+}
+.technical-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin: 30px 0;
+}
+.technical-heading h1 {
+  font-size: clamp(28px, 3vw, 40px);
+  margin: 8px 0;
+  letter-spacing: -1px;
+}
+.technical-main p {
+  color: #647b76;
+  line-height: 1.65;
+}
+.technical-main .eyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  color: #16816d;
+}
+.technical-main button,
+.technical-main a.primary-action,
+.technical-main a.secondary-action {
+  box-sizing: border-box;
+  width: auto;
+  min-width: 0;
+  margin: 0;
+  padding: 12px 18px;
+  border-radius: 10px;
+  text-decoration: none;
+  font: inherit;
+  font-size: 14px !important;
+  cursor: pointer;
+}
+.technical-main .primary-action {
+  background: #137e69;
+  color: white;
+  border: 1px solid #137e69;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.technical-main .secondary-action {
+  background: #f4f9f6;
+  color: #2c6658;
+  border: 1px solid #dce9e3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.technical-main button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.technical-form,
+.technical-report {
+  background: white;
+  border: 1px solid #e1ebe6;
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: 0 6px 24px #244c3810;
+}
+.technical-form fieldset {
+  min-width: 0;
+  border: 1px solid #e1ebe6;
+  border-radius: 12px;
+  margin: 0 0 26px;
+  padding: 22px;
+}
+.technical-form legend {
+  font-weight: 750;
+  font-size: 15px;
+  padding: 0 8px;
+}
+.technical-form legend span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e5f3ed;
+  color: #137e69;
+  margin-right: 8px;
+}
+.technical-main label {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 650;
+  margin: 0 0 18px;
+}
+.technical-main input:not([type="checkbox"]),
+.technical-main select,
+.technical-main textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  border: 1px solid #dce6e1;
+  border-radius: 9px;
+  padding: 12px 14px;
+  background: #fcfdfc;
+  color: #243d36;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.technical-main textarea {
+  resize: vertical;
+}
+.technical-main :is(input, textarea, select, button, a):focus-visible {
+  outline: 3px solid #76bca6;
+  outline-offset: 3px;
+}
+.technical-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 20px;
+}
+.technical-basis {
+  background: #eef6f0;
+  padding: 12px 16px;
+  border-radius: 9px;
+  font-size: 14px;
+}
+.technical-examples {
+  margin-bottom: 22px;
+  padding: 14px;
+  background: #f5f9f6;
+  border-radius: 10px;
+}
+.technical-main summary {
+  cursor: pointer;
+  font-weight: 650;
+  line-height: 1.6;
+}
+.technical-examples button {
+  display: block;
+  margin: 10px 0;
+  background: white;
+  border: 1px solid #dbe9df;
+  color: #245e50;
+}
+.technical-main .technical-check {
+  flex-direction: row;
+  align-items: center;
+}
+.technical-check input,
+.technical-revision-task input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: #147e68;
+}
+.technical-rubric > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #edf1ee;
+}
+.technical-rubric > div > :first-child {
+  flex: 1;
+}
+.technical-rubric input[type="number"] {
+  width: 100px;
+}
+.technical-rubric strong {
+  white-space: nowrap;
+  font-size: 14px;
+}
+.technical-rubric button {
+  padding: 8px 12px;
+  background: #f6f1ed;
+  color: #714a35;
+  border: 0;
+}
+.technical-total {
+  text-align: right;
+  font-weight: 750;
+}
+.technical-main .technical-line-limit {
+  max-width: 140px;
+}
+.technical-writing-meta,
+.technical-submit {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  font-size: 13px;
+  color: #668176;
+}
+.technical-submit .primary-action {
+  min-width: 190px;
+}
+.technical-message {
+  padding: 18px;
+  border: 1px solid #e6d7b5;
+  background: #fff8e8;
+  border-radius: 12px;
+  margin: 20px 0;
+  color: #704d20;
+}
+.technical-message button {
+  margin-top: 10px;
+  background: white;
+  border: 1px solid #d9c9a8;
+  color: #644a25;
+}
+.technical-report-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.technical-report h2 {
+  font-size: 28px;
+  margin: 8px 0;
+}
+.technical-score {
+  background: #eaf5ee;
+  padding: 20px;
+  border-radius: 14px;
+  min-width: 140px;
+}
+.technical-score span {
+  display: block;
+  font-size: 12px;
+  color: #4b7464;
+}
+.technical-score strong {
+  font-size: 34px;
+  color: #167d60;
+  white-space: nowrap;
+}
+.technical-score small,
+.technical-criteria-results small {
+  font-size: 14px;
+  font-weight: 500;
+}
+.technical-criteria-results {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0;
+}
+.technical-criteria-results article {
+  border: 1px solid #dfebe3;
+  border-radius: 12px;
+  padding: 20px;
+  min-width: 0;
+}
+.technical-criteria-results article > div {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.technical-criteria-results h3 {
+  margin: 0;
+  font-size: 16px;
+}
+.technical-criteria-results strong {
+  white-space: nowrap;
+  color: #16765e;
+}
+.technical-main progress {
+  width: 100%;
+  height: 7px;
+  margin: 16px 0 0;
+  accent-color: #298e70;
+}
+.technical-main blockquote {
+  margin: 14px 0;
+  padding: 12px 18px;
+  background: #f1f7f3;
+  border-left: 3px solid #72ac8d;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.technical-items details,
+.technical-original,
+.technical-reference-alert {
+  padding: 16px 0;
+  border-bottom: 1px solid #e4ece6;
+}
+.technical-status {
+  display: inline-block;
+  padding: 3px 9px;
+  background: #e7f3e9;
+  color: #386246;
+  font-size: 11px;
+  border-radius: 20px;
+  margin-right: 10px;
+}
+.status-parcial {
+  background: #fff3d6;
+  color: #816026;
+}
+.status-ausente {
+  background: #f7eae4;
+  color: #8a5840;
+}
+.technical-feedback-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin: 24px 0;
+}
+.technical-main li {
+  color: #61796d;
+  line-height: 1.7;
+  margin-bottom: 10px;
+}
+.technical-revision-task {
+  padding: 24px;
+  border-radius: 14px;
+  background: #f0f6e8;
+  margin: 24px 0;
+}
+.technical-revision-task label {
+  flex-direction: row;
+  align-items: center;
+  font-weight: 400;
+}
+.technical-original p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.technical-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 26px;
+}
+.technical-footnote {
+  font-size: 12px;
+}
+.technical-filter {
+  max-width: 280px;
+}
+.technical-history-list {
+  display: grid;
+  gap: 16px;
+}
+.technical-history-list article {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 24px;
+  border: 1px solid #deebe2;
+  border-radius: 14px;
+  background: white;
+}
+.technical-history-list article > div {
+  flex: 1;
+  min-width: 180px;
+}
+.technical-history-list h2 {
+  font-size: 20px;
+  margin: 8px 0;
+}
+.technical-history-list p {
+  margin: 0;
+  font-size: 13px;
+}
+.technical-pagination {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 24px;
+}
+@media (max-width: 650px) {
+  .technical-heading,
+  .technical-report-heading,
+  .technical-submit {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .technical-form,
+  .technical-report {
+    padding: 16px;
+  }
+  .technical-form fieldset {
+    padding: 16px 12px;
+  }
+  .technical-fields,
+  .technical-criteria-results,
+  .technical-feedback-grid {
+    grid-template-columns: 1fr;
+  }
+  .technical-rubric {
+    font-size: 13px;
+  }
+  .technical-rubric input[type="number"] {
+    width: 80px;
+  }
+  .technical-rubric > div {
+    gap: 6px;
+  }
+  .technical-score {
+    align-self: start;
+  }
+  .technical-main .technical-heading h1 {
+    font-size: 30px;
+  }
+}
+
+.technical-form-simple {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.technical-form-simple > fieldset {
+  padding: 24px;
+  background: #fff;
+  border-radius: 16px;
+}
+.technical-form-simple > fieldset > legend {
+  padding: 0;
+  margin-bottom: 16px;
+  float: left;
+  width: 100%;
+  color: #526c60;
+  font-size: 14px;
+}
+.technical-form-simple > fieldset > .technical-fields {
+  clear: both;
+}
+.technical-mode-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-column: 1 / -1;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.technical-main .technical-mode-picker button {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  column-gap: 12px;
+  row-gap: 5px;
+  padding: 20px;
+  text-align: left;
+  background: #fbfdfb;
+  border: 1px solid #dce7de;
+  color: #355747;
+}
+.technical-mode-picker button > span {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #edf3ec;
+  color: #6f8b70;
+  font-size: 13px;
+}
+.technical-mode-picker strong {
+  font-size: 18px;
+}
+.technical-mode-picker button > span svg {
+  width: 20px;
+  height: 20px;
+}
+.technical-mode-picker small {
+  font-size: 13px;
+  color: #6c8175;
+}
+.technical-main .technical-mode-picker button[aria-pressed="true"] {
+  border: 2px solid #4b9172;
+  padding: 19px;
+  background: #eef6ee;
+  box-shadow: 0 3px 12px #345e3710;
+}
+.technical-mode-picker button[aria-pressed="true"] > span {
+  background: #dcebd9;
+  color: #34724f;
+}
+.technical-composer {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.6fr);
+  gap: 20px;
+  align-items: start;
+}
+.technical-composer > fieldset {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+}
+.technical-composer > fieldset:first-child {
+  background: #f0f5ed;
+  border-color: #dce6d6;
+}
+.technical-composer legend {
+  font-size: 18px;
+}
+.technical-composer label {
+  font-size: 14px;
+}
+.technical-composer .technical-examples {
+  background: #ffffffa8;
+  padding: 14px;
+  font-size: 14px;
+}
+.technical-composer .technical-examples p,
+.technical-composer .technical-examples a {
+  font-size: 13px;
+}
+.technical-composer > fieldset:last-child textarea {
+  min-height: 480px;
+  font-size: 18px;
+  line-height: 1.85;
+  background: #fff;
+}
+.technical-composer > fieldset:first-child textarea {
+  min-height: 230px;
+  background: #ffffffa8;
+  font-size: 15px;
+}
+.technical-form-simple .technical-settings {
+  background: #fff;
+  border: 1px solid #dfe8e0;
+  padding: 20px 24px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+.technical-settings > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #42624d;
+  list-style: none;
+}
+.technical-settings > summary::-webkit-details-marker {
+  display: none;
+}
+.technical-settings > summary small {
+  margin-left: 10px;
+  color: #7a8a7e;
+  font-weight: 400;
+  font-size: 12px;
+}
+.technical-settings[open] > summary {
+  margin-bottom: 20px;
+}
+.technical-settings[open] > summary > span:last-child {
+  transform: rotate(45deg);
+}
+.technical-settings > fieldset {
+  margin-bottom: 0;
+  padding: 18px;
+}
+.technical-form-simple .technical-submit {
+  padding: 0 2px;
+}
+.technical-form-simple .technical-submit p {
+  font-size: 13px;
+  max-width: 430px;
+}
+.technical-form-simple .technical-submit button {
+  padding: 16px 28px;
+  font-size: 16px !important;
+}
+@media (max-width: 1100px) {
+  .technical-composer {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .technical-composer > fieldset:first-child textarea {
+    min-height: 150px;
+  }
+}
+@media (max-width: 650px) {
+  .technical-mode-picker {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .technical-main .technical-mode-picker button {
+    padding: 15px;
+  }
+  .technical-main .technical-mode-picker button[aria-pressed="true"] {
+    padding: 14px;
+  }
+  .technical-composer > fieldset,
+  .technical-form-simple > fieldset {
+    padding: 18px;
+  }
+  .technical-form-simple .technical-settings {
+    padding: 18px;
+  }
+  .technical-mode-picker strong {
+    font-size: 16px;
+  }
+  .technical-composer > fieldset:last-child textarea {
+    min-height: 380px;
+  }
+  .technical-settings > summary small {
+    display: block;
+    margin-left: 0;
+  }
+}

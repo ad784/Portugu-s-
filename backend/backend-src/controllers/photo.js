@@ -48,7 +48,9 @@ function createPhotoController({
       return res.status(400).json({ erro: error.message });
     }
     const hash = fingerprint([
-      provider === "google" ? "foto-google-v1" : "foto-v2",
+      provider === "google"
+        ? "foto-google-caligrafia-v1"
+        : "foto-caligrafia-v1",
       req.supabaseUser.id,
       effectiveModel,
       PROMPT_CORRECAO_ENEM,

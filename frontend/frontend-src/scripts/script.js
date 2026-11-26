@@ -389,7 +389,7 @@ async function login(event) {
     return;
   }
 
-  if (!window.supabaseClient) {
+  if (!window.authClient) {
     showMessage(
       "login-message",
       "O serviço de autenticação ainda está carregando. Tente novamente.",
@@ -400,7 +400,7 @@ async function login(event) {
   const button = document.getElementById("login-button");
   button.disabled = true;
   try {
-    const { error } = await window.supabaseClient.auth.signInWithPassword({
+    const { error } = await window.authClient.auth.signInWithPassword({
       email,
       password: senha,
     });
@@ -516,7 +516,8 @@ async function corrigir() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${session.access_token}`,
+        "X-Portugues-Request": "1",
+        "X-Portugues-User": session.user.id,
       },
       body: JSON.stringify({ texto, linhasVisuais, tema }),
     };
@@ -534,7 +535,7 @@ async function corrigir() {
     }
 
     if (resposta.status === 401) {
-      await window.supabaseClient.auth.signOut();
+      await window.authClient.auth.signOut();
       alert("Sua sessão expirou. Entre novamente para corrigir a redação.");
       window.location.href = "/";
       return;
@@ -688,6 +689,16 @@ window.addEventListener("load", () => {
         .normalize("NFD")
         .replace(/\p{Diacritic}/gu, "")
         .toLowerCase();
+    const handwriting = resultado.match(
+      /^Caligrafia: ([^\r\n]+)\r?\n([^\r\n]*)/m,
+    );
+    const handwritingCard = document.getElementById("handwriting-card");
+    if (handwriting && handwritingCard) {
+      document.getElementById("handwriting-score").textContent = handwriting[1];
+      document.getElementById("handwriting-comment").textContent =
+        handwriting[2];
+      handwritingCard.hidden = false;
+    }
     const reportLines = resultado.split(/\r?\n/);
     const competencyStart = reportLines.findIndex((line) =>
       /^competencias\s*:$/.test(fold(line.trim())),

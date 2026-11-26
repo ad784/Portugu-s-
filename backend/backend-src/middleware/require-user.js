@@ -78,7 +78,7 @@ async function requireSupabaseUser(req, res, next, options = {}) {
       options,
     );
   }
-  const token = (req.get("authorization") || "").match(/^Bearer\s+(.+)$/i)?.[1];
+  const token = require("./auth-cookies").accessToken(req);
   if (!token)
     return sendAuthFailure(
       req,
@@ -116,6 +116,15 @@ async function requireSupabaseUser(req, res, next, options = {}) {
           },
         );
         if (claims.sub) {
+          if (
+            req.get("X-Portugues-User") &&
+            req.get("X-Portugues-User") !== claims.sub
+          )
+            return res
+              .status(409)
+              .json({
+                erro: "A conta mudou. Entre novamente na conta original.",
+              });
           req.supabaseUser = {
             id: claims.sub,
             email: claims.email,
@@ -142,6 +151,13 @@ async function requireSupabaseUser(req, res, next, options = {}) {
         : "Não foi possível validar sua sessão agora. Tente novamente em instantes.";
       return sendAuthFailure(req, res, next, status, message, options);
     }
+    if (
+      req.get("X-Portugues-User") &&
+      req.get("X-Portugues-User") !== data.user.id
+    )
+      return res
+        .status(409)
+        .json({ erro: "A conta mudou. Entre novamente na conta original." });
     req.supabaseUser = data.user;
     req.isAdmin = data.user.app_metadata?.role === "admin";
     req.supabase = createServerClient(token);

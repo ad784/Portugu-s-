@@ -41,6 +41,28 @@ function readName(req) {
     .eq("id", req.supabaseUser.id)
     .maybeSingle();
 }
+function listExportTechnical(req, offset) {
+  return req.supabase
+    .from("technical_evaluations")
+    .select(
+      "id,mode,task_type,area,board,score,max_score,reference_based,payload,result,created_at",
+    )
+    .eq("user_id", req.supabaseUser.id)
+    .order("created_at")
+    .order("id")
+    .range(offset, offset + 199);
+}
+function listExportExercises(req, offset) {
+  return req.supabase
+    .from("exercise_attempts")
+    .select(
+      "id,skill_id,level_id,question_ids,theme_id,answers,correct_count,question_count,original_text,revised_text,self_checks,revision_checks,material_version,created_at",
+    )
+    .eq("user_id", req.supabaseUser.id)
+    .order("created_at")
+    .order("id")
+    .range(offset, offset + 199);
+}
 function saveName(req, nome) {
   return req.supabase
     .from("profiles")
@@ -51,6 +73,8 @@ module.exports = {
   readReceipt,
   listLegalEvents,
   listExportEssays,
+  listExportExercises,
+  listExportTechnical,
   readName,
   saveName,
 };

@@ -41,18 +41,10 @@ app.use((_req, res, next) => {
 });
 // A imagem capturada é enviada em base64 e precisa de um limite maior que o padrão.
 app.use(express.json({ limit: "4300kb" }));
+app.use("/api", require("./middleware/auth-cookies").protectCookieRequests);
+app.use("/api/auth", require("./routes/auth").createAuthRouter());
 app.get("/api/config", (_req, res) => {
-  if (
-    !require("./config/public-config").isPublicSupabaseKey(
-      process.env.SUPABASE_PUBLISHABLE_KEY,
-    )
-  )
-    return res
-      .status(503)
-      .json({ erro: "Configuração pública de autenticação indisponível." });
   res.json({
-    supabaseUrl: process.env.SUPABASE_URL,
-    supabasePublishableKey: process.env.SUPABASE_PUBLISHABLE_KEY,
     emailRecoveryEnabled: process.env.EMAIL_RECOVERY_ENABLED === "true",
     legal: legalVersions(),
     privacyContact: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
@@ -71,6 +63,19 @@ const { createTextCorrectionRouter } = require("./routes/text-correction");
 app.use("/api/termos", createLegalRouter({ requireSupabaseUser }));
 app.use("/api", createEssayRouter({ requireSupabaseUser, requireAdmin }));
 app.use("/api/perfil", createProfileRouter({ requireSupabaseUser }));
+app.use(
+  "/api/discursivas",
+  require("./routes/technical-writing").createTechnicalRouter({
+    requireSupabaseUser,
+    requireCorrectionUser,
+    apiKey: groqApiKey,
+    model: process.env.GROQ_MODEL,
+  }),
+);
+app.use(
+  "/api/questoes",
+  require("./routes/exercises").createExerciseRouter({ requireSupabaseUser }),
+);
 app.use(
   createTextCorrectionRouter({
     requireSupabaseUser: requireCorrectionUser,
@@ -116,6 +121,16 @@ const publicPages = [
   "/historico.html",
   "/evolucao",
   "/evolucao.html",
+  "/questoes",
+  "/questoes.html",
+  "/discursivas",
+  "/discursivas.html",
+  "/concursos",
+  "/enade",
+  "/historico-tecnico",
+  "/historico-tecnico.html",
+  "/concursos.html",
+  "/enade.html",
   "/perfil",
   "/perfil.html",
   "/recuperar",

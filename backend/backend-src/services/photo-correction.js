@@ -1,3 +1,8 @@
+const {
+  schema: handwritingSchema,
+  instruction: handwritingInstruction,
+  addHandwriting,
+} = require("./handwriting");
 const PHOTO_MAX_BYTES = 3 * 1024 * 1024;
 const { recordUsage } = require("./groq-metrics");
 const { providerLimit } = require("./provider-limits");
@@ -195,6 +200,8 @@ async function analyzePhoto({
   const schema = structuredClone(ENEM_RESPONSE_FORMAT);
   schema.json_schema.schema.properties.transcricao = { type: "string" };
   schema.json_schema.schema.required.push("transcricao");
+  schema.json_schema.schema.properties.caligrafia = handwritingSchema;
+  schema.json_schema.schema.required.push("caligrafia");
   let response;
   let data;
   const requestPhoto = async (options) => {
@@ -251,6 +258,9 @@ async function analyzePhoto({
             role: "system",
             content:
               PROMPT_CORRECAO_ENEM +
+              "\n" +
+              handwritingInstruction +
+              " Inclua a avaliacao no campo caligrafia: {nota, comentario}." +
               "\nTranscreva a imagem literalmente no campo adicional transcricao do mesmo JSON. Nao invente trechos ilegiveis. Avalie somente a transcricao com a mesma rubrica. Nao copie os modelos de calibracao. Leitura e avaliacao devem ocorrer nesta unica resposta.",
           },
           {
@@ -313,6 +323,19 @@ async function analyzePhoto({
     }
     if (response.status === 429) {
       const quota = providerLimit(response, data);
+      if (
+        quota.category === "request_too_large" &&
+        quota.dimension === "output_per_minute"
+      ) {
+        return require("./photo-split").analyzeSplitPhoto({
+          image,
+          apiKey,
+          model,
+          tema,
+          fetchImpl,
+          mime,
+        });
+      }
       if (quota.category === "request_too_large") {
         error.status = 503;
         error.code = "PHOTO_REQUEST_TOO_LARGE";
@@ -375,7 +398,10 @@ async function analyzePhoto({
         "A foto não permitiu uma leitura completa. Use uma imagem nítida com a folha inteira.",
       );
     return {
-      result: formatarCorrecaoEnem(normalizarCorrecao(parsed, essay), essay),
+      result: addHandwriting(
+        formatarCorrecaoEnem(normalizarCorrecao(parsed, essay), essay),
+        parsed.caligrafia,
+      ),
       mime,
     };
   }
@@ -384,7 +410,7 @@ async function analyzePhoto({
     throw new Error(
       "A leitura não identificou o texto completo e as cinco competências. Tente uma foto mais nítida.",
     );
-  return { result, mime };
+  return { result: addHandwriting(result, null), mime };
 }
 
 async function uploadPhoto(userId, image, getSupabaseClient) {

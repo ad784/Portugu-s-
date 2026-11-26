@@ -43,7 +43,7 @@ O Vite abre [http://localhost:5173](http://localhost:5173) e encaminha as chamad
 | `GROQ_MODEL` | Não | Modelo de correção por texto; padrão `openai/gpt-oss-120b`. |
 | `GROQ_VISION_MODEL` | Não | Modelo compatível com imagens; padrão `qwen/qwen3.8-27b`. |
 | `SUPABASE_URL` | Não* | URL do projeto Supabase. |
-| `SUPABASE_PUBLISHABLE_KEY` | Não* | Chave pública usada pelo cliente e pelo servidor. |
+| `SUPABASE_PUBLISHABLE_KEY` | Não* | Chave de integração usada somente pela API. |
 | `SUPABASE_JWKS_URL` | Não* | Endpoint JWKS para validar tokens assinados pelo Supabase. |
 | `LOCAL_DEMO_AUTH` | Não | Com `true`, habilita autenticação de demonstração apenas em `localhost`; não salva dados. Ignorado na Vercel. |
 
@@ -54,6 +54,14 @@ O Vite abre [http://localhost:5173](http://localhost:5173) e encaminha as chamad
 As telas são componentes JSX em `frontend/frontend-src/pages/`, carregados pelas rotas do React Router. Os caminhos antigos terminados em `.html` continuam aceitos como aliases para compatibilidade, mas não existem páginas HTML independentes para cada tela.
 
 Os comportamentos do editor, câmera, histórico e perfil ficam em `frontend/frontend-src/scripts/`. A autenticação e o gerenciamento da sessão ficam em `frontend/frontend-src/services/`. `frontend/frontend-src/pageScripts.js` associa os módulos às páginas; `frontend/frontend-src/components/layout/PageFrame.jsx` os carrega depois que o React monta cada tela. Os estilos compartilhados ficam em `frontend/frontend-src/assets/styles/style.css`.
+
+## Arquitetura
+
+O fluxo é **Frontend React → API Express → Supabase / serviços de IA**. O frontend acessa somente as rotas da aplicação; não importa o SDK nem recebe a URL e a chave do Supabase. A API centraliza autenticação, banco de dados, armazenamento de fotos e chamadas às IAs.
+
+As rotas `/api/auth/*` cuidam de login, cadastro, confirmação por link, renovação de sessão, logout e alteração/recuperação de senha. Os tokens ficam em cookies HttpOnly, com SameSite=Lax e Secure em produção; não são devolvidos no JSON nem salvos pelo JavaScript. Operações que usam cookies validam a origem e exigem um cabeçalho da aplicação. A autorização e o isolamento por usuário continuam na API e nas políticas do banco.
+
+Após a atualização, entre novamente. A aplicação remove os tokens que a versão anterior guardava no navegador e preserva os rascunhos por conta. Veja também [backend/README.md](backend/README.md) e [frontend/README.md](frontend/README.md).
 
 ## Organização do projeto
 
@@ -152,3 +160,11 @@ npm run build
 ```
 
 Os testes usam o modo local e não precisam acessar o Supabase para os fluxos simulados.
+
+## ENADE, concursos e navegação
+
+As páginas principais compartilham um menu lateral recolhível. No celular, ele abre como uma gaveta. `/discursivas` reúne redações de concursos e questões discursivas de concursos e ENADE; `/concursos` e `/enade` abrem a mesma área com a modalidade correspondente. `/historico-tecnico` reúne essas avaliações, separadas das redações ENEM.
+
+O estudante informa cargo ou curso, comando, resposta, referência opcional e critérios do edital. Sem critérios próprios, a plataforma usa uma rubrica de estudo de 100 pontos. A API calcula a nota pelos pesos informados; essa modalidade não usa as cinco competências ENEM. A devolutiva contém cartões por critério, trechos literais, itens do comando e uma atividade de revisão. Exemplos disponíveis são autorais e identificados como treino. A nota é estimada e não substitui a banca ou o professor.
+
+Validação da nova área: `node --test tests/technical-writing.test.js`, `npm run build` e, com localhost:3000 ativo, `node scripts/browser-smoke.cjs --technical`. O teste de navegador usa APIs simuladas e verifica rascunho, critérios, revisão, menu móvel e ausência de sobreposição na grade numerada.

@@ -332,4 +332,85 @@ revoke all on function public.accept_current_terms(text, text) from public;
 grant execute on function public.accept_current_terms(text, text) to authenticated;
 
 
+-- 20261125235731_exercise_attempts.sql
+-- Practice history is separate from essay grades. Only its owner can read or insert rows.
+create table public.exercise_attempts (
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  id uuid not null default gen_random_uuid(),
+  skill_id text not null check (skill_id in ('introducao', 'tese', 'argumentacao', 'repertorio', 'coesao', 'conclusao')),
+  theme_id text not null check (theme_id in ('inclusao-digital', 'alimentos', 'cultura', 'mobilidade')),
+  answers integer[] not null check (cardinality(answers) = 3 and answers <@ array[0,1,2] and array_position(answers, null) is null),
+  correct_count smallint not null check (correct_count between 0 and 3),
+  question_count smallint not null default 3 check (question_count = 3),
+  original_text text not null check (char_length(original_text) between 1 and 4000),
+  revised_text text check (char_length(revised_text) between 1 and 4000),
+  self_checks boolean[] not null check (cardinality(self_checks) = 3 and array_position(self_checks, null) is null),
+  revision_checks boolean[] not null check (cardinality(revision_checks) = 3 and array_position(revision_checks, null) is null),
+  material_version smallint not null default 1 check (material_version = 1),
+  created_at timestamptz not null default now(),
+  primary key (user_id, id)
+);
+create index exercise_attempts_user_date_idx on public.exercise_attempts (user_id, created_at desc, id desc);
+alter table public.exercise_attempts enable row level security;
+revoke all on public.exercise_attempts from anon, authenticated;
+grant select, insert on public.exercise_attempts to authenticated;
+create policy exercise_attempts_read_own on public.exercise_attempts for select to authenticated
+  using ((select auth.uid()) = user_id);
+create policy exercise_attempts_insert_own on public.exercise_attempts for insert to authenticated
+  with check ((select auth.uid()) = user_id);
+
+
+-- 20261126220041_exercise_difficulty_levels.sql
+-- Existing v1 rows remain unchanged and distinct from the new difficulty rounds.
+alter table public.exercise_attempts
+  add column level_id text,
+  add column question_ids text[],
+  drop constraint exercise_attempts_answers_check,
+  drop constraint exercise_attempts_correct_count_check,
+  drop constraint exercise_attempts_question_count_check,
+  drop constraint exercise_attempts_material_version_check;
+
+alter table public.exercise_attempts
+  add constraint exercise_attempts_answers_check check (
+    cardinality(answers) = question_count and answers <@ array[0,1,2]
+    and array_position(answers, null) is null
+  ),
+  add constraint exercise_attempts_correct_count_check check (correct_count between 0 and question_count),
+  add constraint exercise_attempts_material_shape_check check (
+    (material_version = 1 and level_id is null and question_ids is null and question_count = 3)
+    or
+    (material_version = 2 and level_id is not null and level_id in ('facil','medio','dificil')
+      and question_ids is not null and cardinality(question_ids) = 20
+      and array_position(question_ids, null) is null and question_count = 20)
+  );
+
+create index exercise_attempts_user_level_date_idx
+  on public.exercise_attempts (user_id, level_id, created_at desc, id desc);
+
+
+-- 20261126223008_technical_evaluations.sql
+create table public.technical_evaluations (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  evaluation_hash text not null check (evaluation_hash ~ '^[a-f0-9]{64}$'),
+  mode text not null check (mode in ('concurso','enade')),
+  task_type text not null check (task_type in ('redacao','questao') and (mode <> 'enade' or task_type = 'questao')),
+  area text not null check (char_length(area) between 1 and 160),
+  board text not null default '' check (char_length(board) <= 160),
+  score numeric(8,2) not null check (score >= 0),
+  max_score numeric(8,2) not null check (max_score > 0 and max_score <= 1000 and score <= max_score),
+  reference_based boolean not null,
+  payload jsonb not null check (jsonb_typeof(payload) = 'object'),
+  result jsonb not null check (jsonb_typeof(result) = 'object'),
+  created_at timestamptz not null default now(),
+  unique (user_id, evaluation_hash)
+);
+create index technical_evaluations_user_date_idx on public.technical_evaluations(user_id, created_at desc, id desc);
+alter table public.technical_evaluations enable row level security;
+revoke all on public.technical_evaluations from anon, authenticated;
+grant select, insert on public.technical_evaluations to authenticated;
+create policy technical_evaluations_select_own on public.technical_evaluations for select to authenticated using ((select auth.uid()) = user_id);
+create policy technical_evaluations_insert_own on public.technical_evaluations for insert to authenticated with check ((select auth.uid()) = user_id);
+
+
 COMMIT;

@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import PageFrame from "../components/layout/PageFrame.jsx";
 import legal from "../../../shared/legal.json";
 export default function ConsentPage() {
+  const returnPath = () =>
+    ({ foto: "/foto", discursivas: "/discursivas" })[
+      new URLSearchParams(window.location.search).get("retorno")
+    ] || "/nova";
   const [documents, setDocuments] = useState(legal);
   const [terms, setTerms] = useState(false),
     [ai, setAi] = useState(false),
@@ -9,7 +13,7 @@ export default function ConsentPage() {
     [message, setMessage] = useState(""),
     [ready, setReady] = useState(false);
   useEffect(() => {
-    import("../services/supabase.js")
+    import("../services/auth.js")
       .then(async (module) => {
         await module.ready;
         if (!window.portuguesSession.userId())
@@ -25,10 +29,7 @@ export default function ConsentPage() {
           privacyVersion: data.privacyVersion,
         });
         if (data.accepted) {
-          const destination = new URLSearchParams(window.location.search).get(
-            "retorno",
-          );
-          window.location.replace(destination === "foto" ? "/foto" : "/nova");
+          window.location.replace(returnPath());
           return;
         }
         setReady(true);
@@ -60,10 +61,7 @@ export default function ConsentPage() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.erro);
-      const destination = new URLSearchParams(window.location.search).get(
-        "retorno",
-      );
-      window.location.replace(destination === "foto" ? "/foto" : "/nova");
+      window.location.replace(returnPath());
     } catch (error) {
       setMessage(error.message || "Não foi possível registrar o aceite.");
     } finally {

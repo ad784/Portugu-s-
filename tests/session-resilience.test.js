@@ -270,7 +270,10 @@ test("completed correction stays visible without page navigation when storage is
   const result = "Nota: 600\nRedacao:\n<script>untrusted essay</script>";
   assert.equal(env.context.window.portuguesSession.presentResult(result), true);
   assert.equal(nodes[0].children[2].tag, "pre");
-  assert.equal(nodes[0].children[2].textContent, result.replace("Redacao:", "Redação:"));
+  assert.equal(
+    nodes[0].children[2].textContent,
+    result.replace("Redacao:", "Redação:"),
+  );
   assert.equal(env.redirects.length, 0);
 });
 
@@ -329,4 +332,35 @@ test("more than thirty unsynced evaluations are retained instead of silently dis
   const pending = env.context.window.portuguesSession.pending();
   assert.equal(pending.length, 35);
   assert.equal(pending.at(-1).resultado, "result-0");
+});
+
+test("logout clears only the original account even when auth immediately emits signed-out", async () => {
+  const env = environment();
+  await env.context.initializeSession(env.client);
+  env.values.set("portugues:account-a:rascunho", "private draft");
+  env.values.set("portugues:account-b:rascunho", "other account");
+  // Browser Storage enumerates saved keys; mirror that behavior in this mock.
+  env.context.localStorage["portugues:account-a:rascunho"] = "private draft";
+  env.context.localStorage["portugues:account-b:rascunho"] = "other account";
+  env.client.auth.signOut = async () => {
+    env.switchUser(null);
+  };
+  await env.context.window.portuguesSession.signOut();
+  assert.equal(env.values.has("portugues:account-a:rascunho"), false);
+  assert.equal(env.values.get("portugues:account-b:rascunho"), "other account");
+});
+
+test("a failed logout preserves drafts and does not claim the server session ended", async () => {
+  const env = environment();
+  await env.context.initializeSession(env.client);
+  env.values.set("portugues:account-a:rascunho", "private draft");
+  env.client.auth.signOut = async () => {
+    throw new Error("Auth unavailable");
+  };
+  await assert.rejects(
+    env.context.window.portuguesSession.signOut(),
+    /Auth unavailable/,
+  );
+  assert.equal(env.values.get("portugues:account-a:rascunho"), "private draft");
+  assert.equal(env.redirects.length, 0);
 });

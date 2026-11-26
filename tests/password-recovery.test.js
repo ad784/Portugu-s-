@@ -33,7 +33,7 @@ function setup({ recovering = false, session = true, sendError = null } = {}) {
         getSession: async () => (session ? {} : null),
         signOut: async (redirect) => calls.redirects.push(redirect),
       },
-      supabaseClient: {
+      authClient: {
         auth: {
           resetPasswordForEmail: async (...args) => {
             calls.emails.push(args);

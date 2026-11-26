@@ -28,12 +28,28 @@ function createProfileController({ requireSupabaseUser }) {
         redacoes.push(...page.data);
         if (page.data.length < 200) break;
       }
+      const treinos = [];
+      for (let offset = 0; ; offset += 200) {
+        const page = await model.listExportExercises(req, offset);
+        if (page.error) throw page.error;
+        treinos.push(...page.data);
+        if (page.data.length < 200) break;
+      }
+      const discursivas = [];
+      for (let offset = 0; ; offset += 200) {
+        const page = await model.listExportTechnical(req, offset);
+        if (page.error) throw page.error;
+        discursivas.push(...page.data);
+        if (page.data.length < 200) break;
+      }
       res.json({
         exportadoEm: new Date().toISOString(),
         perfil: { ...profile.data, email: req.supabaseUser.email },
         aceite: receipt.data,
         eventosDePrivacidade: events,
         redacoes,
+        treinos,
+        discursivas,
         fotos:
           "As referências de arquivos são privadas. Solicite uma cópia das imagens ao contato do site.",
       });

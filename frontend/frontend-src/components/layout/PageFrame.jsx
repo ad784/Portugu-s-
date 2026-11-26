@@ -1,8 +1,18 @@
 import { useEffect, useState } from "react";
 import { scriptsByPage } from "../../pageScripts.js";
+import AppSidebar from "./AppSidebar.jsx";
+import "../../assets/styles/app-shell.css";
 
 const protectedPages = new Set([
-  "nova", "resultado", "foto", "historico", "evolucao", "perfil",
+  "nova",
+  "resultado",
+  "foto",
+  "historico",
+  "evolucao",
+  "questoes",
+  "perfil",
+  "discursivas",
+  "historico-tecnico",
 ]);
 
 export default function PageFrame({
@@ -17,6 +27,31 @@ export default function PageFrame({
   const [storageUnavailable, setStorageUnavailable] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
   const [authorizedPage, setAuthorizedPage] = useState(null);
+  const [collapsed, setCollapsed] = useState(false);
+  const useShell = ![
+    "index",
+    "cadastro",
+    "confirmar-email",
+    "recuperar",
+  ].includes(name);
+  useEffect(() => {
+    try {
+      setCollapsed(
+        localStorage.getItem("portugues:sidebar-collapsed") === "true",
+      );
+    } catch {
+      /* The layout preference is optional. */
+    }
+  }, []);
+  const toggleSidebar = () =>
+    setCollapsed((value) => {
+      try {
+        localStorage.setItem("portugues:sidebar-collapsed", String(!value));
+      } catch {
+        /* Keep the preference in memory. */
+      }
+      return !value;
+    });
   const contentReady = !protectedPages.has(name) || authorizedPage === name;
   useEffect(() => {
     const connection = () => setOffline(navigator.onLine === false);
@@ -44,7 +79,7 @@ export default function PageFrame({
     let active = true;
     (async () => {
       if (protectedPages.has(name)) {
-        const auth = await import("../../services/supabase.js");
+        const auth = await import("../../services/auth.js");
         if (auth.ready) await auth.ready;
         if (!active) return;
         const session = await window.portuguesSession?.getSession();
@@ -65,7 +100,7 @@ export default function PageFrame({
         window.location.replace("/");
         return;
       }
-      if (["nova", "foto"].includes(name)) {
+      if (["nova", "foto", "discursivas"].includes(name)) {
         const response = await window.portuguesSession.request("/api/termos");
         const receipt = await response.json();
         if (!response.ok)
@@ -104,49 +139,70 @@ export default function PageFrame({
   }, [bodyClass, lang, name, title]);
 
   return (
-    <>
-      {sessionExpired && (
-        <div className="resource-error" role="alert">
-          Sua sessão expirou.{" "}
-          <a href="/" target="_blank" rel="noopener noreferrer">
-            Entre novamente em outra aba
-          </a>{" "}
-          na mesma conta para continuar, mantendo seu trabalho nesta página.
+    <div
+      className={
+        useShell
+          ? `app-shell ${collapsed ? "app-shell-collapsed" : ""}`
+          : undefined
+      }
+      data-app-shell={useShell ? "true" : undefined}
+    >
+      {useShell && (
+        <AppSidebar
+          page={name}
+          collapsed={collapsed}
+          onToggle={toggleSidebar}
+        />
+      )}
+      <div className={useShell ? "app-content" : undefined}>
+        {sessionExpired && (
+          <div className="resource-error" role="alert">
+            Sua sessão expirou.{" "}
+            <a href="/" target="_blank" rel="noopener noreferrer">
+              Entre novamente em outra aba
+            </a>{" "}
+            na mesma conta para continuar, mantendo seu trabalho nesta página.
+          </div>
+        )}
+        {offline && (
+          <div className="resource-error" role="status">
+            Você está sem conexão. Mantenha esta página aberta e tente novamente
+            quando a internet voltar.
+          </div>
+        )}
+        {storageUnavailable && (
+          <div className="resource-error" role="alert">
+            O navegador não conseguiu salvar os dados neste dispositivo. Copie
+            seu texto e guarde a foto antes de atualizar ou sair: o conteúdo
+            pode existir apenas nesta aba.
+          </div>
+        )}
+        {loadError && (
+          <div className="resource-error" role="alert">
+            Não foi possível carregar todos os recursos desta página. Verifique
+            sua conexão.{" "}
+            <button type="button" onClick={() => window.location.reload()}>
+              Tentar novamente
+            </button>
+          </div>
+        )}
+        {!contentReady && !loadError && (
+          <p className="app-loading" role="status">
+            Verificando seu acesso…
+          </p>
+        )}
+        <div
+          hidden={!contentReady}
+          style={{ display: contentReady ? "contents" : "none" }}
+        >
+          {children}
         </div>
-      )}
-      {offline && (
-        <div className="resource-error" role="status">
-          Você está sem conexão. Mantenha esta página aberta e tente novamente
-          quando a internet voltar.
+        <div className="legal-links">
+          <a href="/termos">Termos de uso</a>
+          <a href="/privacidade">Privacidade</a>
+          <a href="/contato">Contato</a>
         </div>
-      )}
-      {storageUnavailable && (
-        <div className="resource-error" role="alert">
-          O navegador não conseguiu salvar os dados neste dispositivo. Copie seu
-          texto e guarde a foto antes de atualizar ou sair: o conteúdo pode
-          existir apenas nesta aba.
-        </div>
-      )}
-      {loadError && (
-        <div className="resource-error" role="alert">
-          Não foi possível carregar todos os recursos desta página. Verifique
-          sua conexão.{" "}
-          <button type="button" onClick={() => window.location.reload()}>
-            Tentar novamente
-          </button>
-        </div>
-      )}
-      {!contentReady && !loadError && (
-        <p className="app-loading" role="status">Verificando seu acesso…</p>
-      )}
-      <div hidden={!contentReady} style={{ display: contentReady ? "contents" : "none" }}>
-        {children}
       </div>
-      <div className="legal-links">
-        <a href="/termos">Termos de uso</a>
-        <a href="/privacidade">Privacidade</a>
-        <a href="/contato">Contato</a>
-      </div>
-    </>
+    </div>
   );
 }

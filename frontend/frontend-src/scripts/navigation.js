@@ -1,7 +1,18 @@
 (() => {
+  if (document.querySelector("[data-app-shell]")) return;
   const header = document.querySelector(".site-header");
   const nav = header?.querySelector(".site-nav");
   if (!header || !nav) return;
+
+  if (
+    window.portuguesSession?.userId() &&
+    !nav.querySelector('a[href="/questoes"]')
+  ) {
+    const practice = document.createElement("a");
+    practice.href = "/questoes";
+    practice.textContent = "Questões";
+    nav.insertBefore(practice, nav.querySelector(".nav-cta"));
+  }
 
   if (!nav.querySelector('a[href="/contato"]')) {
     const contact = document.createElement("a");

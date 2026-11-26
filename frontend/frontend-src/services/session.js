@@ -152,12 +152,17 @@ async function request(url, options = {}) {
     throw new Error(
       "A conta mudou durante a operação. Entre novamente na conta original para continuar.",
     );
-  const perform = async (token) => {
+  const perform = async () => {
     try {
       return await fetch(url, {
         ...fetchOptions,
         signal: fetchOptions.signal || AbortSignal.timeout(65_000),
-        headers: { ...fetchOptions.headers, Authorization: `Bearer ${token}` },
+        credentials: "same-origin",
+        headers: {
+          ...fetchOptions.headers,
+          "X-Portugues-Request": "1",
+          ...(owner ? { "X-Portugues-User": owner } : {}),
+        },
       });
     } catch (error) {
       throw new Error(
@@ -171,14 +176,14 @@ async function request(url, options = {}) {
     throw new Error(
       "Você está sem conexão. Seu conteúdo permanece nesta página. Reconecte-se e tente novamente.",
     );
-  let response = await perform(session.access_token);
+  let response = await perform();
   if (response.status === 401) {
     session = await getSession(true);
     if (session && session.user?.id !== owner)
       throw new Error(
         "A conta mudou durante a operação. Entre novamente na conta original para continuar.",
       );
-    if (session) response = await perform(session.access_token);
+    if (session) response = await perform();
     if (response.status === 401) {
       await expiredSession();
       throw new Error("Sua sessão expirou. Entre novamente.");
@@ -189,7 +194,11 @@ async function request(url, options = {}) {
       "A conta mudou durante a operação. Entre novamente na conta original para continuar.",
     );
   if (response.status === 428) {
-    window.location.assign("/aceite");
+    window.location.assign(
+      String(url).startsWith("/api/discursivas")
+        ? "/aceite?retorno=discursivas"
+        : "/aceite",
+    );
     throw new Error("Confirme os termos para continuar.");
   }
   for (const method of ["json", "text"]) {
@@ -209,6 +218,7 @@ async function request(url, options = {}) {
 
 async function signOut(redirect = "/") {
   const base = prefix();
+  await client.auth.signOut({ scope: "local" });
   // Remove somente o estado da conta que está saindo, sem tocar em outras contas.
   if (base)
     for (const key of volatileStorage.keys())
@@ -222,12 +232,8 @@ async function signOut(redirect = "/") {
     storageWarning();
   }
   sessionStorage.removeItem("portugues:recovery");
-  try {
-    await client.auth.signOut({ scope: "local" });
-  } finally {
-    currentUser = null;
-    window.location.replace(redirect);
-  }
+  currentUser = null;
+  window.location.replace(redirect);
 }
 
 function pending() {
@@ -337,8 +343,8 @@ async function syncPending() {
   return syncing;
 }
 
-export async function initializeSession(supabaseClient, recovering = false) {
-  client = supabaseClient;
+export async function initializeSession(authClient, recovering = false) {
+  client = authClient;
   window.userStorage = userStorage;
   const estimateLines = (text) =>
     String(text || "")

@@ -45,7 +45,7 @@ async function cadastrar(event) {
     );
     return;
   }
-  if (!window.supabaseClient) {
+  if (!window.authClient) {
     signupMessage(
       "O serviço de autenticação ainda está carregando. Tente novamente.",
     );
@@ -56,7 +56,7 @@ async function cadastrar(event) {
   button.textContent = "Criando conta...";
   try {
     await window.checkSignupConfiguration?.();
-    const { data, error } = await window.supabaseClient.auth.signUp({
+    const { data, error } = await window.authClient.auth.signUp({
       email,
       password: senha,
       options: {

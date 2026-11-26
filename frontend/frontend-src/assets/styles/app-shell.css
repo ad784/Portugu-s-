@@ -1,0 +1,490 @@
+.app-shell {
+  --sidebar-size: 244px;
+  min-height: 100vh;
+}
+.app-shell .site-footer {
+  box-sizing: border-box;
+  width: calc(100% - 40px);
+  max-width: none;
+  margin-inline: auto;
+}
+.app-shell.app-shell-collapsed {
+  --sidebar-size: 80px;
+}
+.app-shell .app-content {
+  margin-left: var(--sidebar-size);
+  min-width: 0;
+  min-height: 100vh;
+  transition: margin-left 0.18s ease;
+}
+.app-shell .app-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: var(--sidebar-size);
+  height: 100dvh;
+  box-sizing: border-box;
+  z-index: 50;
+  padding: 26px 14px 18px;
+  border-right: 1px solid #dfe9e3;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  transition:
+    width 0.18s ease,
+    transform 0.18s ease;
+}
+.app-shell .app-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #173e33;
+  text-decoration: none;
+  min-height: 42px;
+  padding: 0 8px;
+  margin-bottom: 36px;
+}
+.app-sidebar-brand > img {
+  width: 35px;
+  height: 35px;
+  object-fit: contain;
+  flex: 0 0 35px;
+}
+.app-sidebar-brand .sidebar-label {
+  display: grid;
+  gap: 3px;
+}
+.app-sidebar-brand strong {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.7px;
+}
+.app-sidebar-brand strong > span {
+  color: #168571;
+}
+.app-sidebar-brand small {
+  font-size: 13px;
+  color: #8a9a91;
+}
+.app-shell .app-sidebar-toggle,
+.app-shell .app-mobile-close {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  min-width: 0;
+  min-height: 0 !important;
+  padding: 5px;
+  border: 1px solid #e0e9e2;
+  margin: 0;
+  border-radius: 8px;
+  color: #71867a;
+  background: #f9fcfa;
+  cursor: pointer;
+  position: absolute;
+  right: 10px;
+  top: 83px;
+}
+.app-sidebar-toggle svg {
+  width: 17px;
+  height: 17px;
+}
+.app-shell .app-sidebar-toggle:hover {
+  background: #eaf4ee;
+}
+.app-shell-collapsed .app-sidebar-toggle svg {
+  transform: rotate(180deg);
+}
+.app-shell .app-menu-label {
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 1.8px;
+  color: #95a59b;
+  margin: 1px 15px 13px;
+}
+.app-sidebar-nav {
+  display: grid;
+  gap: 6px;
+}
+.app-shell .app-sidebar-nav a {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 10px;
+  border-radius: 9px;
+  text-decoration: none;
+  color: #496758;
+  font-size: 16px;
+  font-weight: 550;
+  line-height: 1.4;
+  min-width: 0;
+}
+.app-shell .app-sidebar-nav a:hover {
+  background: #f0f7f3;
+  color: #217d66;
+}
+.app-shell .app-sidebar-nav a[aria-current="page"] {
+  background: #e8f4ee;
+  color: #177e67;
+  font-weight: 750;
+}
+.app-nav-icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  border-radius: 6px;
+  background: #f0f7f3;
+  color: #409c86;
+}
+.app-nav-icon svg {
+  width: 17px;
+  height: 17px;
+}
+.app-sidebar-bottom {
+  margin-top: auto;
+  padding: 24px 8px 0;
+}
+.app-sidebar-bottom > p {
+  font-size: 14px;
+  color: #667e70;
+  border-top: 1px solid #edf2ee;
+  padding-top: 18px;
+  margin: 0 0 17px;
+}
+.app-sidebar-help {
+  display: grid;
+  gap: 9px;
+  margin-bottom: 18px;
+}
+.app-sidebar-help a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: #587363;
+  font-size: 15px;
+  padding: 5px;
+}
+.app-sidebar-help svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+.app-shell .app-sidebar-logout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  min-height: 40px !important;
+  padding: 9px 7px;
+  margin: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #668273;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+}
+.app-sidebar-logout svg {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 19px;
+}
+.app-shell .app-sidebar-logout:hover {
+  background: #eef7f2;
+}
+.app-sidebar-error {
+  font-size: 12px !important;
+  color: #9a683c !important;
+}
+.app-shell .site-header {
+  display: none !important;
+}
+.app-shell .app-content main {
+  width: calc(100% - 40px);
+  max-width: none;
+  box-sizing: border-box;
+  margin: 32px auto 50px;
+}
+.app-shell .app-content main.policy-main {
+  max-width: 1200px;
+}
+.app-shell .legal-links {
+  margin-left: 0;
+}
+.app-shell .editor-heading h1 {
+  font-size: clamp(30px, 2.6vw, 44px) !important;
+  line-height: 1.3;
+  letter-spacing: -0.8px;
+}
+.app-shell .editor-heading p {
+  font-size: 18px !important;
+}
+.app-shell .editor-heading {
+  margin-bottom: 24px;
+}
+.app-shell .writing-card {
+  padding: 25px;
+}
+.app-shell .writing-card-top h2 {
+  font-size: 28px !important;
+}
+.app-shell .writing-card-top p,
+.app-shell .autosave-label,
+.app-shell .theme-field > label {
+  font-size: 16px !important;
+}
+.app-shell .theme-picker summary {
+  padding: 16px !important;
+  font-size: 17px !important;
+}
+.app-shell .theme-summary-copy strong {
+  font-size: 18px !important;
+}
+.app-shell .theme-summary-copy small {
+  font-size: 15px !important;
+}
+.app-shell .editor-page textarea,
+.app-shell textarea#redacao {
+  min-height: max(560px, 60vh);
+  padding: 20px;
+  font-size: 22px !important;
+  line-height: 1.8;
+}
+.app-shell .writing-card-bottom {
+  font-size: 14px !important;
+}
+.app-shell .editor-actions button {
+  min-height: 49px !important;
+  font-size: 15px !important;
+  padding: 13px 20px !important;
+}
+.app-shell .q-sidebar {
+  min-width: 0;
+}
+.app-shell .editor-layout {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+}
+.app-shell .editor-layout > .tips-panel {
+  position: static;
+  width: auto;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: clamp(20px, 2.4vw, 36px);
+}
+.app-shell .editor-layout .theme-support-content {
+  padding: clamp(18px, 2vw, 30px);
+}
+@media (min-width: 901px) and (max-width: 1250px) {
+  .app-shell .editor-layout,
+  .app-shell .photo-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.app-shell .q-question-map {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+.app-shell .q-question-map button {
+  box-sizing: border-box;
+  min-width: 0 !important;
+  max-width: 100%;
+  width: 100% !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px !important;
+  line-height: 1;
+  letter-spacing: 0;
+}
+.app-shell .q-question-map button small {
+  top: 3px;
+  right: 4px;
+  font-size: 8px;
+  line-height: 1;
+}
+.app-mobile-bar,
+.app-shell .app-mobile-close {
+  display: none;
+}
+.app-shell a:focus-visible,
+.app-shell button:focus-visible {
+  outline: 3px solid #5e95b0;
+  outline-offset: 3px;
+}
+@media (min-width: 901px) {
+  .app-shell-collapsed .app-sidebar .sidebar-label {
+    display: none;
+  }
+  .app-shell-collapsed .app-sidebar {
+    padding-inline: 9px;
+  }
+  .app-shell-collapsed .app-sidebar-brand {
+    padding: 0;
+    justify-content: center;
+    margin-bottom: 56px;
+  }
+  .app-shell-collapsed .app-sidebar-toggle {
+    top: 83px;
+    right: 24px;
+  }
+  .app-shell-collapsed .app-sidebar-nav a {
+    justify-content: center;
+    padding: 11px 8px;
+  }
+  .app-shell-collapsed .app-sidebar-help a,
+  .app-shell-collapsed .app-sidebar-logout {
+    justify-content: center;
+    padding-inline: 0;
+  }
+}
+@media (max-width: 1150px) and (min-width: 901px) {
+  .app-shell {
+    --sidebar-size: 244px;
+  }
+  .app-shell.app-shell-collapsed {
+    --sidebar-size: 76px;
+  }
+  .app-shell .app-content main {
+    width: calc(100% - 32px);
+  }
+  .app-shell .app-sidebar-nav a {
+    font-size: 16px;
+    gap: 8px;
+  }
+}
+@media (max-width: 900px) {
+  .app-shell,
+  .app-shell.app-shell-collapsed {
+    --sidebar-size: 244px;
+  }
+  .app-shell .app-content {
+    margin-left: 0;
+    padding-top: 65px;
+  }
+  .app-shell .app-sidebar {
+    transform: translateX(-101%);
+    visibility: hidden;
+  }
+  .app-shell .app-sidebar.is-mobile-open {
+    transform: translateX(0);
+    visibility: visible;
+  }
+  .app-shell .app-mobile-bar {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 35;
+    height: 64px;
+    align-items: center;
+    gap: 20px;
+    padding: 0 18px;
+    border-bottom: 1px solid #dce7df;
+    background: #f8fbf8;
+  }
+  .app-shell .app-mobile-toggle {
+    display: grid;
+    place-items: center;
+    position: static;
+    width: 38px;
+    height: 38px;
+    min-width: 0;
+    min-height: 38px !important;
+    margin: 0;
+    padding: 8px;
+    color: #28836e;
+    border: 1px solid #d2e2d9;
+    border-radius: 9px;
+    background: #fff;
+  }
+  .app-mobile-toggle svg {
+    width: 21px;
+    height: 21px;
+  }
+  .app-mobile-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #1f4338;
+    font-size: 18px;
+    font-weight: 800;
+    text-decoration: none;
+  }
+  .app-mobile-brand img {
+    width: 28px;
+    height: 28px;
+  }
+  .app-mobile-brand > span {
+    color: #188c76;
+    margin-left: -7px;
+  }
+  .app-shell .app-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 45;
+    width: 100%;
+    height: 100dvh;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: #17382f55;
+  }
+  .app-shell .app-mobile-close {
+    display: grid;
+    top: 82px;
+    right: 12px;
+  }
+  .app-shell .app-sidebar-toggle {
+    display: none;
+  }
+  .app-shell .app-content main {
+    width: calc(100% - 36px);
+    margin-top: 25px;
+  }
+  .app-shell .writing-card {
+    padding: 20px;
+  }
+  .app-shell textarea#redacao {
+    min-height: max(420px, 55vh);
+    font-size: 16px !important;
+    padding: 16px;
+  }
+}
+@media (max-width: 540px) {
+  .app-shell .app-content main {
+    width: calc(100% - 28px);
+    margin-top: 20px;
+  }
+  .app-shell .editor-heading h1 {
+    font-size: 26px !important;
+  }
+  .app-shell .q-question-map button {
+    height: 44px !important;
+    min-height: 44px !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-shell .app-content,
+  .app-shell .app-sidebar {
+    transition: none;
+  }
+}

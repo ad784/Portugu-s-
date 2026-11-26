@@ -6,7 +6,7 @@ function profileMessage(message, type = "error") {
 }
 
 async function profileRequest(method = "GET", body = null) {
-  if (!window.supabaseClient)
+  if (!window.authClient)
     throw new Error(
       "O serviço de autenticação ainda está carregando. Tente novamente.",
     );
@@ -28,7 +28,7 @@ async function profileRequest(method = "GET", body = null) {
   }
 
   if (response.status === 401) {
-    await window.supabaseClient.auth.signOut();
+    await window.authClient.auth.signOut();
     window.location.href = "/";
     return null;
   }
@@ -91,7 +91,7 @@ async function alterarSenha() {
     showPasswordMessage("As senhas não coincidem. Confira os dois campos.");
     return;
   }
-  if (!window.supabaseClient) {
+  if (!window.authClient) {
     showPasswordMessage(
       "O serviço de autenticação ainda está carregando. Tente novamente.",
     );
@@ -103,12 +103,12 @@ async function alterarSenha() {
   try {
     const {
       data: { session },
-    } = await window.supabaseClient.auth.getSession();
+    } = await window.authClient.auth.getSession();
     if (!session) {
       window.location.href = "/";
       return;
     }
-    const { error } = await window.supabaseClient.auth.updateUser({ password });
+    const { error } = await window.authClient.auth.updateUser({ password });
     if (error) throw error;
     document.getElementById("perfil-senha").value = "";
     document.getElementById("perfil-senha-confirmacao").value = "";

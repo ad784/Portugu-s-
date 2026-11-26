@@ -70,7 +70,7 @@ async function recuperarSenha(event) {
   button.disabled = true;
   button.textContent = reset ? "Salvando..." : "Enviando...";
   try {
-    if (!window.supabaseClient)
+    if (!window.authClient)
       throw new Error(
         "O serviço de autenticação não está disponível. Tente novamente.",
       );
@@ -82,7 +82,7 @@ async function recuperarSenha(event) {
         throw new Error("As senhas não coincidem.");
       if (!(await window.portuguesSession.getSession()))
         throw new Error("O link expirou. Solicite outro link de recuperação.");
-      const { error } = await window.supabaseClient.auth.updateUser({
+      const { error } = await window.authClient.auth.updateUser({
         password,
       });
       if (error) throw error;
@@ -99,7 +99,7 @@ async function recuperarSenha(event) {
         .toLowerCase();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
         throw new Error("Informe um e-mail válido.");
-      const { error } = await window.supabaseClient.auth.resetPasswordForEmail(
+      const { error } = await window.authClient.auth.resetPasswordForEmail(
         email,
         { redirectTo: `${window.location.origin}/recuperar?reset=1` },
       );

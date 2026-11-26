@@ -13,11 +13,13 @@ function createServerClient(accessToken) {
         ...(accessToken
           ? { headers: { Authorization: `Bearer ${accessToken}` } }
           : {}),
-        fetch: (url, options = {}) =>
-          fetch(url, {
+        fetch: async (url, options = {}) => {
+          const { createAuthFetch } = await import("../utils/auth-fetch.mjs");
+          return createAuthFetch()(url, {
             ...options,
             signal: options.signal || AbortSignal.timeout(10000),
-          }),
+          });
+        },
       },
     },
   );

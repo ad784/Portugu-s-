@@ -24,7 +24,7 @@ test("signup opens the email instructions page and preserves email delivery opti
     document: { getElementById: (id) => fields[id] },
     window: {
       location: { origin: "http://localhost:3000" },
-      supabaseClient: {
+      authClient: {
         auth: {
           signUp: async (input) => {
             request = input;

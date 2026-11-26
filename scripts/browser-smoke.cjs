@@ -4,6 +4,12 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const { spawn } = require("node:child_process");
+const { publicCatalog } = require("../backend/backend-src/data/exercises");
+const {
+  checkAnswer,
+  validateAttempt,
+  withBreakdown,
+} = require("../backend/backend-src/services/exercises");
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const chrome = "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const reportDir = path.resolve(".qa");
@@ -15,17 +21,6 @@ const user = {
   role: "authenticated",
   app_metadata: {},
   user_metadata: { nome: "Estudante de teste" },
-};
-const encode = (value) =>
-  Buffer.from(JSON.stringify(value)).toString("base64url");
-const token = `${encode({ alg: "HS256", typ: "JWT" })}.${encode({ sub: user.id, aud: "authenticated", exp: Math.floor(Date.now() / 1000) + 3600, role: "authenticated" })}.test`;
-const session = {
-  access_token: token,
-  refresh_token: "qa-refresh",
-  token_type: "bearer",
-  expires_at: Math.floor(Date.now() / 1000) + 3600,
-  expires_in: 3600,
-  user,
 };
 const historyFixture = Array.from({ length: 96 }, (_, index) => ({
   id: `essay-${index}`,
@@ -72,6 +67,31 @@ async function main() {
       ws.onopen = resolve;
       ws.onerror = reject;
     });
+    const providerRequests = [];
+    const practiceRecords = process.argv.includes("--questions")
+      ? [
+          {
+            id: "legacy-training",
+            material_version: 1,
+            skill_id: "tese",
+            level_id: null,
+            question_ids: null,
+            theme_id: "cultura",
+            answers: [2, 1, 0],
+            correct_count: 2,
+            question_count: 3,
+            original_text:
+              "Legacy practice text retained for the browser test.",
+            revised_text: null,
+            self_checks: [true, false, true],
+            revision_checks: [false, false, false],
+            created_at: "2026-11-24T12:00:00Z",
+          },
+        ]
+      : [];
+    let practiceSaveFailures = process.argv.includes("--questions") ? 1 : 0;
+    let practiceHistoryFailures = 0;
+    let guest = false;
     let sequence = 0,
       currentRoute = "/",
       exceptions = [];
@@ -115,14 +135,117 @@ async function main() {
       if (data.method === "Fetch.requestPaused") {
         const { requestId, request } = data.params;
         const url = new URL(request.url);
+        if (url.hostname.endsWith(".supabase.co"))
+          providerRequests.push(url.pathname);
         let body;
         if (url.pathname === "/api/config")
           body = {
-            supabaseUrl: "https://qa.supabase.co",
-            supabasePublishableKey: "sb_publishable_qa",
             emailRecoveryEnabled: true,
           };
-        else if (url.pathname === "/api/termos")
+        else if (
+          [
+            "/api/auth/session",
+            "/api/auth/refresh",
+            "/api/auth/login",
+          ].includes(url.pathname)
+        )
+          body = {
+            data: {
+              session:
+                !guest &&
+                [
+                  "/nova",
+                  "/foto",
+                  "/resultado",
+                  "/historico",
+                  "/evolucao",
+                  "/perfil",
+                  "/aceite",
+                  "/questoes",
+                  "/discursivas",
+                  "/historico-tecnico",
+                ].includes(currentRoute)
+                  ? { user: { id: user.id, email: user.email } }
+                  : null,
+            },
+          };
+        else if (url.pathname === "/api/auth/settings")
+          body = { signupEnabled: true };
+        else if (url.pathname === "/api/auth/logout") body = { data: {} };
+        else if (url.pathname === "/api/discursivas/config")
+          body = require("../backend/backend-src/data/technical-writing");
+        else if (url.pathname === "/api/discursivas/historico")
+          body = { records: [], hasMore: false };
+        else if (url.pathname === "/api/discursivas/corrigir") {
+          const {
+            validateTechnicalInput,
+            normalizeTechnicalResult,
+          } = require("../backend/backend-src/services/technical-writing");
+          const payload = validateTechnicalInput(JSON.parse(request.postData));
+          const evidence = payload.answer.split(".")[0];
+          const result = normalizeTechnicalResult(
+            {
+              sintese: "Resposta avaliada para o teste.",
+              criterios: payload.criteria.map(({ id }) => ({
+                id,
+                percentual: 80,
+                comentario: "Desenvolva a explicação.",
+                evidencia: evidence,
+              })),
+              itens: [
+                {
+                  item: "Responder ao comando",
+                  status: "parcial",
+                  comentario: "Explicite a relação.",
+                  evidencia: evidence,
+                },
+              ],
+              pontos_fortes: ["Clareza"],
+              melhorias: ["Explique o indicador"],
+              revisao: "Reescreva a justificativa do indicador.",
+              alertas_tecnicos: [],
+            },
+            payload,
+          );
+          body = {
+            salvo: true,
+            record: {
+              id: "11111111-1111-4111-8111-111111111111",
+              mode: payload.mode,
+              area: payload.area,
+              payload,
+              result,
+              evaluation_hash: "a".repeat(64),
+            },
+          };
+        } else if (url.pathname === "/api/questoes") body = publicCatalog();
+        else if (url.pathname === "/api/questoes/conferir")
+          body = checkAnswer(JSON.parse(request.postData));
+        else if (url.pathname === "/api/questoes/tentativas") {
+          if (request.method === "GET" && practiceHistoryFailures > 0) {
+            practiceHistoryFailures--;
+            body = {
+              erro: "Não foi possível carregar seus treinos. Tente novamente.",
+            };
+          } else if (request.method === "GET")
+            body = { attempts: practiceRecords, hasMore: false };
+          else if (practiceSaveFailures > 0) {
+            practiceSaveFailures--;
+            body = {
+              erro: "Não foi possível salvar este treino. Seu texto continua aqui; tente concluir novamente.",
+            };
+          } else {
+            const record = withBreakdown(
+              validateAttempt(JSON.parse(request.postData)),
+            );
+            let attempt = practiceRecords.find((item) => item.id === record.id);
+            if (!attempt) {
+              attempt = { ...record, created_at: new Date().toISOString() };
+              practiceRecords.push(attempt);
+            }
+            body = { attempt };
+          }
+        } else if (url.pathname === "/api/termos")
           body = {
             accepted: currentRoute !== "/aceite",
             receipt: { accepted_at: new Date().toISOString() },
@@ -165,13 +288,46 @@ async function main() {
         { urlPattern: "https://*.supabase.co/*" },
       ],
     });
-    const sessionSetup = await call("Page.addScriptToEvaluateOnNewDocument", {
-      source: `if(location.hostname==='localhost'){const key='sb-qa-auth-token';if(['/nova','/foto','/resultado','/historico','/evolucao','/perfil','/aceite'].includes(location.pathname))localStorage.setItem(key,${JSON.stringify(JSON.stringify(session))});else localStorage.removeItem(key);}`,
-    });
+    if (process.argv.includes("--technical")) {
+      await require("./technical-check.cjs")({
+        call,
+        setRoute: (value) => {
+          currentRoute = value;
+        },
+        exceptions: () => exceptions,
+        reportDir,
+      });
+      return;
+    }
+    if (process.argv.includes("--questions")) {
+      await require("./questions-check.cjs")({
+        call,
+        records: practiceRecords,
+        providerRequests,
+        exceptions: () => exceptions,
+        setRoute: (value) => {
+          currentRoute = value;
+        },
+        setGuest: (value) => {
+          guest = value;
+        },
+        failHistory: () => {
+          practiceHistoryFailures = 1;
+        },
+        reportDir,
+        userId: user.id,
+      });
+      return;
+    }
     if (process.argv.includes("--login-access")) {
+      guest = true;
       const evaluate = async (expression) => {
-        const result = await call("Runtime.evaluate", { expression, returnByValue: true });
-        if (result.exceptionDetails) throw new Error(result.exceptionDetails.text);
+        const result = await call("Runtime.evaluate", {
+          expression,
+          returnByValue: true,
+        });
+        if (result.exceptionDetails)
+          throw new Error(result.exceptionDetails.text);
         return result.result.value;
       };
       const waitFor = async (expression) => {
@@ -182,53 +338,79 @@ async function main() {
         throw new Error("Condição não atingida: " + expression);
       };
       for (const width of [1512, 390]) {
-        await call("Emulation.setDeviceMetricsOverride", { width, height: 900, deviceScaleFactor: 1, mobile: width < 500 });
+        await call("Emulation.setDeviceMetricsOverride", {
+          width,
+          height: 900,
+          deviceScaleFactor: 1,
+          mobile: width < 500,
+        });
         await call("Page.navigate", { url: "http://localhost:3000/" });
-        await waitFor("!!document.querySelector('#login-form') && !!document.querySelector('.nav-menu-toggle')");
+        await waitFor(
+          "!!document.querySelector('#login-form') && !!document.querySelector('.nav-menu-toggle')",
+        );
         const layout = await evaluate(`({
           examples: !!document.querySelector('.site-nav a[href="/exemplos"]'),
           overflow: document.documentElement.scrollWidth > innerWidth,
           cardWidth: document.querySelector('#login-form').getBoundingClientRect().width,
           cardHeight: document.querySelector('#login-form').getBoundingClientRect().height
         })`);
-        if (layout.examples || layout.overflow) throw new Error("Menu ou largura do login incorretos.");
+        if (layout.examples || layout.overflow)
+          throw new Error("Menu ou largura do login incorretos.");
         console.log(JSON.stringify({ width, ...layout }));
-        const screenshot = await call("Page.captureScreenshot", { format: "png" });
-        fs.writeFileSync(path.join(reportDir, `login-access-${width}.png`), Buffer.from(screenshot.data, "base64"));
+        const screenshot = await call("Page.captureScreenshot", {
+          format: "png",
+        });
+        fs.writeFileSync(
+          path.join(reportDir, `login-access-${width}.png`),
+          Buffer.from(screenshot.data, "base64"),
+        );
       }
       // Public examples can remain available, but their editor link must not
       // reveal protected content before a session has been established.
-      await call("Page.removeScriptToEvaluateOnNewDocument", { identifier: sessionSetup.identifier });
       await evaluate("localStorage.clear(); sessionStorage.clear()");
-      await call("Page.addScriptToEvaluateOnNewDocument", { source: `
+      await call("Page.addScriptToEvaluateOnNewDocument", {
+        source: `
         window.exposedEditor = false;
         new MutationObserver(() => {
           const editor = document.getElementById('redacao');
           if (editor?.getClientRects().length) window.exposedEditor = true;
         }).observe(document, { childList: true, subtree: true, attributes: true });
-      ` });
+      `,
+      });
       for (const route of ["/nova", "/nova.html"]) {
         await call("Page.navigate", { url: "http://localhost:3000" + route });
-        await waitFor("location.pathname==='/' && !!document.getElementById('login-form')");
+        await waitFor(
+          "location.pathname==='/' && !!document.getElementById('login-form')",
+        );
         console.log("Visitante redirecionado ao login: " + route);
       }
       await call("Page.navigate", { url: "http://localhost:3000/exemplos" });
       await waitFor("!!document.querySelector('a[href=\"/nova\"]')");
       await evaluate("document.querySelector('a[href=\"/nova\"]').click()");
-      await waitFor("location.pathname==='/' && !!document.getElementById('login-form')");
+      await waitFor(
+        "location.pathname==='/' && !!document.getElementById('login-form')",
+      );
       // Hold auth configuration unavailable: the editor must remain hidden.
       await call("Network.enable");
       await call("Network.setBlockedURLs", { urls: ["*api/config*"] });
       await call("Page.navigate", { url: "http://localhost:3000/nova" });
       await delay(500);
-      if (await evaluate("window.exposedEditor || !!document.getElementById('redacao')?.getClientRects().length"))
+      if (
+        await evaluate(
+          "window.exposedEditor || !!document.getElementById('redacao')?.getClientRects().length",
+        )
+      )
         throw new Error("Editor exposto antes da autenticação.");
       await call("Network.setBlockedURLs", { urls: [] });
-      await call("Page.addScriptToEvaluateOnNewDocument", { source: `localStorage.setItem('sb-qa-auth-token', ${JSON.stringify(JSON.stringify(session))});` });
+      guest = false;
       currentRoute = "/nova";
       await call("Page.navigate", { url: "http://localhost:3000/nova" });
-      await waitFor("location.pathname==='/nova' && !!document.getElementById('redacao')?.getClientRects().length && !!document.querySelector('.nav-menu-toggle')");
-      console.log("ACESSO OK: visitante bloqueado; editor disponível para sessão autenticada.");
+      await waitFor(
+        "location.pathname==='/nova' && !!document.getElementById('redacao')?.getClientRects().length && !!document.querySelector('.nav-menu-toggle')",
+      );
+      console.log(
+        "ACESSO OK: visitante bloqueado; editor disponível para sessão autenticada.",
+      );
       return;
     }
     const reports = [];
@@ -243,6 +425,9 @@ async function main() {
         "/",
         "/cadastro",
         "/recuperar",
+        "/questoes",
+        "/discursivas",
+        "/historico-tecnico",
         "/nova",
         "/foto",
         "/resultado",
@@ -384,11 +569,11 @@ async function main() {
     );
     const draft = Array(8)
       .fill(
-        "Esta redação fictícia verifica a preservação do texto quando o serviço falha.",
+        "O acesso ao cinema depende de espaços culturais e de transporte acessível. Este trecho fictício verifica a preservação do texto quando o serviço falha.",
       )
       .join("\n");
     await evaluate(
-      `document.getElementById('redacao').value=${JSON.stringify(draft)};document.getElementById('redacao').dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('.theme-option[data-theme]')?.click();`,
+      `document.getElementById('redacao').value=${JSON.stringify(draft)};document.getElementById('redacao').dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('.theme-option[data-theme*="cinema"]')?.click();`,
     );
     await delay(300);
     const theme = await evaluate("document.getElementById('tema-enem').value");
@@ -404,7 +589,7 @@ async function main() {
       throw new Error("Campo extra de tema reapareceu.");
     await evaluate("document.querySelector('.correct-action').click()");
     await waitFor(
-      "document.getElementById('editor-message')?.textContent.includes('Seu texto permanece')",
+      "document.getElementById('editor-message')?.textContent.includes('Seu texto permanece') && !document.querySelector('.correct-action').disabled",
     );
     if ((await evaluate("document.getElementById('redacao').value")) !== draft)
       throw new Error("Falha de correção apagou o texto.");
@@ -423,6 +608,7 @@ async function main() {
       path.join(reportDir, "browser-report.json"),
       JSON.stringify(
         {
+          providerRequests,
           pages: reports,
           interactions: [
             "draft-and-theme-restored",
@@ -435,6 +621,8 @@ async function main() {
         2,
       ),
     );
+    if (providerRequests.length)
+      throw new Error("O frontend tentou acessar o Supabase diretamente.");
     if (
       reports.some(
         (item) =>

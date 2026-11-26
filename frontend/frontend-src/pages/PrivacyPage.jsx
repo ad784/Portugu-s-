@@ -37,7 +37,7 @@ export default function PrivacyPage() {
           <h2>{"Dados tratados"}</h2>
           <p>
             {
-              "O Português+ trata nome, e-mail, textos das redações, notas estimadas e, quando enviada, a imagem da redação. Esses dados são usados para autenticação, correção pedagógica e histórico do estudante."
+              "O Português+ trata nome, e-mail, textos das redações, notas estimadas e, quando enviada, a imagem da redação. Também registra respostas, trechos, reescritas e autoavaliações dos treinos de Questões. Esses dados são usados para autenticação, prática de escrita, correção pedagógica e histórico do estudante."
             }
           </p>
         </section>
@@ -53,7 +53,7 @@ export default function PrivacyPage() {
           <h2>{"Armazenamento e acesso"}</h2>
           <p>
             {
-              "As redações e seus resultados ficam armazenados no Supabase. O histórico é restrito ao usuário autenticado; fotos usam bucket privado e não são públicas."
+              "As redações e seus resultados ficam armazenados no Supabase. Em ENADE e concursos, também guardamos o enunciado, a referência informada, os critérios e a resposta com a avaliação técnica. Esses textos são enviados à IA para a correção autorizada. O histórico é restrito ao usuário autenticado; fotos usam bucket privado e não são públicas."
             }
           </p>
         </section>

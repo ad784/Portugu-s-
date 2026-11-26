@@ -1,7 +1,9 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const express = require("express");
-const { createProfileRouter } = require("../backend/backend-src/routes/profile");
+const {
+  createProfileRouter,
+} = require("../backend/backend-src/routes/profile");
 
 test("privacy export scopes every table to the account and exports multiple pages of legal events", async (t) => {
   const queries = [];
@@ -66,6 +68,8 @@ test("privacy export scopes every table to the account and exports multiple page
   assert.equal(response.headers.get("cache-control"), "no-store");
   assert.equal(body.eventosDePrivacidade.length, 201);
   assert.equal(body.redacoes.length, 1);
+  assert.equal(body.treinos.length, 1);
+  assert.equal(body.discursivas.length, 1);
   assert.ok(queries.every((query) => query.scoped));
   assert.equal(body.perfil.email, "a@example.com");
 });

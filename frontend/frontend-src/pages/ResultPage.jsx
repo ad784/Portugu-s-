@@ -97,6 +97,21 @@ export default function ResultPage() {
           </div>{" "}
           <div id="competency-cards" className="competency-cards"></div>{" "}
         </section>{" "}
+        <section
+          id="handwriting-card"
+          className="report-card"
+          aria-labelledby="handwriting-heading"
+          hidden
+        >
+          <div className="report-heading">
+            <div>
+              <h2 id="handwriting-heading">Escrita e caligrafia</h2>
+              <p>Nota separada, sem efeito na nota da redação.</p>
+            </div>
+          </div>
+          <strong id="handwriting-score" className="competency-score"></strong>
+          <p id="handwriting-comment"></p>
+        </section>
         <section className="report-card" aria-labelledby="report-heading">
           {" "}
           <div className="report-heading">
@@ -115,7 +130,9 @@ export default function ResultPage() {
           <pre id="resultado"></pre>{" "}
         </section>{" "}
         <div className="result-actions">
-          {" "}
+          <a href="/questoes" className="secondary-action">
+            Treinar uma parte do texto
+          </a>{" "}
           <button id="write-new-essay" className="primary-action" type="button">
             {"Escrever nova redação "}
             <span>{"→"}</span>
